@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로스팅 주문관리</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --card:#fff; --line:#e3e6ea; --txt:#1f2329; --sub:#6b7280;
+    --accent:#7b5e3b; --accent2:#a8794a; --ok:#1f9d55; --okbg:#e8f6ee;
+    --warn:#d97706; --danger:#dc2626; --chip:#f0ebe3;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+    background:var(--bg);color:var(--txt);font-size:15px;line-height:1.5}
+  header{background:var(--accent);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:20;
+    display:flex;align-items:center;justify-content:space-between}
+  header h1{font-size:17px;margin:0;font-weight:700}
+  header .date{font-size:13px;opacity:.9}
+  nav{display:flex;background:var(--card);border-bottom:1px solid var(--line);
+    position:sticky;top:50px;z-index:19;overflow-x:auto}
+  nav button{flex:1;min-width:64px;border:0;background:none;padding:12px 4px;font-size:13px;
+    color:var(--sub);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+  nav button.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+  main{padding:14px;max-width:760px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+  .card h2{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  .muted{color:var(--sub);font-size:13px}
+  label{display:block;font-size:12.5px;color:var(--sub);margin:0 0 4px}
+  input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;
+    font-size:14.5px;font-family:inherit;background:#fff}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent2)}
+  button.btn{border:0;border-radius:8px;padding:9px 14px;font-size:14px;cursor:pointer;font-weight:600}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-ghost{background:var(--chip);color:var(--txt)}
+  .btn-danger{background:#fde8e8;color:var(--danger)}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .grow{flex:1;min-width:0}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{font-size:12px;color:var(--sub);font-weight:600}
+  td.num,th.num{text-align:right}
+  .chip{display:inline-block;background:var(--chip);border-radius:20px;padding:3px 10px;font-size:12.5px;margin:2px}
+  .tag{font-size:11.5px;background:#eef2f7;color:#475569;border-radius:6px;padding:1px 7px}
+  .pill{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:20px;padding:6px 12px;font-size:13px;margin:3px;display:inline-flex;align-items:center;gap:6px}
+  .pill.done{background:var(--okbg);border-color:#bfe6cd;color:var(--ok)}
+  .pill.miss{border-color:#f0c8c8;color:var(--danger)}
+  .iconbtn{border:0;background:none;cursor:pointer;color:var(--sub);font-size:16px;padding:4px}
+  .total{font-size:22px;font-weight:800;color:var(--accent)}
+  .batch{font-weight:800;color:var(--warn)}
+  pre.copybox{white-space:pre-wrap;background:#fbfaf8;border:1px dashed var(--accent2);border-radius:10px;
+    padding:12px;font-family:inherit;font-size:14px;margin:0 0 10px}
+  textarea.msgbox{min-height:160px;background:#fbfaf8;border:1px solid var(--accent2);border-radius:10px;line-height:1.6;resize:vertical}
+  .ocard{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden}
+  .ocard-h{display:flex;justify-content:space-between;align-items:center;background:var(--chip);padding:9px 13px}
+  .ocard-name{font-weight:800;font-size:15.5px}
+  .orow{display:flex;align-items:center;gap:10px;padding:10px 13px;border-top:1px solid var(--line)}
+  .orow .oname{flex:1;min-width:0}
+  .orow .oqty{font-weight:700;color:var(--accent);min-width:62px;text-align:right}
+  .msgcard{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+  .modebtns{display:flex;gap:6px;flex-wrap:wrap}
+  .ord{display:inline-flex;flex-direction:column;gap:1px}
+  .ord button{border:1px solid var(--line);background:#fff;border-radius:5px;cursor:pointer;font-size:10px;line-height:1;padding:2px 5px;color:var(--sub)}
+  .ord button:disabled{opacity:.3;cursor:default}
+  /* 달력 */
+  .calnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .calnav button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:16px}
+  .cal{width:100%;border-collapse:collapse;table-layout:fixed}
+  .cal th{text-align:center;font-size:12px;color:var(--sub);padding:6px 0;border:0}
+  .cal td{height:56px;vertical-align:top;border:1px solid var(--line);padding:3px;cursor:pointer;position:relative}
+  .cal td.empty{background:#fafafa;cursor:default}
+  .cal .dnum{font-size:12.5px;color:var(--sub)}
+  .cal td.has-done{background:#fde8e8}
+  .cal td.has-future{background:#fef3e2}
+  .cal td.today .dnum{color:var(--accent);font-weight:800}
+  .cal td.today{outline:2px solid var(--accent);outline-offset:-2px}
+  .cal td.sel{box-shadow:inset 0 0 0 2px var(--accent2)}
+  .cal .ckg{font-size:11px;font-weight:800;color:var(--danger);position:absolute;bottom:3px;left:4px}
+  .cal td.has-future .ckg{color:var(--warn)}
+  .callegend{font-size:12px;color:var(--sub);margin-top:10px;display:flex;gap:16px;flex-wrap:wrap}
+  .legdot{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+  .hide{display:none}
+  .flex-between{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .small{font-size:12.5px;padding:6px 10px}
+  .empty{text-align:center;color:var(--sub);padding:24px 8px}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1f2329;color:#fff;
+    padding:10px 18px;border-radius:24px;font-size:14px;opacity:0;transition:.25s;z-index:50;pointer-events:none}
+  .toast.show{opacity:.95}
+  .check{width:20px;height:20px;accent-color:var(--ok)}
+  hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+  #authGate{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+  .authbox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 22px;max-width:360px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.08)}
+  .authbox h2{margin:0 0 6px;color:var(--accent);font-size:20px}
+  .authbox input{margin-bottom:10px}
+  .authrow{display:flex;gap:8px}
+  .authrow .btn{flex:1;margin-top:6px}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<div id="authGate" class="hide">
+  <div class="authbox">
+    <h2>☕ 로스팅 주문관리</h2>
+    <p class="muted" id="authMsg">이메일과 비밀번호로 로그인하세요. 처음이면 회원가입을 눌러주세요.</p>
+    <input id="authEmail" type="email" placeholder="이메일 (아이디)" autocomplete="username">
+    <input id="authPw" type="password" placeholder="비밀번호 (6자 이상)" autocomplete="current-password">
+    <div class="authrow">
+      <button class="btn btn-primary" id="loginBtn">로그인</button>
+      <button class="btn btn-ghost" id="signupBtn">회원가입</button>
+    </div>
+    <p style="color:var(--danger);font-size:13px;margin:10px 0 0" id="authErr"></p>
+  </div>
+</div>
+<header>
+  <h1>☕ 로스팅 주문관리</h1>
+  <span class="date" id="hdrDate"></span>
+</header>
+<nav>
+  <button data-tab="order" class="active">주문입력</button>
+  <button data-tab="roast">로스팅시트</button>
+  <button data-tab="pack">포장리스트</button>
+  <button data-tab="copy">메시지</button>
+  <button data-tab="cal">달력</button>
+  <button data-tab="dues">미수금</button>
+  <button data-tab="beans">생두구매</button>
+  <button data-tab="set">설정</button>
+</nav>
+<main>
+
+<!-- ============ 주문입력 ============ -->
+<section id="tab-order">
+  <div class="card">
+    <div class="flex-between"><h2 style="margin:0">📅 로스팅 날짜</h2>
+      <button class="btn btn-ghost small" id="todayBtn" style="display:none" onclick="goToday()">⏎ 오늘로 돌아가기</button></div>
+    <div class="row" style="margin-top:10px">
+      <div class="grow">
+        <label>날짜 (미래 날짜를 고르면 미리 예약 작성)</label>
+        <input type="date" id="sessDate">
+      </div>
+      <div class="grow">
+        <label>메모 (선택)</label>
+        <input type="text" id="sessMemo" placeholder="예: 6월 2주차 / 택배">
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="upcomingCard" style="display:none">
+    <h2>📌 예정된 로스팅</h2>
+    <div id="upcoming"></div>
+  </div>
+
+  <div class="card">
+    <h2>✅ 거래처 주문 체크</h2>
+    <p class="muted">주문 받은 거래처를 눌러 표시하세요. 빨간색 = 아직 주문 안 들어온 곳 (누락 방지용)</p>
+    <div id="custCheck"></div>
+  </div>
+
+  <div class="card">
+    <h2>➕ 주문 추가</h2>
+    <div class="row">
+      <div class="grow">
+        <label>거래처</label>
+        <select id="oCust"></select>
+      </div>
+      <div class="grow">
+        <label>품목</label>
+        <select id="oProd"></select>
+      </div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div class="grow">
+        <label>수량 (kg)</label>
+        <input type="number" id="oQty" step="0.1" min="0" placeholder="예: 5">
+      </div>
+      <div class="grow">
+        <label>단가 (원/kg) · 자동입력, 싯가는 직접</label>
+        <input type="number" id="oPrice" step="100" min="0" placeholder="싯가-직접입력">
+      </div>
+    </div>
+    <div style="margin-top:8px">
+      <label>적요 (선택)</label>
+      <input type="text" id="oNote" placeholder="예: 판매용 / 디카페인">
+    </div>
+    <div class="muted" id="amtPrev" style="margin-top:6px;font-weight:700"></div>
+    <div style="margin-top:10px">
+      <button class="btn btn-primary" id="addOrder">주문 추가</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="flex-between">
+      <h2 style="margin:0">📋 입력된 주문</h2>
+      <span class="muted" id="orderCount"></span>
+    </div>
+    <div id="orderList"></div>
+  </div>
+</section>
+
+<!-- ============ 로스팅시트 ============ -->
+<section id="tab-roast" class="hide">
+  <div class="card">
+    <div class="flex-between">
+      <h2 style="margin:0">🔥 품목별 합산 + 배치</h2>
+      <span class="total" id="grandTotal"></span>
+    </div>
+    <p class="muted">기센 W6 기준 1배치당 5kg 배출. 배치 수 = 총 주문량 ÷ 5 (올림). ↑↓ 로 로스팅 순서를 바꿀 수 있어요.</p>
+    <div id="roastSheet"></div>
+  </div>
+</section>
+
+<!-- ============ 포장리스트 ============ -->
+<section id="tab-pack" class="hide">
+  <div class="card">
+    <h2>📦 거래처별 포장 리스트</h2>
+    <p class="muted">포장 끝난 항목/거래처를 체크하세요.</p>
+    <div id="packList"></div>
+  </div>
+</section>
+
+<!-- ============ 복사하기 ============ -->
+<section id="tab-copy" class="hide">
+  <div class="card">
+    <h2>💬 거래처별 메시지</h2>
+    <p class="muted">[주문확인 멘트] / [택배안내 멘트] 버튼으로 양식을 고르고, 직접 수정한 뒤 복사하세요. 수정 내용은 자동 저장됩니다.</p>
+    <div id="custMsgs"></div>
+  </div>
+</section>
+
+<!-- ============ 달력 ============ -->
+<section id="tab-cal" class="hide">
+  <div class="card">
+    <div class="calnav">
+      <button onclick="calShift(-1)">◀</button>
+      <b id="calTitle"></b>
+      <button onclick="calShift(1)">▶</button>
+    </div>
+    <div id="calGrid"></div>
+    <div class="callegend">
+      <span><span class="legdot" style="background:#fde8e8"></span>로스팅함 (오늘·지난)</span>
+      <span><span class="legdot" style="background:#fef3e2"></span>예정 (앞으로)</span>
+    </div>
+  </div>
+  <div class="card" id="calDetail"></div>
+</section>
+
+<!-- ============ 미수금 ============ -->
+<section id="tab-dues" class="hide">
+  <div class="card">
+    <div class="flex-between">
+      <h2 style="margin:0">💰 거래처별 미수금</h2>
+      <span class="total" id="duesTotal"></span>
+    </div>
+    <p class="muted">단가 × 수량으로 자동 청구됩니다. 입금되면 체크하세요. 월별 입금처는 [전체 입금 처리]로 한 번에 정리할 수 있어요.</p>
+    <div id="duesList"></div>
+  </div>
+</section>
+
+<!-- ============ 생두구매 ============ -->
+<section id="tab-beans" class="hide">
+  <div class="card">
+    <h2>🛒 생두 구매 입력</h2>
+    <div class="row">
+      <div class="grow"><label>구매일</label><input type="date" id="bDate"></div>
+      <div class="grow"><label>업체</label><input type="text" id="bSupplier" list="supList" placeholder="예: ○○상사"></div>
+    </div>
+    <div style="margin-top:8px"><label>생두명</label><input type="text" id="bBean" list="beanList" placeholder="예: 브라질 산토스 / 콜롬비아 수프리모"></div>
+    <div class="row" style="margin-top:8px">
+      <div class="grow"><label>수량 (kg)</label><input type="number" id="bQty" step="0.1" min="0" placeholder="예: 60"></div>
+      <div class="grow"><label>단가 (원/kg)</label><input type="number" id="bPrice" step="100" min="0" placeholder="예: 9000"></div>
+    </div>
+    <div style="margin-top:8px"><label>메모 (선택)</label><input type="text" id="bNote" placeholder="예: 뉴크롭 / 결제완료"></div>
+    <div class="muted" id="bAmtPrev" style="margin-top:6px;font-weight:700"></div>
+    <div style="margin-top:10px"><button class="btn btn-primary" id="addPurchase">구매 추가</button></div>
+    <datalist id="supList"></datalist><datalist id="beanList"></datalist>
+  </div>
+  <div class="card"><div class="flex-between"><h2 style="margin:0">📊 월별 구매 합계</h2><span class="total" id="beansTotal"></span></div><div id="monthSummary"></div></div>
+  <div class="card"><h2>🫘 생두별 단가 비교</h2><p class="muted">생두마다 최근 구매가와 최저가(업체)를 보여줍니다. 어디가 더 쌌는지 한눈에 확인하세요.</p><div id="beanCompare"></div></div>
+  <div class="card"><h2>📋 전체 구매 내역</h2><div id="purchaseLog"></div></div>
+</section>
+
+<!-- ============ 설정 ============ -->
+<section id="tab-set" class="hide">
+  <div class="card">
+    <h2>🏪 거래처 관리 (입금주기 · 예외단가)</h2>
+    <div class="row">
+      <input class="grow" type="text" id="newCust" placeholder="새 거래처 이름">
+      <button class="btn btn-ghost" id="addCust">추가</button>
+    </div>
+    <div id="custMng" style="margin-top:10px"></div>
+  </div>
+  <div class="card">
+    <h2>🫘 품목 관리 (배치 · 기본단가)</h2>
+    <p class="muted">1배치 = 5kg 배출. 단가를 비우면 '싯가'로 표시되어 주문 시 직접 입력합니다. (하우스블렌드 28,000 / 디카페인 32,000 기본)</p>
+    <div class="row">
+      <input class="grow" type="text" id="newProd" placeholder="새 품목 이름">
+      <button class="btn btn-ghost" id="addProd">추가</button>
+    </div>
+    <div id="prodMng" style="margin-top:10px"></div>
+  </div>
+  <div class="card">
+    <h2>💾 데이터 / 회차</h2>
+    <div id="acctBox" class="hide" style="margin-bottom:10px;padding:8px 10px;background:var(--okbg);border-radius:8px">
+      <span class="muted">로그인 계정: <b id="acctEmail"></b></span>
+      <button class="btn btn-ghost small" id="logoutBtn" style="margin-left:8px">로그아웃</button>
+    </div>
+    <p class="muted">로그인 시 데이터는 클라우드에 계정별로 저장되어 어느 기기에서든 같은 내용이 보입니다. (로그인 미설정 시 이 브라우저에만 저장)</p>
+    <div class="row">
+      <button class="btn btn-ghost small" id="exportBtn">백업 내보내기(JSON)</button>
+      <button class="btn btn-ghost small" id="importBtn">백업 불러오기</button>
+      <input type="file" id="importFile" accept="application/json" class="hide">
+    </div>
+    <hr>
+    <button class="btn btn-danger small" id="newSession">선택한 날짜 주문 비우기</button>
+    <p class="muted" style="margin-top:6px">거래처/품목 설정은 유지되고, 현재 선택한 날짜의 주문·메시지만 비웁니다.</p>
+  </div>
+</section>
+
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== Firebase 계정/클라우드 설정 (아래 값을 본인 프로젝트 값으로 바꾸면 로그인+동기화가 켜집니다) =====
+const firebaseConfig={
+  apiKey:"여기에-API-KEY",
+  authDomain:"여기에-PROJECT.firebaseapp.com",
+  projectId:"여기에-PROJECT-ID",
+  appId:"여기에-APP-ID"
+};
+const CLOUD = !!firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith('여기에') && typeof firebase!=='undefined';
+let myUid=null, cloudTimer=null;
+if(CLOUD){try{firebase.initializeApp(firebaseConfig);}catch(e){console.warn(e);}}
+function cloudSave(){if(CLOUD&&myUid){firebase.firestore().collection('roasters').doc(myUid).set({state:S,updated:Date.now()}).catch(e=>console.warn('cloud save',e));}}
+
+const KEY='roastmgr_v4';
+const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const uid=()=>Math.random().toString(36).slice(2,9);
+function addDays(iso,n){const d=new Date((iso||todayISO())+'T00:00:00');d.setDate(d.getDate()+n);return d;}
+function slash(d){if(typeof d==='string')d=new Date((d||todayISO())+'T00:00:00');return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');}
+function escapeHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function won(n){return (Math.round(n||0)).toLocaleString('ko-KR')+'원';}
+const PALETTE=['#b45309','#1d4ed8','#047857','#be123c','#7c3aed','#0891b2','#c2410c','#4d7c0f','#9333ea','#0f766e','#a16207','#db2777'];
+
+const DEFAULT={
+  customers:[
+    {id:uid(),name:'그래비티 매장',prices:{},payTerm:''},
+    {id:uid(),name:'앨리스 카페',prices:{},payTerm:''},
+    {id:uid(),name:'어울림 센터',prices:{},payTerm:''},
+    {id:uid(),name:'청담 르엘',prices:{},payTerm:''},
+    {id:uid(),name:'독일 베이커리',prices:{},payTerm:''},
+    {id:uid(),name:'(주)이한에프엔비',prices:{},payTerm:''},
+  ],
+  products:[
+    {id:uid(),name:'하우스블렌드',batch:5,price:28000},
+    {id:uid(),name:'브라질',batch:5,price:null},
+    {id:uid(),name:'콜롬비아',batch:5,price:null},
+    {id:uid(),name:'과테말라',batch:5,price:null},
+    {id:uid(),name:'디카페인',batch:5,price:32000},
+    {id:uid(),name:'에티오피아',batch:5,price:null},
+    {id:uid(),name:'엘살바도르',batch:5,price:null},
+    {id:uid(),name:'케냐',batch:5,price:null},
+  ],
+  days:{},            // { "YYYY-MM-DD": {memo, orders:[{id,custId,prodId,qty,unitPrice,paidAmt,note}], received:[custId], packedItems:[orderId], messages:{custId:text}} }
+  purchases:[],       // 생두 구매 [{id,date,supplier,bean,qty,unitPrice,note}]
+  selectedDate:todayISO(),
+};
+
+let S=load();
+normalize();
+function load(){
+  for(const k of ['roastmgr_v4','roastmgr_v3']){try{const r=JSON.parse(localStorage.getItem(k));if(r&&r.customers&&r.days)return r;}catch(e){}}
+  try{const old=JSON.parse(localStorage.getItem('roastmgr_v2'));
+    if(old&&old.customers){const days={};const date=old.sessDate||todayISO();
+      if((old.orders&&old.orders.length)||(old.received&&old.received.length))days[date]={memo:old.sessMemo||'',orders:old.orders||[],received:old.received||[],packedItems:old.packedItems||[],messages:old.messages||{}};
+      return {customers:old.customers,products:old.products,days,selectedDate:todayISO()};}
+  }catch(e){}
+  return structuredClone(DEFAULT);
+}
+function normalize(){
+  S.products.forEach(p=>{if(p.price===undefined)p.price=(p.name==='하우스블렌드'?28000:p.name==='디카페인'?32000:null);if(p.batch==null)p.batch=5;});
+  S.customers.forEach(c=>{if(!c.prices)c.prices={};if(c.payTerm===undefined)c.payTerm='';});
+  if(!S.purchases)S.purchases=[];
+  for(const k in S.days){const d=S.days[k];if(!d.messages)d.messages={};if(!d.received)d.received=[];if(!d.packedItems)d.packedItems=[];
+    d.orders.forEach(o=>{if(o.unitPrice===undefined)o.unitPrice=priceFor(o.custId,o.prodId)||0;
+      if(o.paidAmt===undefined)o.paidAmt=o.paid?((o.qty||0)*(o.unitPrice||0)):0;});}
+  if(!S.selectedDate)S.selectedDate=todayISO();
+}
+function save(){
+  for(const k in S.days){const d=S.days[k];if((!d.orders||!d.orders.length)&&(!d.received||!d.received.length)&&!d.memo)delete S.days[k];}
+  if(CLOUD){if(myUid){clearTimeout(cloudTimer);cloudTimer=setTimeout(cloudSave,800);}}
+  else localStorage.setItem(KEY,JSON.stringify(S));
+}
+function dayRO(date){return S.days[date||S.selectedDate]||{memo:'',orders:[],received:[],packedItems:[],messages:{}};}
+function dayRW(date){date=date||S.selectedDate;if(!S.days[date])S.days[date]={memo:'',orders:[],received:[],packedItems:[],messages:{}};return S.days[date];}
+function cust(id){return S.customers.find(c=>c.id===id);}
+function prod(id){return S.products.find(p=>p.id===id);}
+function custColor(id){const i=S.customers.findIndex(c=>c.id===id);return i<0?'#555':PALETTE[i%PALETTE.length];}
+function priceFor(custId,prodId){
+  const c=cust(custId);
+  if(c&&c.prices&&c.prices[prodId]!=null&&c.prices[prodId]!=='')return Number(c.prices[prodId]);
+  const p=prod(prodId);
+  if(p&&p.price!=null&&p.price!=='')return Number(p.price);
+  return null;
+}
+function orderAmt(o){return (o.qty||0)*(o.unitPrice||0);}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1600);}
+function fmt(n){return (Math.round(n*100)/100).toString();}
+function dayTotal(date){const d=S.days[date];return d?d.orders.reduce((s,o)=>s+o.qty,0):0;}
+
+// ---------- 탭 ----------
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  ['order','roast','pack','copy','cal','dues','beans','set'].forEach(t=>document.getElementById('tab-'+t).classList.add('hide'));
+  document.getElementById('tab-'+b.dataset.tab).classList.remove('hide');
+  renderAll();
+});
+
+// ---------- 날짜 ----------
+const sd=document.getElementById('sessDate'), sm=document.getElementById('sessMemo');
+sd.onchange=()=>{S.selectedDate=sd.value||todayISO();sm.value=dayRO().memo||'';save();renderAll();};
+sm.oninput=()=>{dayRW().memo=sm.value;save();renderHeader();renderCopy();};
+function renderHeader(){
+  const isToday=S.selectedDate===todayISO();const memo=dayRO().memo;
+  document.getElementById('hdrDate').textContent=(S.selectedDate||'')+(isToday?' · 오늘':'')+(memo?' · '+memo:'');
+  const btn=document.getElementById('todayBtn');if(btn)btn.style.display=isToday?'none':'';
+}
+window.goToday=()=>{S.selectedDate=todayISO();sd.value=S.selectedDate;sm.value=dayRO().memo||'';save();renderAll();window.scrollTo(0,0);};
+
+// ---------- 셀렉트 + 단가 자동입력 ----------
+const oCust=document.getElementById('oCust'),oProd=document.getElementById('oProd'),
+      oQty=document.getElementById('oQty'),oPrice=document.getElementById('oPrice'),oNote=document.getElementById('oNote');
+function fillSelects(){
+  const cv=oCust.value,pv=oProd.value;
+  oCust.innerHTML=S.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  oProd.innerHTML=S.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  if(cv)oCust.value=cv;if(pv)oProd.value=pv;
+}
+function refreshPrice(){const pr=priceFor(oCust.value,oProd.value);oPrice.value=pr!=null?pr:'';updateAmt();}
+function updateAmt(){const q=parseFloat(oQty.value)||0,u=parseFloat(oPrice.value)||0;
+  document.getElementById('amtPrev').textContent=(q&&u)?('금액: '+won(q*u)):(q&&!u?'단가(싯가)를 입력하세요':'');}
+oCust.onchange=refreshPrice;oProd.onchange=refreshPrice;oQty.oninput=updateAmt;oPrice.oninput=updateAmt;
+
+// ---------- 예정 로스팅 ----------
+function renderUpcoming(){
+  const card=document.getElementById('upcomingCard'),box=document.getElementById('upcoming');
+  const today=todayISO();const fut=Object.keys(S.days).filter(k=>k>today&&S.days[k].orders.length).sort();
+  if(!fut.length){card.style.display='none';return;}
+  card.style.display='';
+  box.innerHTML=fut.map(k=>{const [y,m,dd]=k.split('-');
+    return `<span class="pill" style="border-color:var(--warn);color:var(--warn)" onclick="goDate('${k}')">📌 ${parseInt(m)}/${parseInt(dd)} · ${fmt(dayTotal(k))}kg</span>`;}).join('');
+}
+
+// ---------- 거래처 체크 ----------
+function renderCustCheck(){
+  const box=document.getElementById('custCheck');
+  if(!S.customers.length){box.innerHTML='<p class="empty">설정에서 거래처를 추가하세요.</p>';return;}
+  const d=dayRO();
+  box.innerHTML=S.customers.map(c=>{
+    const got=d.received.includes(c.id)||d.orders.some(o=>o.custId===c.id);
+    return `<span class="${got?'pill done':'pill miss'}" onclick="toggleRecv('${c.id}')">${got?'✔':'○'} ${c.name}</span>`;
+  }).join('');
+}
+window.toggleRecv=(id)=>{const d=dayRW();const i=d.received.indexOf(id);if(i>=0)d.received.splice(i,1);else d.received.push(id);save();renderCustCheck();renderCalendar();};
+
+// ---------- 주문 추가 ----------
+document.getElementById('addOrder').onclick=()=>{
+  const custId=oCust.value,prodId=oProd.value;
+  const qty=parseFloat(oQty.value);const unitPrice=parseFloat(oPrice.value)||0;
+  const note=oNote.value.trim();
+  if(!custId||!prodId){toast('거래처/품목을 확인하세요');return;}
+  if(!qty||qty<=0){toast('수량을 입력하세요');return;}
+  const d=dayRW();
+  d.orders.push({id:uid(),custId,prodId,qty,unitPrice,paidAmt:0,note});
+  if(!d.received.includes(custId))d.received.push(custId);
+  delete d.messages[custId];
+  oQty.value='';oNote.value='';document.getElementById('amtPrev').textContent='';
+  save();renderAll();toast('추가됨');
+};
+
+function renderOrders(){
+  const box=document.getElementById('orderList');const orders=dayRO().orders;
+  document.getElementById('orderCount').textContent=orders.length?orders.length+'건':'';
+  if(!orders.length){box.innerHTML='<p class="empty">이 날짜에 입력된 주문이 없습니다.</p>';return;}
+  let html='';
+  S.customers.forEach(c=>{
+    const items=orders.filter(o=>o.custId===c.id);if(!items.length)return;
+    const sub=items.reduce((s,o)=>s+o.qty,0);const subW=items.reduce((s,o)=>s+orderAmt(o),0);
+    const col=custColor(c.id);
+    html+=`<div class="ocard" style="border-left:5px solid ${col}">
+      <div class="ocard-h"><span class="ocard-name" style="color:${col}">${c.name}</span>
+        <span><span class="chip">${fmt(sub)}kg</span> <span class="muted" style="font-weight:700">${won(subW)}</span></span></div>`;
+    items.forEach(o=>{
+      const amt=orderAmt(o);
+      html+=`<div class="orow">
+        <span class="oname">${prod(o.prodId)?.name||'?'}${o.note?` <span class="tag">${o.note}</span>`:''}
+          <span class="muted" style="font-size:12px"> · ${o.unitPrice?won(amt):'싯가 미입력'}</span></span>
+        <span class="oqty">${fmt(o.qty)}kg</span>
+        <button class="iconbtn" onclick="delOrder('${o.id}')">✕</button>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  box.innerHTML=html;
+}
+window.delOrder=(id)=>{const d=dayRW();const o=d.orders.find(x=>x.id===id);if(o)delete d.messages[o.custId];
+  d.orders=d.orders.filter(o=>o.id!==id);d.packedItems=d.packedItems.filter(p=>p!==id);save();renderAll();};
+
+// ---------- 로스팅 시트 (순서변경) ----------
+function renderRoast(){
+  const box=document.getElementById('roastSheet');
+  const agg={};dayRO().orders.forEach(o=>{agg[o.prodId]=(agg[o.prodId]||0)+o.qty;});
+  const list=S.products.filter(p=>agg[p.id]!=null);
+  if(!list.length){box.innerHTML='<p class="empty">주문을 입력하면 자동 합산됩니다.</p>';document.getElementById('grandTotal').textContent='';return;}
+  let total=0,batchTotal=0,html='<table><thead><tr><th>순서</th><th>품목</th><th class="num">총량</th><th class="num">배치당</th><th class="num">배치수</th></tr></thead><tbody>';
+  list.forEach((p,i)=>{
+    const q=agg[p.id];total+=q;const b=p.batch||5;const batches=Math.ceil(q/b);batchTotal+=batches;
+    html+=`<tr><td><span class="ord">
+        <button onclick="moveProd('${p.id}',-1)" ${i===0?'disabled':''}>▲</button>
+        <button onclick="moveProd('${p.id}',1)" ${i===list.length-1?'disabled':''}>▼</button>
+      </span></td>
+      <td><b>${p.name}</b></td><td class="num">${fmt(q)}kg</td><td class="num muted">${fmt(b)}kg</td><td class="num"><span class="batch">${batches}배치</span></td></tr>`;
+  });
+  html+=`<tr><td></td><td><b>합계</b></td><td class="num"><b>${fmt(total)}kg</b></td><td></td><td class="num"><b>${batchTotal}배치</b></td></tr></tbody></table>`;
+  box.innerHTML=html;
+  document.getElementById('grandTotal').textContent='총 '+fmt(total)+'kg';
+}
+window.moveProd=(pid,dir)=>{
+  const agg={};dayRO().orders.forEach(o=>{agg[o.prodId]=(agg[o.prodId]||0)+o.qty;});
+  const shown=S.products.filter(p=>agg[p.id]!=null).map(p=>p.id);
+  const pos=shown.indexOf(pid),np=pos+dir;if(np<0||np>=shown.length)return;
+  const a=S.products.findIndex(p=>p.id===pid),b=S.products.findIndex(p=>p.id===shown[np]);
+  [S.products[a],S.products[b]]=[S.products[b],S.products[a]];save();renderAll();
+};
+
+// ---------- 포장 리스트 ----------
+function renderPack(){
+  const box=document.getElementById('packList');const d=dayRO();
+  if(!d.orders.length){box.innerHTML='<p class="empty">주문이 없습니다.</p>';return;}
+  let html='';
+  S.customers.forEach(c=>{
+    const items=d.orders.filter(o=>o.custId===c.id);if(!items.length)return;
+    const allDone=items.every(o=>d.packedItems.includes(o.id));const sub=items.reduce((s,o)=>s+o.qty,0);const col=custColor(c.id);
+    html+=`<div class="card" style="margin:0 0 10px;padding:10px;border-left:5px solid ${col};${allDone?'background:var(--okbg)':''}">
+      <div class="flex-between"><b style="color:${col}">${allDone?'✅ ':''}${c.name}</b><span class="tag">${fmt(sub)}kg</span></div><table><tbody>`;
+    items.forEach(o=>{const done=d.packedItems.includes(o.id);
+      html+=`<tr><td style="width:28px"><input type="checkbox" class="check" ${done?'checked':''} onchange="togglePack('${o.id}')"></td>
+      <td style="${done?'text-decoration:line-through;color:var(--sub)':''}">${prod(o.prodId)?.name||'?'} ${o.note?`<span class="tag">${o.note}</span>`:''}</td>
+      <td class="num">${fmt(o.qty)}kg</td></tr>`;});
+    html+='</tbody></table></div>';
+  });
+  box.innerHTML=html;
+}
+window.togglePack=(id)=>{const d=dayRW();const i=d.packedItems.indexOf(id);if(i>=0)d.packedItems.splice(i,1);else d.packedItems.push(id);save();renderPack();};
+
+// ---------- 복사 ----------
+function itemsText(items){return items.map(o=>`· ${prod(o.prodId)?.name||'?'} ${fmt(o.qty)}kg${o.note?' ('+o.note+')':''}`).join('\n');}
+function tmplOrder(c,items){return `[${c.name}] 주문 확인\n로스팅일 : ${slash(S.selectedDate)}\n\n${itemsText(items)}\n\n확인 후 이상 있으시면 말씀 부탁드립니다.\n감사합니다 :)`;}
+function tmplDelivery(c,items){
+  const r=slash(S.selectedDate),a=slash(addDays(S.selectedDate,1)),v=slash(addDays(S.selectedDate,2));
+  return `안녕하세요, ${c.name}님.\n주문해주신 원두 발송 안내드립니다.\n\n${itemsText(items)}\n\n오늘 ${r} 로스팅 완료 후, 익일 ${a} 택배 접수됩니다.\n예상 수령일은 ${v} 입니다.\n\n신선하게 준비하여 보내드리겠습니다.\n감사합니다.`;
+}
+function renderCopy(){
+  const orders=dayRO().orders;
+  const box=document.getElementById('custMsgs');
+  if(!orders.length){box.innerHTML='<p class="empty">주문을 입력하면 거래처별 메시지가 생성됩니다.</p>';return;}
+  const d=dayRW();let html='';
+  S.customers.forEach((c)=>{
+    const items=orders.filter(o=>o.custId===c.id);if(!items.length)return;
+    if(d.messages[c.id]==null)d.messages[c.id]=tmplOrder(c,items);
+    const eid='msg_'+c.id,col=custColor(c.id);
+    html+=`<div class="msgcard" style="border-left:5px solid ${col}">
+      <div class="flex-between" style="margin-bottom:8px">
+        <b style="color:${col}">${c.name}</b>
+        <span class="modebtns">
+          <button class="btn btn-ghost small" onclick="setMsg('${c.id}','order')">주문확인 멘트</button>
+          <button class="btn btn-ghost small" onclick="setMsg('${c.id}','delivery')">택배안내 멘트</button>
+        </span>
+      </div>
+      <textarea class="msgbox" id="${eid}" oninput="saveMsg('${c.id}',this.value)">${escapeHtml(d.messages[c.id])}</textarea>
+      <div style="margin-top:8px"><button class="btn btn-primary small" onclick="copyEl('${eid}')">${c.name} 복사</button></div>
+    </div>`;
+  });
+  box.innerHTML=html;save();
+}
+window.setMsg=(id,mode)=>{const c=cust(id);const items=dayRO().orders.filter(o=>o.custId===id);
+  dayRW().messages[id]=mode==='delivery'?tmplDelivery(c,items):tmplOrder(c,items);
+  save();const el=document.getElementById('msg_'+id);if(el)el.value=dayRW().messages[id];
+  toast(mode==='delivery'?'택배안내 멘트로 변경':'주문확인 멘트로 변경');};
+window.saveMsg=(id,v)=>{dayRW().messages[id]=v;save();};
+window.copyEl=(id)=>{const el=document.getElementById(id);const t=(el.tagName==='TEXTAREA'||el.tagName==='INPUT')?el.value:el.textContent;
+  navigator.clipboard.writeText(t).then(()=>toast('복사됨')).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('복사됨');});};
+
+// ---------- 달력 ----------
+let calY,calM;
+function initCal(){const t=new Date();calY=t.getFullYear();calM=t.getMonth();}
+function calShift(n){calM+=n;if(calM<0){calM=11;calY--;}if(calM>11){calM=0;calY++;}renderCalendar();}
+window.calShift=calShift;
+function dateKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function renderCalendar(){
+  if(calY===undefined)initCal();
+  document.getElementById('calTitle').textContent=calY+'년 '+(calM+1)+'월';
+  const first=new Date(calY,calM,1).getDay();const days=new Date(calY,calM+1,0).getDate();const today=todayISO();
+  let h='<table class="cal"><thead><tr>'+['일','월','화','수','목','금','토'].map(w=>`<th>${w}</th>`).join('')+'</tr></thead><tbody><tr>';
+  for(let i=0;i<first;i++)h+='<td class="empty"></td>';
+  for(let dd=1;dd<=days;dd++){
+    const key=dateKey(calY,calM,dd);const tot=dayTotal(key);let cls='';
+    if(tot>0)cls+=key>today?' has-future':' has-done';
+    if(key===today)cls+=' today';
+    if(key===S.selectedDate)cls+=' sel';
+    h+=`<td class="${cls.trim()}" onclick="calPick('${key}')"><span class="dnum">${dd}</span>${tot>0?`<span class="ckg">${fmt(tot)}kg</span>`:''}</td>`;
+    if((first+dd)%7===0&&dd!==days)h+='</tr><tr>';
+  }
+  h+='</tr></tbody></table>';
+  document.getElementById('calGrid').innerHTML=h;
+  renderCalDetail(S.selectedDate);
+}
+window.calPick=(key)=>{S.selectedDate=key;sd.value=key;sm.value=dayRO(key).memo||'';save();renderHeader();renderCalendar();};
+function renderCalDetail(date){
+  const box=document.getElementById('calDetail');const d=S.days[date];
+  let h=`<div class="flex-between"><h2 style="margin:0">📅 ${date||''}</h2>
+    <button class="btn ${d&&d.orders.length?'btn-primary':'btn-ghost'} small" onclick="goDate('${date}')">${d&&d.orders.length?'이 날짜 입력/수정':'이 날짜에 작성'}</button></div>`;
+  if(!d||!d.orders.length){h+='<p class="empty">이 날짜에는 로스팅 기록이 없습니다.</p>';box.innerHTML=h;return;}
+  let total=0,totW=0;
+  S.customers.forEach(c=>{
+    const items=d.orders.filter(o=>o.custId===c.id);if(!items.length)return;
+    const sub=items.reduce((s,o)=>s+o.qty,0);const subW=items.reduce((s,o)=>s+orderAmt(o),0);total+=sub;totW+=subW;const col=custColor(c.id);
+    h+=`<div style="margin-top:10px;border-left:4px solid ${col};padding-left:10px">
+      <b style="color:${col}">${c.name}</b> <span class="chip">${fmt(sub)}kg</span> <span class="muted">${won(subW)}</span>
+      <div class="muted" style="margin-top:2px">${items.map(o=>`${prod(o.prodId)?.name||'?'} ${fmt(o.qty)}kg${o.note?'('+o.note+')':''}`).join(', ')}</div></div>`;
+  });
+  const agg={};d.orders.forEach(o=>{agg[o.prodId]=(agg[o.prodId]||0)+o.qty;});
+  let bsum=0;Object.keys(agg).forEach(pid=>{bsum+=Math.ceil(agg[pid]/((prod(pid)?.batch)||5));});
+  h+=`<hr><div class="flex-between"><span><b>총 ${fmt(total)}kg · ${won(totW)}</b></span><span class="batch">${bsum}배치</span></div>`;
+  box.innerHTML=h;
+}
+window.goDate=(date)=>{S.selectedDate=date;sd.value=date;sm.value=dayRO(date).memo||'';save();document.querySelector('nav button[data-tab="order"]').click();window.scrollTo(0,0);};
+
+// ---------- 미수금 ----------
+const openDues=new Set();
+function paidOf(o){return Math.min(o.paidAmt||0, orderAmt(o));}
+function isPaid(o){const a=orderAmt(o);return a<=0?true:(o.paidAmt||0)>=a;}
+function renderDues(){
+  const box=document.getElementById('duesList');const dates=Object.keys(S.days).sort();
+  const data=S.customers.map(c=>{
+    const list=[];let billed=0,paid=0;
+    dates.forEach(date=>S.days[date].orders.filter(o=>o.custId===c.id).forEach(o=>{const a=orderAmt(o);billed+=a;paid+=paidOf(o);list.push({date,o,a});}));
+    return {c,list,billed,paid,out:billed-paid};
+  }).filter(x=>x.list.length);
+  const grand=data.reduce((s,x)=>s+x.out,0);
+  document.getElementById('duesTotal').textContent='미수 '+won(grand);
+  if(!data.length){box.innerHTML='<p class="empty">주문 내역이 없습니다.</p>';return;}
+  data.sort((a,b)=>b.out-a.out);
+  box.innerHTML=data.map(x=>{
+    const col=custColor(x.c.id);const open=openDues.has(x.c.id);
+    const term=x.c.payTerm?`<span class="tag">${x.c.payTerm} 입금</span>`:'';
+    let h=`<div class="card" style="margin:0 0 10px;border-left:5px solid ${col}">
+      <div class="flex-between"><b style="color:${col}">${x.c.name}</b> ${term}</div>
+      <div class="flex-between" style="margin-top:6px">
+        <span class="muted">청구 ${won(x.billed)} · 입금 ${won(x.paid)}</span>
+        <span style="font-weight:800;color:${x.out>0?'var(--danger)':'var(--ok)'}">${x.out>0?'미수 '+won(x.out):'완납 ✅'}</span></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn btn-ghost small" onclick="toggleDues('${x.c.id}')">${open?'내역 접기':'내역 보기'}</button>
+        ${x.out>0?`<button class="btn btn-primary small" onclick="payAll('${x.c.id}')">전체 입금 처리</button>`:''}
+        ${x.out>0?`<button class="btn btn-ghost small" onclick="partialPay('${x.c.id}')">일부 입금 처리</button>`:''}
+        ${x.paid>0?`<button class="btn btn-ghost small" onclick="unpayAll('${x.c.id}')">입금 취소</button>`:''}
+      </div>`;
+    if(open){
+      h+='<table style="margin-top:8px"><tbody>'+x.list.sort((a,b)=>a.date<b.date?-1:1).map(it=>{
+        const a=it.a,pd=paidOf(it.o);
+        let amtCell;
+        if(!it.o.unitPrice)amtCell='싯가';
+        else if(pd>=a&&a>0)amtCell=`<span style="color:var(--ok)">${won(a)}</span>`;
+        else if(pd>0)amtCell=`<span class="muted">${won(pd)} / ${won(a)} <span class="tag" style="background:#fef3e2;color:var(--warn)">일부</span></span>`;
+        else amtCell=won(a);
+        return `<tr><td style="width:26px"><input type="checkbox" class="check" ${isPaid(it.o)&&a>0?'checked':''} onchange="togglePaid('${it.date}','${it.o.id}')"></td>
+        <td>${it.date.slice(5)} · ${prod(it.o.prodId)?.name||'?'} <span class="muted">${fmt(it.o.qty)}kg</span></td>
+        <td class="num">${amtCell}</td></tr>`;}).join('')+'</tbody></table>';
+    }
+    h+='</div>';return h;
+  }).join('');
+}
+window.toggleDues=(id)=>{openDues.has(id)?openDues.delete(id):openDues.add(id);renderDues();};
+window.togglePaid=(date,oid)=>{const o=(S.days[date]?.orders||[]).find(x=>x.id===oid);if(o){o.paidAmt=isPaid(o)?0:orderAmt(o);save();renderDues();}};
+window.payAll=(id)=>{for(const d in S.days)S.days[d].orders.forEach(o=>{if(o.custId===id)o.paidAmt=orderAmt(o);});save();renderDues();toast('전체 입금 처리');};
+window.unpayAll=(id)=>{for(const d in S.days)S.days[d].orders.forEach(o=>{if(o.custId===id)o.paidAmt=0;});save();renderDues();toast('입금 취소');};
+window.partialPay=(id)=>{
+  const raw=prompt('입금 받은 금액(원)을 입력하세요.\n오래된 주문부터 차례로 처리됩니다.');
+  if(raw==null)return;
+  let amt=parseFloat(String(raw).replace(/[^0-9.]/g,''));
+  if(!amt||amt<=0){toast('금액을 확인하세요');return;}
+  // 오래된 미수 주문부터 배분
+  const rows=[];Object.keys(S.days).sort().forEach(d=>S.days[d].orders.forEach(o=>{if(o.custId===id&&orderAmt(o)-paidOf(o)>0)rows.push(o);}));
+  for(const o of rows){if(amt<=0)break;const rem=orderAmt(o)-paidOf(o);const pay=Math.min(amt,rem);o.paidAmt=(o.paidAmt||0)+pay;amt-=pay;}
+  save();renderDues();toast(amt>0?'입금 처리 (잔액 '+won(amt)+'은 미수 없음)':'일부 입금 처리됨');
+};
+
+// ---------- 생두 구매 ----------
+const bDate=document.getElementById('bDate'),bSupplier=document.getElementById('bSupplier'),bBean=document.getElementById('bBean'),
+      bQty=document.getElementById('bQty'),bPrice=document.getElementById('bPrice'),bNote=document.getElementById('bNote');
+function purchaseAmt(p){return (p.qty||0)*(p.unitPrice||0);}
+function updateBAmt(){const q=parseFloat(bQty.value)||0,u=parseFloat(bPrice.value)||0;document.getElementById('bAmtPrev').textContent=(q&&u)?('금액: '+won(q*u)):'';}
+bQty.oninput=updateBAmt;bPrice.oninput=updateBAmt;
+document.getElementById('addPurchase').onclick=()=>{
+  const date=bDate.value||todayISO();const supplier=bSupplier.value.trim();const bean=bBean.value.trim();
+  const qty=parseFloat(bQty.value);const unitPrice=parseFloat(bPrice.value)||0;const note=bNote.value.trim();
+  if(!bean){toast('생두명을 입력하세요');return;}
+  if(!qty||qty<=0){toast('수량을 입력하세요');return;}
+  S.purchases.push({id:uid(),date,supplier,bean,qty,unitPrice,note});
+  save();bQty.value='';bPrice.value='';bNote.value='';document.getElementById('bAmtPrev').textContent='';
+  renderBeans();toast('추가됨');
+};
+window.delPurchase=(id)=>{S.purchases=S.purchases.filter(p=>p.id!==id);save();renderBeans();};
+function renderBeans(){
+  const sups=[...new Set(S.purchases.map(p=>p.supplier).filter(Boolean))];
+  const beans=[...new Set([...S.purchases.map(p=>p.bean),...S.products.map(p=>p.name)].filter(Boolean))];
+  document.getElementById('supList').innerHTML=sups.map(s=>`<option value="${s}"></option>`).join('');
+  document.getElementById('beanList').innerHTML=beans.map(b=>`<option value="${b}"></option>`).join('');
+
+  // 월별 합계
+  const byMonth={};S.purchases.forEach(p=>{const m=(p.date||'').slice(0,7);if(!m)return;byMonth[m]=byMonth[m]||{amt:0,kg:0};byMonth[m].amt+=purchaseAmt(p);byMonth[m].kg+=p.qty||0;});
+  const months=Object.keys(byMonth).sort().reverse();const curM=todayISO().slice(0,7);
+  document.getElementById('beansTotal').textContent=byMonth[curM]?won(byMonth[curM].amt):won(0);
+  document.getElementById('monthSummary').innerHTML=months.length?months.map(m=>{const x=byMonth[m];const cur=m===curM;const [y,mm]=m.split('-');
+    return `<div class="flex-between" style="padding:8px 0;border-bottom:1px solid var(--line)${cur?';font-weight:800':''}">
+      <span>${y}년 ${parseInt(mm)}월${cur?' <span class="tag">이번 달</span>':''}</span>
+      <span>${fmt(x.kg)}kg · <span style="color:var(--accent)">${won(x.amt)}</span></span></div>`;}).join('')
+    :'<p class="empty">구매 내역이 없습니다.</p>';
+
+  // 생두별 단가 비교
+  const byBean={};S.purchases.forEach(p=>{const b=(p.bean||'미지정').trim();(byBean[b]=byBean[b]||[]).push(p);});
+  const bk=Object.keys(byBean).sort();
+  document.getElementById('beanCompare').innerHTML=bk.length?bk.map(b=>{
+    const arr=byBean[b].slice().sort((a,c)=>a.date<c.date?1:-1);
+    const prices=arr.map(p=>p.unitPrice).filter(v=>v>0);const min=prices.length?Math.min(...prices):0;
+    const latest=arr[0];const cheap=arr.filter(p=>p.unitPrice===min&&min>0)[0];
+    const rows=arr.map(p=>{const low=p.unitPrice===min&&min>0;
+      return `<div class="flex-between" style="padding:4px 0"><span class="muted">${(p.date||'').slice(5)} · ${p.supplier||'-'}</span>
+        <span>${won(p.unitPrice)}/kg ${low?'<span class="tag" style="background:var(--okbg);color:var(--ok)">최저</span>':''}</span></div>`;}).join('');
+    return `<div style="padding:8px 0;border-bottom:1px solid var(--line)">
+      <div class="flex-between"><b>${b}</b><span class="muted" style="font-size:12px">최근 ${won(latest.unitPrice)}/kg${cheap?' · 최저 '+cheap.supplier+' '+won(min):''}</span></div>
+      ${rows}</div>`;}).join('')
+    :'<p class="empty">구매 내역이 없습니다.</p>';
+
+  // 전체 내역
+  const log=S.purchases.slice().sort((a,b)=>a.date<b.date?1:-1);
+  document.getElementById('purchaseLog').innerHTML=log.length?
+    '<table><thead><tr><th>날짜</th><th>업체</th><th>생두</th><th class="num">수량</th><th class="num">단가</th><th class="num">금액</th><th></th></tr></thead><tbody>'+
+    log.map(p=>`<tr><td>${(p.date||'').slice(2)}</td><td>${p.supplier||''}</td><td>${p.bean||''}${p.note?` <span class="tag">${p.note}</span>`:''}</td>
+      <td class="num">${fmt(p.qty)}kg</td><td class="num">${won(p.unitPrice)}</td><td class="num">${won(purchaseAmt(p))}</td>
+      <td style="width:30px"><button class="iconbtn" onclick="delPurchase('${p.id}')">✕</button></td></tr>`).join('')+'</tbody></table>'
+    :'<p class="empty">구매 내역이 없습니다.</p>';
+}
+
+// ---------- 설정: 거래처 ----------
+document.getElementById('addCust').onclick=()=>{const v=document.getElementById('newCust').value.trim();if(!v)return;
+  S.customers.push({id:uid(),name:v,prices:{},payTerm:''});document.getElementById('newCust').value='';save();renderAll();};
+let openPriceCust=null;
+function renderCustMng(){
+  document.getElementById('custMng').innerHTML=S.customers.map(c=>{
+    let h=`<div class="flex-between" style="padding:8px 0;border-bottom:1px solid var(--line)">
+      <span><span class="legdot" style="background:${custColor(c.id)}"></span>${c.name}
+        <select onchange="setPayTerm('${c.id}',this.value)" style="width:auto;display:inline-block;padding:2px 6px;font-size:12px;margin-left:4px">
+          <option value=""${c.payTerm?'':' selected'}>입금주기</option>
+          <option value="당일"${c.payTerm==='당일'?' selected':''}>당일</option>
+          <option value="월별"${c.payTerm==='월별'?' selected':''}>월별</option>
+        </select></span>
+      <span><button class="btn btn-ghost small" onclick="togglePriceEditor('${c.id}')">예외단가</button> <button class="iconbtn" onclick="delCust('${c.id}')">🗑</button></span>
+    </div>`;
+    if(openPriceCust===c.id){
+      h+=`<div style="padding:6px 0 12px;border-bottom:1px solid var(--line)"><p class="muted">비우면 기본가 적용. 값을 넣으면 이 거래처 전용 가격으로 계속 유지됩니다.</p>`;
+      h+=S.products.map(p=>{
+        const base=(p.price!=null&&p.price!=='')?Number(p.price).toLocaleString()+'원':'싯가';
+        const ov=(c.prices&&c.prices[p.id]!=null)?c.prices[p.id]:'';
+        return `<div class="flex-between" style="padding:4px 0"><span>${p.name} <span class="muted">(기본 ${base})</span></span>
+          <span><input type="number" value="${ov}" placeholder="기본가" step="100" style="width:110px" onchange="setCustPrice('${c.id}','${p.id}',this.value)"> 원/kg</span></div>`;
+      }).join('');
+      h+=`</div>`;
+    }
+    return h;
+  }).join('')||'<p class="muted">거래처 없음</p>';
+}
+window.setPayTerm=(id,v)=>{const c=cust(id);if(c){c.payTerm=v;save();renderDues();}};
+window.togglePriceEditor=(id)=>{openPriceCust=openPriceCust===id?null:id;renderCustMng();};
+window.setCustPrice=(cid,pid,v)=>{const c=cust(cid);if(!c)return;if(v===''||v==null)delete c.prices[pid];else c.prices[pid]=Number(v);save();toast('단가 저장됨 (새 주문부터 적용)');};
+window.delCust=(id)=>{if(!confirm('이 거래처를 삭제할까요? 관련 주문도 사라집니다.'))return;
+  S.customers=S.customers.filter(c=>c.id!==id);
+  for(const k in S.days){const d=S.days[k];d.orders=d.orders.filter(o=>o.custId!==id);d.received=d.received.filter(r=>r!==id);delete d.messages[id];}
+  save();renderAll();};
+
+// ---------- 설정: 품목 ----------
+document.getElementById('addProd').onclick=()=>{const v=document.getElementById('newProd').value.trim();if(!v)return;
+  S.products.push({id:uid(),name:v,batch:5,price:null});document.getElementById('newProd').value='';save();renderAll();};
+function renderProdMng(){
+  document.getElementById('prodMng').innerHTML=S.products.map(p=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)">
+    <
