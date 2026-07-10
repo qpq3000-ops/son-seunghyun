@@ -7,6 +7,9 @@ import { fileURLToPath } from 'url';
 import { migrate } from './db.mjs';
 import { masters } from './masters.mjs';
 import { ecount } from './ecount.mjs';
+import { vouchers } from './vouchers.mjs';
+import { receipts } from './receipts.mjs';
+import { reports } from './reports.mjs';
 
 migrate();
 
@@ -15,6 +18,9 @@ const app = new Hono();
 
 app.get('/api/health', (c) => c.json({ ok: true, name: '로스팅 ERP', phase: 0 }));
 app.route('/api', masters);
+app.route('/api', vouchers);   // /api/docs*, /api/roast*
+app.route('/api', receipts);   // /api/receipts*, /api/receivables, /api/payables
+app.route('/api', reports);    // /api/stock/status, /api/stock/ledger
 app.route('/api/ecount', ecount);
 // 미등록 API 경로는 SPA fallback으로 흘려보내지 않고 404 JSON 반환
 app.all('/api/*', (c) => c.json({ error: '알 수 없는 API 경로입니다.' }, 404));
