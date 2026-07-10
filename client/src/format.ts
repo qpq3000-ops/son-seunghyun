@@ -1,0 +1,18 @@
+// 원화/수량 포맷 유틸 — 금액은 정수(원), 수량은 kg 소수 1자리
+export const fmtWon = (n: number | null | undefined): string =>
+  n === null || n === undefined || Number.isNaN(n) ? '' : Math.trunc(n).toLocaleString('ko-KR');
+
+export const fmtQty = (n: number | null | undefined): string =>
+  n === null || n === undefined || Number.isNaN(n)
+    ? ''
+    : (Math.round(n * 10) / 10).toLocaleString('ko-KR', { maximumFractionDigits: 1 });
+
+export const parseWon = (s: string): number => {
+  const n = parseInt(String(s).replace(/[^\d-]/g, ''), 10);
+  return Number.isNaN(n) ? 0 : n;
+};
+
+export const todayISO = (): string => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
