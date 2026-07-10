@@ -38,6 +38,17 @@ function err(c, status, message) {
   return c.json({ error: message }, status);
 }
 
+// JSON body 안전 파싱: 잘못된 JSON / 객체가 아닌 body 는 null 반환 → 400 처리
+async function readBody(c) {
+  try {
+    const body = await c.req.json();
+    if (body && typeof body === 'object' && !Array.isArray(body)) return body;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function friendlySqlError(e, label) {
   if (String(e.message).includes('UNIQUE')) return `${label} 코드가 이미 존재합니다.`;
   if (String(e.message).includes('CHECK')) return `허용되지 않는 값이 있습니다.`;
@@ -65,7 +76,8 @@ for (const [route, cfg] of Object.entries(TABLES)) {
   });
 
   masters.post(`/${route}`, async (c) => {
-    const body = await c.req.json();
+    const body = await readBody(c);
+    if (!body) return err(c, 400, '요청 본문이 올바르지 않습니다.');
     for (const r of required) {
       if (!String(body[r] ?? '').trim()) return err(c, 400, `${label}의 ${r === 'code' ? '코드' : '이름'}은(는) 필수입니다.`);
     }
@@ -82,7 +94,14 @@ for (const [route, cfg] of Object.entries(TABLES)) {
 
   masters.put(`/${route}/:id`, async (c) => {
     const id = Number(c.req.param('id'));
-    const body = await c.req.json();
+    const body = await readBody(c);
+    if (!body) return err(c, 400, '요청 본문이 올바르지 않습니다.');
+    // 수정 시에도 필수값(코드/이름)을 빈 값으로 덮어쓰지 못하게 검증
+    for (const r of required) {
+      if (body[r] !== undefined && !String(body[r] ?? '').trim()) {
+        return err(c, 400, `${label}의 ${r === 'code' ? '코드' : '이름'}은(는) 비울 수 없습니다.`);
+      }
+    }
     const keys = cols.filter(k => body[k] !== undefined);
     if (!keys.length) return err(c, 400, '변경할 내용이 없습니다.');
     try {
@@ -124,15 +143,18 @@ masters.get('/price-special', (c) => {
 });
 
 masters.post('/price-special', async (c) => {
-  const b = await c.req.json();
+  const b = await readBody(c);
+  if (!b) return err(c, 400, '요청 본문이 올바르지 않습니다.');
   if (!b.partner_id || !b.item_id) return err(c, 400, '거래처와 품목을 선택하세요.');
   if (!Number.isInteger(b.price) || b.price < 0) return err(c, 400, '단가는 0 이상의 정수(원)여야 합니다.');
   try {
-    const info = db.prepare(
+    // upsert가 UPDATE로 처리되면 lastInsertRowid가 엉뚱한 값이므로 id는 재조회로 반환
+    const row = db.prepare(
       `INSERT INTO price_special (partner_id, item_id, price, memo) VALUES (?,?,?,?)
-       ON CONFLICT(partner_id, item_id) DO UPDATE SET price = excluded.price, memo = excluded.memo`
-    ).run(b.partner_id, b.item_id, b.price, b.memo ?? '');
-    return c.json({ ok: true, id: info.lastInsertRowid }, 201);
+       ON CONFLICT(partner_id, item_id) DO UPDATE SET price = excluded.price, memo = excluded.memo
+       RETURNING id`
+    ).get(b.partner_id, b.item_id, b.price, b.memo ?? '');
+    return c.json({ ok: true, id: row.id }, 201);
   } catch (e) {
     return err(c, 400, friendlySqlError(e, '특별단가'));
   }
@@ -151,7 +173,8 @@ masters.get('/settings', (c) => {
 });
 
 masters.put('/settings', async (c) => {
-  const body = await c.req.json();
+  const body = await readBody(c);
+  if (!body) return err(c, 400, '요청 본문이 올바르지 않습니다.');
   const upsert = db.prepare(
     `INSERT INTO settings (key, value) VALUES (?, ?)
      ON CONFLICT(key) DO UPDATE SET value = excluded.value`

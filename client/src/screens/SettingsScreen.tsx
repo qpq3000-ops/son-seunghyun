@@ -3,14 +3,31 @@ import { useToast } from '../components/Toast';
 import { api } from '../api';
 import type { Settings } from '../types';
 
-// 환경설정: 회사정보(인쇄용) + 재고/부가세 동작 옵션
+interface EcountStatus { configured: boolean; mode?: string; zone?: string; com_code?: string; hint?: string }
+
+// 환경설정: 회사정보(인쇄용) + 재고/부가세 동작 옵션 + 이카운트 연동
 export function SettingsScreen() {
   const toast = useToast();
   const [s, setS] = useState<Settings | null>(null);
+  const [ec, setEc] = useState<EcountStatus | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     api.get<Settings>('/api/settings').then(setS).catch(e => toast.show(e.message, 'error'));
+    api.get<EcountStatus>('/api/ecount/status').then(setEc).catch(() => setEc(null));
   }, [toast]);
+
+  const syncItems = async () => {
+    setSyncing(true);
+    try {
+      const r = await api.post<{ ok: boolean; synced: number }>('/api/ecount/sync-items', {});
+      toast.show(`이카운트 품목 ${r.synced}건을 가져왔습니다.`);
+    } catch (e) {
+      toast.show((e as Error).message, 'error');
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   if (!s) return <div className="screen"><p className="hint">불러오는 중...</p></div>;
 
@@ -58,10 +75,29 @@ export function SettingsScreen() {
         <button className="btn primary" onClick={save}>저장</button>
       </div>
 
+      <h3 style={{ marginTop: 28 }}>이카운트 연동 (조회 전용)</h3>
+      {ec?.configured ? (
+        <div>
+          <p className="hint">
+            접속정보 확인됨 — 회사코드 {ec.com_code}, {ec.mode} 모드, ZONE {ec.zone}.<br />
+            ※ 이카운트에 등록된 공인 IP의 PC에서 실행했을 때만 호출이 성공합니다.
+          </p>
+          <button className="btn" disabled={syncing} onClick={syncItems}>
+            {syncing ? '가져오는 중...' : '이카운트에서 품목 가져오기'}
+          </button>
+        </div>
+      ) : (
+        <p className="hint">
+          접속정보 없음 — <code>data/ecount.config.json</code> 파일에 COM_CODE / USER_ID / API_CERT_KEY / MODE를 넣으면
+          품목 동기화·재고 대사 기능이 켜집니다. (인증키는 커밋/공유 금지)
+        </p>
+      )}
+
       <h3 style={{ marginTop: 28 }}>데이터</h3>
       <p className="hint">
         DB 파일: <code>data/erp.sqlite</code> — 이 파일 하나가 전체 데이터입니다. 서버 시작 시마다 <code>data/backup/</code>에 자동 백업(최근 30개)됩니다.<br />
-        기존 로스팅 주문관리 앱(JSON 백업) 이관은 Phase 1에서 [설정 &gt; 데이터 이관] 메뉴로 제공됩니다.
+        이카운트 엑셀 이관: 품목/거래처 엑셀을 <code>data/import/</code>에 넣고 <code>node scripts/import-ecount-excel.mjs</code> 실행.
+        판매내역(2,052라인) 이관은 Phase 1의 전표 엔진 완성 후 제공됩니다.
       </p>
     </div>
   );
