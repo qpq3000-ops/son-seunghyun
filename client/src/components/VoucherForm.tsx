@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 import { fmtWon, todayISO } from '../format';
 import { CodeHelp } from './CodeHelp';
 
@@ -46,9 +46,17 @@ interface Props {
   onChange: (header: VoucherHeader, lines: VoucherLine[]) => void;
   onSave: () => void;
   saving?: boolean;
+  headerActions?: ReactNode;          // vh-title 우측 슬롯 (지난주문복사 버튼 등)
+  priceResolver?: (itemId: number, priceOut: number) => number;  // 품목 선택 시 단가 결정
+  warehouseLabel?: string;            // 기본 '창고' (구매는 '입고창고')
+  saveLabel?: string;                 // 기본 '저장 (연속입력)'
+  footerActions?: ReactNode;          // 저장 버튼 옆 슬롯 (수정모드의 삭제/목록으로 버튼 등)
 }
 
-export function VoucherForm({ title, header, lines, vatRound = 'floor', onChange, onSave, saving }: Props) {
+export function VoucherForm({
+  title, header, lines, vatRound = 'floor', onChange, onSave, saving,
+  headerActions, priceResolver, warehouseLabel, saveLabel, footerActions,
+}: Props) {
   const [help, setHelp] = useState<{ kind: 'partner' | 'warehouse' | 'item'; lineIdx?: number } | null>(null);
 
   const totals = useMemo(() => lines.reduce(
@@ -71,7 +79,10 @@ export function VoucherForm({ title, header, lines, vatRound = 'floor', onChange
   return (
     <div className="voucher">
       <div className="voucher-head">
-        <div className="vh-title">{title}</div>
+        <div className="vh-title-row">
+          <div className="vh-title">{title}</div>
+          {headerActions && <div className="vh-actions">{headerActions}</div>}
+        </div>
         <div className="vh-fields">
           <label>일자
             <input className="input" type="date" value={header.date || todayISO()}
@@ -81,7 +92,7 @@ export function VoucherForm({ title, header, lines, vatRound = 'floor', onChange
             <input className="input lookup" readOnly value={header.partner_name}
               placeholder="클릭하여 선택" onClick={() => setHelp({ kind: 'partner' })} />
           </label>
-          <label>창고
+          <label>{warehouseLabel ?? '창고'}
             <input className="input lookup" readOnly value={header.warehouse_name}
               placeholder="클릭하여 선택" onClick={() => setHelp({ kind: 'warehouse' })} />
           </label>
@@ -153,8 +164,9 @@ export function VoucherForm({ title, header, lines, vatRound = 'floor', onChange
       </table>
 
       <div className="voucher-actions">
+        {footerActions}
         <button className="btn primary" disabled={saving} onClick={onSave}>
-          {saving ? '저장 중...' : '저장 (연속입력)'}
+          {saving ? '저장 중...' : (saveLabel ?? '저장 (연속입력)')}
         </button>
       </div>
 
@@ -174,7 +186,8 @@ export function VoucherForm({ title, header, lines, vatRound = 'floor', onChange
           onClose={() => setHelp(null)}
           onSelect={r => setLine(help.lineIdx!, {
             item_id: r.id, item_code: r.code, item_name: r.name,
-            unit: String(r.unit ?? 'kg'), price: Number(r.price_out ?? 0),
+            unit: String(r.unit ?? 'kg'),
+            price: priceResolver ? priceResolver(r.id, Number(r.price_out ?? 0)) : Number(r.price_out ?? 0),
           })} />
       )}
     </div>

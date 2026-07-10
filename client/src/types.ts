@@ -13,6 +13,8 @@ export interface Item {
   barcode: string;
   memo: string;
   active: 0 | 1;
+  paired_item_id: number | null;  // 제품(원두)에 연결된 생두 — 로스팅입력의 자동 제안에 사용
+  default_yield: number;          // 로스팅 기본 수율(%)
 }
 
 export interface Partner {
@@ -62,3 +64,149 @@ export interface PriceSpecial {
 }
 
 export type Settings = Record<string, string>;
+
+// ───────────────────────── Phase 1: 전표 엔진 ─────────────────────────
+
+// 전표 품목 라인 (GET /api/docs/:id, POST/PUT 응답의 lines[])
+export interface DocLine {
+  id?: number;
+  line_no?: number;
+  item_id: number;
+  item_code?: string;
+  item_name?: string;
+  unit?: string;
+  line_role?: 'normal' | 'input' | 'output';
+  qty: number;
+  price: number;
+  supply_amt: number;
+  vat_amt: number;
+  remarks: string;
+}
+
+// 전표 1건 상세 (GET/POST/PUT /api/docs(/:id) 응답 — POST/PUT은 warnings 포함)
+export interface Doc {
+  id: number;
+  doc_no: string;
+  doc_type: 'sale' | 'purchase' | 'roast';
+  io_date: string;
+  partner_id: number | null;
+  partner_name?: string;
+  warehouse_id: number;
+  warehouse_name?: string;
+  tax_mode: '과세' | '면세';
+  project_id: number | null;
+  memo: string;
+  total_qty: number;
+  total_supply: number;
+  total_vat: number;
+  total_amount: number;
+  lines: DocLine[];
+  warnings?: string[];
+}
+
+// 전표 목록 1행 (GET /api/docs — 조회 화면 그리드)
+export interface DocListRow {
+  id: number;
+  doc_no: string;
+  doc_type: 'sale' | 'purchase' | 'roast';
+  io_date: string;
+  partner_id: number | null;
+  partner_name: string | null;
+  warehouse_id: number;
+  warehouse_name: string;
+  item_summary: string;
+  line_count: number;
+  total_qty: number;
+  total_supply: number;
+  total_vat: number;
+  total_amount: number;
+  memo: string;
+}
+
+// 로스팅 1건 상세 (GET/POST/PUT /api/roast(/:id) 응답)
+export interface RoastDetail {
+  id: number;
+  doc_no: string;
+  io_date: string;
+  warehouse_id: number;
+  warehouse_name: string;
+  memo: string;
+  input_total: number;
+  output_total: number;
+  yield_pct: number;
+  inputs: { item_id: number; item_code: string; item_name: string; qty: number }[];
+  output: { item_id: number; item_code: string; item_name: string; qty: number };
+  warnings?: string[];
+}
+
+// 로스팅 이력 1행 (GET /api/roast)
+export interface RoastListRow {
+  id: number;
+  doc_no: string;
+  io_date: string;
+  output_item_name: string;
+  input_total: number;
+  output_total: number;
+  yield_pct: number | null;
+  memo: string;
+}
+
+// 수금/지불 (GET/POST/PUT /api/receipts(/:id))
+export interface Receipt {
+  id: number;
+  receipt_no: string;
+  kind: '수금' | '지불';
+  io_date: string;
+  partner_id: number;
+  partner_name: string;
+  method: '현금' | '보통예금' | '받을어음' | '카드' | '기타';
+  amount: number;
+  project_id: number | null;
+  memo: string;
+}
+
+// 미수금(미지급)현황 1행 (GET /api/receivables, /api/payables)
+export interface Receivable {
+  partner_id: number;
+  partner_code: string;
+  partner_name: string;
+  pay_cycle: '당일' | '월별';
+  sales_total: number;
+  receipt_total: number;
+  balance: number;
+}
+
+// 재고현황 1행 (GET /api/stock/status)
+export interface StockRow {
+  item_id: number;
+  item_code: string;
+  item_name: string;
+  spec: string;
+  unit: string;
+  item_type: string;
+  qty: number;
+  safety_qty: number;
+  below_safety: boolean;
+}
+
+// 재고수불부 1행 (LedgerReport.rows[])
+export interface LedgerRow {
+  io_date: string;
+  doc_no: string;
+  io_type: string;
+  partner_name: string | null;
+  in_qty: number;
+  out_qty: number;
+  balance: number;
+  memo: string;
+}
+
+// 재고수불부 응답 (GET /api/stock/ledger)
+export interface LedgerReport {
+  item: { id: number; code: string; name: string; unit: string };
+  opening: number;
+  rows: LedgerRow[];
+  sum_in: number;
+  sum_out: number;
+  closing: number;
+}

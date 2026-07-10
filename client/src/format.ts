@@ -16,3 +16,9 @@ export const todayISO = (): string => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
+
+// 조회 화면 기간 기본값(이번달 1일) — 판매/구매조회·재고수불부 등에서 공용 사용
+export const monthStartISO = (): string => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+};
