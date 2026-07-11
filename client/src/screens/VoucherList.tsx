@@ -30,15 +30,36 @@ function VoucherListScreen({ kind }: { kind: Kind }) {
   const [editId, setEditId] = useState<number | null>(null);
   const gridRef = useRef<Tabulator | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (f = from, t = to) => {
     try {
-      const qs = new URLSearchParams({ type: kind, from, to });
+      const qs = new URLSearchParams({ type: kind, from: f, to: t });
       if (partnerId) qs.set('partner_id', String(partnerId));
       setRows(await api.get<DocListRow[]>(`/api/docs?${qs.toString()}`));
     } catch (e) {
       toast.show((e as Error).message, 'error');
     }
   }, [kind, from, to, partnerId, toast]);
+
+  // 이카운트 단축키(F3 검색) + 기간 프리셋
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'F3' && editId === null) { e.preventDefault(); load(); } };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [load, editId]);
+
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const preset = (kindName: string) => {
+    const now = new Date();
+    let f = new Date(now), t = new Date(now);
+    if (kindName === '전일') { f.setDate(f.getDate() - 1); t = new Date(f); }
+    else if (kindName === '금주') { f.setDate(f.getDate() - ((f.getDay() + 6) % 7)); }
+    else if (kindName === '전주') { f.setDate(f.getDate() - ((f.getDay() + 6) % 7) - 7); t = new Date(f); t.setDate(t.getDate() + 6); }
+    else if (kindName === '금월') { f.setDate(1); }
+    else if (kindName === '전월') { f = new Date(now.getFullYear(), now.getMonth() - 1, 1); t = new Date(now.getFullYear(), now.getMonth(), 0); }
+    const fs = iso(f), ts = iso(t);
+    setFrom(fs); setTo(ts);
+    load(fs, ts);
+  };
 
   useEffect(() => { load(); }, [load]);
 
@@ -86,7 +107,13 @@ function VoucherListScreen({ kind }: { kind: Kind }) {
           {partnerName && (
             <button className="icon-btn" title="거래처 선택 해제" onClick={() => { setPartnerId(null); setPartnerName(''); }}>✕</button>
           )}
-          <button className="btn" onClick={load}>검색</button>
+          <button className="btn primary" onClick={() => load()}>검색(F3)</button>
+          <button className="btn" onClick={() => preset('금일')}>금일</button>
+          <button className="btn" onClick={() => preset('전일')}>전일</button>
+          <button className="btn" onClick={() => preset('금주')}>금주(~오늘)</button>
+          <button className="btn" onClick={() => preset('전주')}>전주</button>
+          <button className="btn" onClick={() => preset('금월')}>금월(~오늘)</button>
+          <button className="btn" onClick={() => preset('전월')}>전월</button>
         </div>
         <div className="btn-group">
           <button className="btn" onClick={() => gridRef.current?.download('xlsx', `${title}.xlsx`, { sheetName: title })}>

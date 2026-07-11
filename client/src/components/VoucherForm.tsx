@@ -91,7 +91,6 @@ export function VoucherForm({
       <div className="voucher-head">
         <div className="vh-title-row">
           <div className="vh-title">{title}</div>
-          {headerActions && <div className="vh-actions">{headerActions}</div>}
         </div>
         <div className="vh-fields">
           <label>일자
@@ -119,6 +118,8 @@ export function VoucherForm({
           </label>
         </div>
       </div>
+
+      {headerActions && <div className="line-toolbar">{headerActions}</div>}
 
       <table className="voucher-lines">
         <thead>

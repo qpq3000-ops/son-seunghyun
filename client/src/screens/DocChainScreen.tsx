@@ -221,7 +221,7 @@ function DocChainScreen({ kind, mode = 'create', docId, onSaved, onDeleted, onCa
         saving={saving}
         priceResolver={priceResolver}
         warehouseLabel={kind === 'purchase_order' ? '입고창고' : '창고'}
-        saveLabel={mode === 'edit' ? '저장' : '저장 (연속입력)'}
+        saveLabel={mode === 'edit' ? '저장(F8)' : '저장(F8)'}
         headerActions={kind === 'order' ? (
           <button className="btn small" onClick={() => setPullOpen(true)}>견적 불러오기</button>
         ) : undefined}

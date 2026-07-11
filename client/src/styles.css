@@ -15,7 +15,7 @@
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
 body {
-  font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', system-ui, sans-serif;
+  font-family: 'Pretendard Variable', Pretendard, 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', system-ui, sans-serif;
   font-size: 12.5px; color: var(--txt); background: var(--bg);
 }
 button { font-family: inherit; }
@@ -232,9 +232,10 @@ code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
 .vh-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
 .vh-title-row .vh-title { margin-bottom: 0; }
 .vh-actions { display: flex; gap: 8px; }
-.vh-fields { display: flex; gap: 10px; flex-wrap: wrap; }
-.vh-fields label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--sub); min-width: 130px; }
-.vh-fields label.grow { flex: 1; }
+.vh-fields { display: grid; grid-template-columns: repeat(2, minmax(300px, 470px)); gap: 8px 40px; }
+.vh-fields label { display: grid; grid-template-columns: 76px 1fr; align-items: center; font-size: 12.5px; color: #444; }
+.vh-fields label.grow { grid-column: 1 / -1; }
+.line-toolbar { display: flex; gap: 5px; margin: 0 0 2px; flex-wrap: wrap; }
 .voucher-lines { width: 100%; border-collapse: collapse; font-size: 13px; }
 .voucher-lines th {
   background: #f3f5f9; border: 1px solid var(--line); padding: 6px 6px;
@@ -404,3 +405,21 @@ code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
 .stmt-bank { display: flex; border: 1px solid #333; margin-top: 8px; }
 .stmt-bank-label { width: 90px; display: flex; align-items: center; justify-content: center; background: #f2f3f5; border-right: 1px solid #333; font-weight: 700; }
 .stmt-bank-body { padding: 8px 12px; white-space: pre-line; line-height: 1.6; flex: 1; }
+
+/* ── MyPage 대시보드 위젯 (이카운트 실화면 재현) ── */
+.mypage { overflow-y: auto; }
+.mypage-head { display: flex; align-items: center; gap: 8px; font-size: 15px; margin-bottom: 12px; }
+.mypage-head .mp-nav { color: var(--sub); cursor: default; }
+.mypage-head .mp-title { font-weight: 700; }
+.widgets { display: grid; grid-template-columns: 1fr 0.7fr 1.5fr; gap: 14px; align-items: start; }
+.widget { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-height: 70px; }
+.widget.wide { grid-row: span 2; }
+.widget.slim { min-height: 0; }
+.widget-head { display: flex; align-items: center; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+.widget-icons { color: #b6bdc9; font-size: 12px; display: flex; gap: 8px; }
+.widget-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.widget-table th { color: #444; font-weight: 700; padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: left; }
+.widget-table td { padding: 5px 6px; border-bottom: 1px solid #f0f2f5; }
+.widget-table .num { text-align: right; }
+.widget-table .blue { color: var(--accent); }
+.widget-empty { color: var(--sub); font-size: 12.5px; margin: 6px 0; }

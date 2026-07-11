@@ -42,7 +42,7 @@ interface Props {
 export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted, onCancel }: Props) {
   const toast = useToast();
   const [header, setHeaderState] = useState<VoucherHeader>(emptyHeader());
-  const [lines, setLines] = useState<VoucherLine[]>([emptyLine()]);
+  const [lines, setLines] = useState<VoucherLine[]>([emptyLine(), emptyLine(), emptyLine()]);
   const [vatRound, setVatRound] = useState<'floor' | 'round'>('floor');
   const [saving, setSaving] = useState(false);
   const [priceMap, setPriceMap] = useState<Map<number, number>>(new Map());
@@ -136,7 +136,7 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
         onSaved?.();
       } else {
         // 라인만 초기화, 헤더(일자/거래처/창고/거래유형)는 유지 → 연속입력. 끌어온 원본 연결도 리셋.
-        setLines([emptyLine()]);
+        setLines([emptyLine(), emptyLine(), emptyLine()]);
         setSourceDocId(null);
       }
     } catch (e) {
@@ -237,7 +237,7 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
         saving={saving}
         priceResolver={priceResolver}
         warehouseLabel={kind === 'purchase' ? '입고창고' : '창고'}
-        saveLabel={mode === 'edit' ? '저장' : '저장 (연속입력)'}
+        saveLabel={mode === 'edit' ? '저장(F8)' : '저장(F8)'}
         headerActions={
           <>
             {kind === 'sale' && <button className="btn small" onClick={copyRecent}>지난 주문 복사</button>}
