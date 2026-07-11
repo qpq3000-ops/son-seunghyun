@@ -710,13 +710,21 @@ export interface MyPageCalendarDay {
   order_due_count: number;
 }
 
+// MyPage To Do 위젯 1행 (GET /api/mypage 의 todos[] — R5: groupware.mjs todo 테이블 연동, §3.7)
+export interface MyPageTodo {
+  id: number;
+  content: string;
+  due_date: string;
+  done: 0 | 1;
+}
+
 // MyPage 위젯 통합 응답 (GET /api/mypage, 파라미터 없음)
 export interface MyPageData {
   ym: string;
   stock: MyPageStockRow[];
   sales: MyPageSaleRow[];
   receivables_top: MyPageReceivableRow[];
-  todos: unknown[];
+  todos: MyPageTodo[];
   calendar: { year: number; month: number; days: Record<string, MyPageCalendarDay> };
 }
 
@@ -793,3 +801,61 @@ export interface FundPlanList {
   rows: FundPlanRow[];
   summary: { in_total: number; out_total: number; net: number; count: number };
 }
+
+// ───────────────────────── R5: 관리 + 그룹웨어 + 유틸(설계-R5-관리그룹웨어유틸.md §4.9) ─────────────────────────
+
+// ── 급여대장(GET /api/payroll, POST /api/payroll, DELETE /api/payroll/:id) — hr.mjs §3.1·3.3 ──
+export interface PayrollRow {
+  emp_id: number; emp_code: string; emp_name: string; payroll_id: number | null; pay_ym: string | null; pay_date: string;
+  base_pay: number; allowance: number; meal_allowance: number;
+  national_pension: number; health_ins: number; longterm_care: number; employment_ins: number;
+  income_tax: number; local_income_tax: number; other_deduction: number;
+  gross_pay: number; deduction_total: number; net_pay: number; memo: string;
+}
+export interface PayrollList { ym: string; rows: PayrollRow[]; totals: { gross_pay: number; deduction_total: number; net_pay: number; count: number }; }
+// ── 급여 요율(GET/PUT /api/payroll/rates) — §3.2 ──
+export interface PayrollRates { pension: number; health: number; longterm: number; employment: number; income_tax: number; }
+// ── 급여명세서(GET /api/payroll/:id/statement) — §3.4 ──
+export interface PayslipData {
+  company: { name: string; biz_no: string; ceo: string }; emp: { code: string; name: string };
+  pay_ym: string; pay_date: string; earnings: { label: string; amount: number }[]; deductions: { label: string; amount: number }[];
+  gross_pay: number; deduction_total: number; net_pay: number;
+}
+
+// ── 근태관리(GET/POST/PUT/DELETE /api/attendance) — hr.mjs §3.5 ──
+export interface AttendanceRow {
+  id: number; emp_id: number; emp_code: string; emp_name: string;
+  work_date: string; att_type: string; check_in: string; check_out: string; memo: string;
+}
+export interface AttendanceSummaryRow {
+  emp_id: number; emp_code: string; emp_name: string;
+  work_days: number; leave_days: number; half_days: number; absent_days: number; overtime_days: number;
+}
+export interface AttendanceList { ym: string; rows: AttendanceRow[]; summary: AttendanceSummaryRow[]; }
+
+// ── 게시판(/api/board*) — groupware.mjs §3.6, `memo` id 재사용 ──
+export interface BoardPost { id: number; title: string; content: string; pinned: 0 | 1; author: string; created_at: string; updated_at: string; }
+// ── To Do(/api/todos*) — groupware.mjs §3.7, MyPage 위젯 연동 ──
+export interface Todo { id: number; content: string; due_date: string; done: 0 | 1; done_at: string | null; created_at: string; }
+
+// ── 엑셀 업로드 dry-run(POST /api/io/import/preview) 및 반영(POST /api/io/import/apply) — admin.mjs §3.8·3.9 ──
+export interface IoPreview {
+  type: string; columns: string[]; preview: Record<string, unknown>[];
+  stats: { total: number; new: number; update: number; error: number }; errors: { row: number; reason: string }[];
+}
+export interface IoApplyResult { created: number; updated: number; }
+
+// ── 판매현황 이관 dry-run(POST /api/migrate/sales/preview) 및 실행(POST /api/migrate/sales/apply) — admin.mjs §3.10 ──
+export interface MigratePartnerMap { name: string; action: '병합' | '신규생성' | '기존' | '매칭실패'; target_name: string; target_code: string | null; matched: boolean; }
+export interface MigratePreview {
+  partner_map: MigratePartnerMap[];
+  stats: { sheet_docs: number; planned: number; skipped_existing: number; skipped_no_partner: number; item_ok: number; item_fail: number };
+  item_fail: { doc_no: string; partner_name: string; item_text: string }[]; period: { from: string; to: string }; total_supply: number;
+}
+export interface MigrateApplyResult { created: number; }
+
+// ── 백업/복원(GET /api/backup/list, POST /api/backup/now, POST /api/backup/restore) — admin.mjs §3.11~3.13 ──
+export interface BackupFile { name: string; size: number; mtime: string; }
+export interface BackupList { dir: string; files: BackupFile[]; }
+export interface BackupNowResult { ok: boolean; file: { name: string; size: number }; }
+export interface BackupRestoreResult { ok: boolean; needs_restart: boolean; pre_backup: string; message: string; }

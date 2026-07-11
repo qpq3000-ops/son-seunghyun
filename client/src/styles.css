@@ -596,3 +596,110 @@ code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
   border: 1px solid var(--line); border-radius: 8px; background: #fbfcfe; font-size: 13px; margin: 8px 0;
 }
 .fund-summary b { font-variant-numeric: tabular-nums; }
+
+/* ══════════════════════════ R5: 관리 + 그룹웨어 + 유틸(설계-R5-관리그룹웨어유틸.md §4.10) ══════════════════════════ */
+
+/* ── 급여대장(PayrollScreen) ── */
+.payroll-screen { overflow-y: auto; }
+.payroll-badge {
+  color: var(--sub); font-size: 11.5px; border: 1px solid var(--line); border-radius: 12px;
+  padding: 3px 10px; background: #fbfcfe;
+}
+.payroll-grid tr.payroll-blank td { color: var(--sub); background: #fbfbfc; }
+.payroll-deduction-head { display: flex; align-items: center; gap: 10px; margin: 14px 0 8px; }
+.payroll-summary {
+  display: flex; gap: 18px; align-items: center; padding: 8px 12px; margin-top: 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: #fbfcfe; font-size: 13px;
+}
+.payroll-summary b { font-variant-numeric: tabular-nums; }
+/* 급여명세서 서식 — pnl-sheet/stmt-sheet 톤 재사용 */
+.payslip-sheet { font-size: 12.5px; color: #111; }
+.payslip-title { text-align: center; font-size: 22px; font-weight: 800; letter-spacing: 6px; margin-bottom: 10px; }
+.payslip-meta { display: flex; justify-content: space-between; font-size: 12.5px; color: #333; margin-bottom: 5px; flex-wrap: wrap; gap: 6px; }
+.payslip-tables { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+.payslip-sub td { background: #eef2f8; font-weight: 700; }
+.payslip-net {
+  display: flex; justify-content: space-between; border: 2px solid #111; margin-top: 10px;
+  padding: 8px 12px; font-weight: 800; font-size: 15px;
+}
+.payslip-korean { text-align: right; margin: 6px 0 10px; font-size: 12.5px; }
+
+/* ── 근태관리(AttendanceScreen) ── */
+.att-screen { overflow-y: auto; }
+.att-summary { margin-bottom: 14px; }
+.att-grid { margin-top: 6px; }
+
+/* ── 게시판(BoardScreen) — `memo` id 재사용, mini-table 재사용 ── */
+.board-screen { overflow-y: auto; }
+.board-list tr.board-pin td { background: #fff8e8; }
+.board-list td { cursor: pointer; }
+
+/* ── To Do(TodoScreen · Dashboard 위젯 공용) ── */
+.todo-screen { overflow-y: auto; }
+.todo-list { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.todo-list li {
+  display: flex; align-items: center; gap: 10px; padding: 7px 8px;
+  border-bottom: 1px solid #f0f2f5; font-size: 12.5px;
+}
+.todo-list li.done .td-content { text-decoration: line-through; color: var(--sub); }
+.todo-list li.overdue .td-due { color: var(--danger); font-weight: 700; }
+.todo-list .td-content { flex: 1; }
+.todo-list .td-due { color: var(--sub); font-size: 11.5px; }
+.todo-empty { text-align: center; color: var(--sub); padding: 22px; list-style: none; }
+/* Dashboard To Do 위젯(§4.8) */
+.todo-widget { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.todo-widget li { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 3px 0; }
+.todo-widget .td-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.todo-widget .td-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.todo-widget .td-due { color: var(--sub); font-size: 11px; }
+.todo-widget li.overdue .td-dot { background: var(--danger); }
+.todo-widget li.overdue .td-due { color: var(--danger); font-weight: 700; }
+
+/* ── 엑셀 업로드/다운로드(ExcelIoScreen) — `io` id 재사용 ── */
+.io-screen { overflow-y: auto; }
+.io-section { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: #fbfcfe; margin-bottom: 16px; }
+.io-section h3 { margin: 0 0 6px; font-size: 14px; }
+.io-wizard-step { display: flex; align-items: center; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
+.io-step-no {
+  display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px;
+  border-radius: 50%; background: var(--accent); color: #fff; font-size: 11.5px; font-weight: 700; flex-shrink: 0;
+}
+.io-stat { font-size: 12.5px; color: var(--sub); }
+.io-stat b { color: var(--txt); font-variant-numeric: tabular-nums; }
+.io-stat.new b { color: var(--ok); }
+.io-stat.update b { color: var(--gold); }
+.io-stat.error b, .io-stat.error { color: var(--danger); }
+.io-preview-scroll { max-height: 320px; overflow: auto; border: 1px solid var(--line); margin-top: 6px; }
+.io-badge { border-radius: 10px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+.io-badge.io-new { background: #e6f6ec; color: var(--ok); }
+.io-badge.io-update { background: #fef3e2; color: #b8790f; }
+.io-errors { border: 1px solid #f0c9c9; background: #fdf4f4; border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 12.5px; }
+.io-errors ul { margin: 6px 0 0; padding-left: 18px; max-height: 140px; overflow: auto; }
+.io-ignore { display: flex; align-items: center; gap: 6px; margin-top: 8px; color: var(--sub); }
+
+/* ── 백업/복원(BackupScreen) — `backup` id 재사용 ── */
+.backup-screen { overflow-y: auto; }
+.backup-list { margin-top: 10px; }
+.backup-restarted {
+  text-align: center; color: var(--sub); margin: 40px auto; max-width: 420px;
+}
+.backup-restarted h3 { color: var(--txt); margin: 6px 0 10px; }
+
+/* ── 기존앱 데이터 이관(MigrateScreen) — `migrate` id 재사용, io-wizard 톤 재사용 ── */
+.migrate-screen { overflow-y: auto; }
+.migrate-map { margin-top: 8px; }
+.migrate-badge { border-radius: 10px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+.migrate-badge.migrate-merge { background: #e6f0fe; color: var(--accent); }
+.migrate-badge.migrate-new { background: #e6f6ec; color: var(--ok); }
+.migrate-badge.migrate-exist { background: #f0f2f5; color: var(--sub); }
+.migrate-badge.migrate-fail { background: #fdeaea; color: var(--danger); }
+
+/* ── 연동 예정 stub(StubScreen) — ph-box 톤 재사용, 5개 메뉴 공용(§4.7) ── */
+.stub-screen { align-items: center; justify-content: center; }
+.stub-box { text-align: center; color: var(--sub); max-width: 420px; }
+.stub-icon { font-size: 34px; margin-bottom: 6px; }
+.stub-box h3 { margin: 4px 0 8px; color: var(--txt); }
+.stub-badge {
+  display: inline-block; margin-top: 10px; border: 1px solid var(--line); border-radius: 12px;
+  padding: 3px 12px; font-size: 11.5px; color: var(--sub); background: #f6f8fa;
+}

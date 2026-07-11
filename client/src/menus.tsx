@@ -34,6 +34,14 @@ import { FixedAssetScreen } from './screens/FixedAssetScreen';
 import { BudgetScreen } from './screens/BudgetScreen';
 import { DepositScreen } from './screens/DepositScreen';
 import { FundPlanScreen } from './screens/FundPlanScreen';
+import { PayrollScreen } from './screens/PayrollScreen';
+import { AttendanceScreen } from './screens/AttendanceScreen';
+import { BoardScreen } from './screens/BoardScreen';
+import { TodoScreen } from './screens/TodoScreen';
+import { ExcelIoScreen } from './screens/ExcelIoScreen';
+import { BackupScreen } from './screens/BackupScreen';
+import { MigrateScreen } from './screens/MigrateScreen';
+import { StubScreen } from './screens/StubScreen';
 
 // 전체 메뉴 트리 (docs/설계-R3-IA재편성.md §1 — 이카운트식 대메뉴 재편성) — 미구현 메뉴는 Placeholder로 Phase 표시
 export interface MenuDef {
@@ -48,6 +56,10 @@ export interface MenuDef {
 
 const ph = (name: string, phase: number): ComponentType =>
   () => <Placeholder name={name} phase={phase} />;
+
+// R5: 연동 예정 stub 래퍼(ph()와 동일 패턴) — bank-link/wms/pos/shopping-mall/forex가 공용 StubScreen을 사용(§1.2)
+const stub = (title: string, description: string): ComponentType =>
+  () => <StubScreen title={title} description={description} />;
 
 // R1 보고서 엔진(ReportScreen 공통 화면) — 정의 id로 REPORT_DEFS에서 조회해 마운트
 const R = (id: string): ComponentType =>
@@ -147,16 +159,28 @@ export const MENUS: MenuDef[] = [
 
   // ── 그룹웨어 ──
   m('calendar', '그룹웨어', '달력(로스팅/납기)', 2, CalendarScreen),
-  m('memo', '그룹웨어', '메모', 4),
+  m('memo', '그룹웨어', '게시판', 4, BoardScreen),                          // 기존 m('memo','그룹웨어','메모',4) — id 동결, 실화면 교체
 
   // ── Self-Customizing ──
   m('settings', 'Self-Customizing', '환경설정', 0, SettingsScreen),
-  m('io', 'Self-Customizing', '엑셀 업로드/다운로드', 4),
-  m('backup', 'Self-Customizing', '백업/복원', 4),
-  m('migrate', 'Self-Customizing', '기존앱 데이터 이관', 1),
+  m('io', 'Self-Customizing', '엑셀 업로드/다운로드', 4, ExcelIoScreen),
+  m('backup', 'Self-Customizing', '백업/복원', 4, BackupScreen),
+  m('migrate', 'Self-Customizing', '기존앱 데이터 이관', 1, MigrateScreen),
+
+  // ── R5: 관리(신설 블록 — 대메뉴 dim 자동 해제, §1.3) ──
+  m('payroll', '관리', '급여대장', 7, PayrollScreen),
+  m('attendance', '관리', '근태관리', 7, AttendanceScreen),
+  // ── R5: 그룹웨어(달력·게시판 뒤) ──
+  m('todo', '그룹웨어', 'To Do', 7, TodoScreen),
+  // ── R5: 연동 stub(공용 StubScreen, §4.7) ──
+  m('bank-link', '회계Ⅰ', '계좌/카드 연동', 7, stub('계좌/카드 연동', '은행 계좌·카드 매입내역 자동 수집은 연동 예정입니다. 수기 입출금은 [회계Ⅱ > 자금현황]에서 관리하세요.')),
+  m('wms', '재고Ⅱ', 'WMS(창고관리)', 7, stub('WMS(창고관리)', '위치(Location)·랙 단위 창고관리시스템은 연동 예정입니다. 현재 재고는 [재고Ⅰ > 출력물 > 창고별재고현황]에서 확인하세요.')),
+  m('pos', '재고Ⅰ', 'POS판매', 7, stub('POS판매', '카드단말기(VAN) 연동 POS 판매는 연동 예정입니다. 판매는 [재고Ⅰ > 영업관리 > 판매입력]을 사용하세요.'), '영업관리'),
+  m('shopping-mall', '재고Ⅰ', '쇼핑몰관리', 7, stub('쇼핑몰관리', '오픈마켓 주문 자동수집(쇼핑몰통합관리)은 연동 예정입니다.'), '영업관리'),
+  m('forex', '회계Ⅱ', '외화관리', 7, stub('외화관리', '외화 거래·환율·외화환산손익 자동계산은 연동 예정입니다.')),
 ];
 
-// 대메뉴(9) 순서 — 관리/세무는 R4·R5 전용 예약 그룹(소속 메뉴 0개, App.tsx에서 dim+no-op 처리)
+// 대메뉴(9) 순서 — R5 종료 시 9개 전부 소속 메뉴 ≥1(관리 그룹도 payroll·attendance로 채워짐 → reserved 0개, §1.3/§1.5)
 export const MENU_GROUPS = [
   'MyPage', '재고Ⅰ', '재고Ⅱ', '회계Ⅰ', '회계Ⅱ', '관리', '세무', '그룹웨어', 'Self-Customizing',
 ];

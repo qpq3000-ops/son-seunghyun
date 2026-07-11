@@ -69,7 +69,17 @@ export function Dashboard() {
 
         <div className="widget">
           <div className="widget-head"><b>To Do</b>{icons}</div>
-          <p className="widget-empty">등록된 데이터가 없습니다.</p>
+          {(data?.todos?.length ?? 0) ? (
+            <ul className="todo-widget">
+              {data!.todos.map(t => (
+                <li key={t.id} className={t.due_date && t.due_date < today ? 'overdue' : ''}>
+                  <span className="td-dot" />
+                  <span className="td-text">{t.content}</span>
+                  {t.due_date && <span className="td-due">{t.due_date.slice(5)}</span>}
+                </li>
+              ))}
+            </ul>
+          ) : <p className="widget-empty">할 일이 없습니다. [그룹웨어 &gt; To Do]에서 등록하세요.</p>}
         </div>
 
         <div className="widget wide">
