@@ -17,6 +17,13 @@ import { AccountMaster, JournalScreen, PartnerLedger, MonthlyPL, VatBook } from 
 import { BomScreen, ProductionStatus } from './screens/ProductionScreens';
 import { StockByWarehouse } from './screens/StockByWarehouse';
 import { CalendarScreen } from './screens/CalendarScreen';
+import { LotScreen } from './screens/LotScreen';
+import { MrpScreen } from './screens/MrpScreen';
+import { ProdInScreen } from './screens/ProdInScreen';
+import { GlEntryScreen } from './screens/GlEntryScreen';
+import { CashScreen } from './screens/CashScreen';
+import { MessageScreen } from './screens/MessageScreen';
+import { BeanPriceScreen } from './screens/BeanPriceScreen';
 
 // 전체 메뉴 트리 (docs/01 기획서 5장 메뉴맵) — 미구현 메뉴는 Placeholder로 Phase 표시
 export interface MenuDef {
@@ -47,20 +54,20 @@ export const MENUS: MenuDef[] = [
   m('receipt', '영업', '수금입력', 1, ReceiptScreen),
   m('receivable', '영업', '미수금현황', 1, ReceivableScreen),
   m('statement-print', '영업', '거래명세서인쇄', 1, StatementPrint),
-  m('message', '영업', '거래처 메시지', 4),
+  m('message', '영업', '거래처 메시지', 4, MessageScreen),
 
   m('po', '구매', '발주서입력/조회', 1, PurchaseOrderList),
   m('purchase', '구매', '구매입력', 1, PurchaseInput),
   m('purchase-status', '구매', '구매조회', 1, PurchaseList),
   m('payment', '구매', '지불입력', 1, PaymentScreen),
   m('payable', '구매', '미지급금현황', 1, PayableScreen),
-  m('bean-price', '구매', '생두 단가비교', 4),
+  m('bean-price', '구매', '생두 단가비교', 4, BeanPriceScreen),
 
   m('bom', '생산', 'BOM등록', 2, BomScreen),
   m('roast-sheet', '생산', '로스팅 입력', 1, RoastInput),
-  m('prod-in', '생산', '생산입고', 2),
+  m('prod-in', '생산', '생산입고', 2, ProdInScreen),
   m('prod-status', '생산', '생산현황/수율분석', 2, ProductionStatus),
-  m('mrp', '생산', '소요량계산', 2),
+  m('mrp', '생산', '소요량계산', 2, MrpScreen),
 
   m('stock-status', '재고', '재고현황', 1, StockStatus),
   m('stock-wh', '재고', '창고별재고현황', 1, StockByWarehouse),
@@ -69,15 +76,15 @@ export const MENUS: MenuDef[] = [
   m('self-use', '재고', '자가사용', 1, SelfUse),
   m('defect', '재고', '불량처리', 1, Defect),
   m('adjust', '재고', '재고조정', 1, StockAdjust),
-  m('lot', '재고', '로트조회', 2),
+  m('lot', '재고', '로트조회', 2, LotScreen),
 
   m('vat-book', '회계', '매입매출장(부가세)', 3, VatBook),
   m('journal', '회계', '분개장', 3, JournalScreen),
   m('acct-ledger', '회계', '계정별원장', 3),
   m('partner-ledger', '회계', '거래처원장', 3, PartnerLedger),
   m('monthly-pl', '회계', '월별손익', 3, MonthlyPL),
-  m('gl-entry', '회계', '일반전표(경비)', 3),
-  m('cash', '회계', '자금현황', 3),
+  m('gl-entry', '회계', '일반전표(경비)', 3, GlEntryScreen),
+  m('cash', '회계', '자금현황', 3, CashScreen),
 
   m('calendar', '일정', '달력(로스팅/납기)', 2, CalendarScreen),
   m('memo', '일정', '메모', 4),

@@ -422,4 +422,33 @@ code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
 .widget-table td { padding: 5px 6px; border-bottom: 1px solid #f0f2f5; }
 .widget-table .num { text-align: right; }
 .widget-table .blue { color: var(--accent); }
+
+/* ── 잔여메뉴 7종 ── */
+/* 일반전표 차대변 균형 바 */
+.gl-balance { display:flex; gap:18px; align-items:center; padding:8px 12px; border:1px solid var(--line);
+  border-radius:8px; background:#fbfcfe; font-size:13px; margin:8px 0; }
+.gl-balance b { font-variant-numeric:tabular-nums; }
+.gl-balance.off { border-color:#e6b0b0; background:#fdf4f4; }
+.gl-balance.on  { border-color:#bfe0c4; background:#f4fbf5; }
+/* 자금현황 요약 타일 */
+.cash-tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:10px 0 16px; }
+.cash-tile { border:1px solid var(--line); border-radius:10px; padding:12px 14px; background:#fff; }
+.cash-tile .ct-title { font-size:12.5px; color:var(--sub); font-weight:700; margin-bottom:6px; }
+.cash-tile .ct-net { font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; }
+.cash-tile .ct-io { font-size:12px; color:#444; margin-top:4px; display:flex; justify-content:space-between; }
+.cash-tile.total { background:#f3f7ff; border-color:#cfe0ff; }
+/* 거래처 메시지 카드 */
+.msg-templates { border:1px solid var(--line); border-radius:8px; padding:10px 12px; background:#fbfcfe; margin:10px 0; }
+.msg-tabs { display:flex; gap:8px; margin-bottom:8px; }
+.msg-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:12px; }
+.msg-card { border:1px solid var(--line); border-radius:10px; padding:12px; background:#fff; }
+.msg-card h4 { margin:0 0 8px; font-size:14px; }
+.msg-card textarea { width:100%; min-height:120px; resize:vertical; font-size:12.5px; line-height:1.55; }
+.msg-card .msg-actions { display:flex; justify-content:flex-end; margin-top:8px; }
+/* 로트조회/생두 이력 상세 패널 */
+.detail-panel { border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-top:12px; background:#fbfcfe; }
+.detail-panel .dp-title { font-weight:700; font-size:13px; margin-bottom:8px; }
+.detail-panel .dp-title-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.detail-panel .dp-title-row .dp-title { margin-bottom:0; }
+/* MRP 강조 셀은 기존 .danger-text 재사용 */
 .widget-empty { color: var(--sub); font-size: 12.5px; margin: 6px 0; }

@@ -25,7 +25,7 @@ function oneMonthAgoISO(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-export function RoastInput() {
+export function RoastInput({ initialEditId }: { initialEditId?: number } = {}) {
   const toast = useToast();
   const [ioDate, setIoDate] = useState(todayISO());
   const [warehouseId, setWarehouseId] = useState<number | null>(null);
@@ -122,6 +122,10 @@ export function RoastInput() {
       toast.show((e as Error).message, 'error');
     }
   };
+
+  // prod-in(생산입고 조회) 재사용 전용 — initialEditId가 오면 마운트 시 해당 로트를 편집 모드로 자동 로드한다.
+  // 미전달 시(기존 roast-sheet 메뉴) 기존 동작과 100% 동일(하위호환). 설계-잔여메뉴.md 4.3.
+  useEffect(() => { if (initialEditId) loadForEdit(initialEditId); /* eslint-disable-next-line */ }, [initialEditId]);
 
   const save = async () => {
     if (!ioDate) { toast.show('일자를 입력하세요.', 'error'); return; }

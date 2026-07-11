@@ -478,3 +478,48 @@ export interface CalendarDayDetail {
   date: string;
   events: CalendarEvent[];
 }
+
+// ───────────────────────── 잔여메뉴 7종 (설계-잔여메뉴.md 5장) ─────────────────────────
+
+// ── 로트조회·생산입고 조회 (GET /api/roast-docs) ──
+export interface RoastInputLine { item_id: number; item_code: string; item_name: string; qty: number; }
+export interface RoastDocRow {
+  id: number; doc_no: string; io_date: string;
+  warehouse_id: number; warehouse_name: string;
+  output_item_id: number | null; output_item_name: string;
+  output_total: number; yield_pct: number | null; memo: string;
+  input_total: number; input_summary: string; inputs: RoastInputLine[];
+}
+// ── 소요량계산 (GET /api/mrp) ──
+export interface MrpRow {
+  item_id: number; item_code: string; item_name: string; unit: string;
+  required: number; stock: number; shortage: number;
+  bean_item_id: number | null; bean_code: string | null; bean_name: string | null;
+  yield_pct: number; bean_need: number | null; bean_stock: number | null; bean_short: number | null;
+}
+export interface MrpReport { rows: MrpRow[]; }
+// ── 일반전표 (/api/gl-entries) ──
+export interface GlLine {
+  line_no?: number; account_code: string; account_name?: string;
+  dr: number; cr: number; partner_id: number | null; partner_name?: string | null; remarks: string;
+}
+export interface GlEntry { id: number; io_date: string; doc_no: string; summary: string; amount: number; lines: GlLine[]; }
+// ── 자금현황 (GET /api/cash) ──
+export interface CashSummaryRow { method: string; in_amt: number; out_amt: number; net: number; }
+export interface CashListRow {
+  io_date: string; kind: '수금' | '지불'; partner_name: string; method: string;
+  receipt_no: string; in_amt: number; out_amt: number; memo: string;
+}
+export interface CashReport { summary: CashSummaryRow[]; list: CashListRow[]; totals: { in_amt: number; out_amt: number; net: number }; }
+// ── 거래처 메시지 (GET /api/message) ──
+export interface MessageLine { item_name: string; unit: string; qty: number; price: number; amount: number; }
+export interface MessagePartner { partner_id: number; partner_name: string; lines: MessageLine[]; total: number; }
+// ── 생두 단가비교 (/api/bean-price) ──
+export interface BeanPriceRow {
+  item_id: number; item_code: string; item_name: string; unit: string;
+  recent_price: number; recent_date: string; min_price: number; min_partner: string | null;
+  avg_price: number; total_qty: number; buy_count: number;
+}
+export interface BeanMonthRow { ym: string; qty: number; supply: number; }
+export interface BeanPriceReport { rows: BeanPriceRow[]; monthly: BeanMonthRow[]; }
+export interface BeanHistoryRow { io_date: string; doc_no: string; partner_name: string | null; qty: number; price: number; supply_amt: number; }

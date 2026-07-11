@@ -14,6 +14,11 @@ import { reports } from './reports.mjs';
 import { statements } from './statements.mjs';
 import { accounting, backfillJournals } from './accounting.mjs';
 import { production } from './production.mjs';
+import { prodQuery } from './prodquery.mjs';
+import { glEntries } from './gl.mjs';
+import { cash } from './cash.mjs';
+import { messageApi } from './message.mjs';
+import { beanPrice } from './beanprice.mjs';
 
 migrate();
 try { backfillJournals(); } catch (e) { console.warn('[분개 백필] 실패:', e.message); }
@@ -30,6 +35,11 @@ app.route('/api', reports);    // /api/stock/status, /api/stock/ledger, /api/sto
 app.route('/api', statements); // /api/statements* (거래명세서인쇄)
 app.route('/api', accounting); // /api/accounts*, /api/journal, /api/partner-ledger, /api/monthly-pl, /api/vat-book
 app.route('/api', production); // /api/bom(/:itemId), /api/production/summary
+app.route('/api', prodQuery);   // /api/roast-docs, /api/mrp
+app.route('/api', glEntries);   // /api/gl-entries*
+app.route('/api', cash);        // /api/cash
+app.route('/api', messageApi);  // /api/message
+app.route('/api', beanPrice);   // /api/bean-price*
 app.route('/api/ecount', ecount);
 // 미등록 API 경로는 SPA fallback으로 흘려보내지 않고 404 JSON 반환
 app.all('/api/*', (c) => c.json({ error: '알 수 없는 API 경로입니다.' }, 404));
