@@ -2,120 +2,157 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MENUS, MENU_GROUPS, findMenu } from './menus';
 import { ToastProvider } from './components/Toast';
 
-// AppShell: 상단 대메뉴 바 + 즐겨찾기(☆) + 멀티 탭(MDI) — 이카운트 전역 레이아웃 패턴
-interface OpenTab { menuId: string }
+// AppShell — 이카운트 실화면(2026) 레이아웃 재현:
+// [최상단 즐겨찾기 바: 메뉴검색 + 사이트맵 + 고정 메뉴 링크] → [로고/대메뉴 바] → [좌측 메뉴트리 + 콘텐츠]
+// 로고·아이콘은 자체 제작(자산 비복제), 배치·크기·동선만 맞춘다.
 
 const FAV_KEY = 'erp_favorites';
 
 export default function App() {
-  const [openMenu, setOpenMenu] = useState<string | null>(null);       // 펼쳐진 대메뉴
-  const [tabs, setTabs] = useState<OpenTab[]>([{ menuId: 'dashboard' }]);
-  const [active, setActive] = useState('dashboard');
+  const [activeId, setActiveId] = useState('dashboard');
+  const [sitemap, setSitemap] = useState(false);
+  const [q, setQ] = useState('');
   const [favs, setFavs] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch { return []; }
   });
 
   useEffect(() => { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); }, [favs]);
 
-  const openTab = useCallback((menuId: string) => {
-    setTabs(t => (t.some(x => x.menuId === menuId) ? t : [...t, { menuId }]));
-    setActive(menuId);
-    setOpenMenu(null);
+  const menu = findMenu(activeId) ?? MENUS[0];
+  const activeGroup = menu.group;
+  const groupItems = useMemo(() => MENUS.filter(x => x.group === activeGroup), [activeGroup]);
+
+  const open = useCallback((id: string) => {
+    setActiveId(id);
+    setSitemap(false);
+    setQ('');
   }, []);
 
-  const closeTab = useCallback((menuId: string) => {
-    setTabs(t => {
-      const next = t.filter(x => x.menuId !== menuId);
-      if (!next.length) next.push({ menuId: 'dashboard' });
-      setActive(a => (a === menuId ? next[next.length - 1].menuId : a));
-      return next;
-    });
+  const toggleFav = useCallback((id: string) => {
+    setFavs(f => (f.includes(id) ? f.filter(x => x !== id) : [...f, id]));
   }, []);
 
-  const toggleFav = useCallback((menuId: string) => {
-    setFavs(f => (f.includes(menuId) ? f.filter(x => x !== menuId) : [...f, menuId]));
-  }, []);
+  const results = useMemo(() => {
+    const t = q.trim();
+    if (!t) return [];
+    return MENUS.filter(x => x.name.includes(t) || x.group.includes(t)).slice(0, 10);
+  }, [q]);
 
-  const grouped = useMemo(() => MENU_GROUPS.map(g => ({
-    group: g,
-    items: MENUS.filter(x => x.group === g),
-  })), []);
+  const Comp = menu.component;
 
   return (
     <ToastProvider>
-      <div className="shell" onClick={() => setOpenMenu(null)}>
-        <header className="topbar" onClick={e => e.stopPropagation()}>
-          <div className="brand">☕ 로스팅 ERP</div>
-          <nav className="topmenu">
-            {grouped.map(({ group, items }) => (
-              <div key={group} className="topmenu-item">
-                <button
-                  className={`topmenu-btn ${openMenu === group ? 'open' : ''}`}
-                  onClick={() => {
-                    if (items.length === 1) { openTab(items[0].id); return; }
-                    setOpenMenu(o => (o === group ? null : group));
-                  }}
-                  onMouseEnter={() => { if (openMenu && openMenu !== group && items.length > 1) setOpenMenu(group); }}>
-                  {group}
-                </button>
-                {openMenu === group && items.length > 1 && (
-                  <div className="submenu">
-                    {items.map(x => (
-                      <div key={x.id} className="submenu-row">
-                        <button className={`submenu-btn ${x.implemented ? '' : 'dim'}`} onClick={() => openTab(x.id)}>
-                          {x.name}
-                          {!x.implemented && <span className="phase-tag">P{x.phase}</span>}
-                        </button>
-                        <button
-                          className={`star ${favs.includes(x.id) ? 'on' : ''}`}
-                          title="즐겨찾기"
-                          onClick={() => toggleFav(x.id)}>★</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+      <div className="shell">
+        {/* ── 최상단 즐겨찾기 바 ── */}
+        <div className="favbar">
+          <div className="menusearch">
+            <span className="ms-icon">🔍</span>
+            <input
+              placeholder="메뉴검색"
+              value={q}
+              onChange={e => setQ(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && results.length) open(results[0].id); }}
+            />
+            {results.length > 0 && (
+              <div className="menusearch-drop">
+                {results.map(r => (
+                  <button key={r.id} onClick={() => open(r.id)}>
+                    <span className="ms-group">{r.group}</span> {r.name}
+                  </button>
+                ))}
               </div>
-            ))}
-          </nav>
-          <div className="fav-bar">
+            )}
+          </div>
+          <button className="sitemap-btn" onClick={() => setSitemap(s => !s)}>사이트맵</button>
+          <nav className="favlinks">
             {favs.map(id => {
-              const menu = findMenu(id);
-              return menu ? (
-                <button key={id} className="fav-chip" onClick={() => openTab(id)}>★ {menu.name}</button>
+              const f = findMenu(id);
+              return f ? (
+                <button key={id} className="favlink" onClick={() => open(id)}>{f.name}</button>
               ) : null;
             })}
+            {!favs.length && <span className="favhint">메뉴 옆 ★를 눌러 자주 쓰는 메뉴를 여기에 고정하세요</span>}
+          </nav>
+          <span className="favbar-pin" title="즐겨찾기 바">📌</span>
+        </div>
+
+        {/* ── 로고 / 대메뉴 바 ── */}
+        <header className="logobar">
+          <button className="logo" onClick={() => open('dashboard')}>
+            <span className="logo-mark">☕</span><b>로스팅</b>ERP
+          </button>
+          <nav className="groupmenu">
+            {MENU_GROUPS.map(g => (
+              <button
+                key={g}
+                className={g === activeGroup ? 'on' : ''}
+                onClick={() => {
+                  const first = MENUS.find(x => x.group === g);
+                  if (first) open(first.id);
+                }}>
+                {g}
+              </button>
+            ))}
+          </nav>
+          <div className="logobar-right">
+            <button className="icon-btn" title="환경설정" onClick={() => open('settings')}>⚙️</button>
+            <div className="profile-dot" title="단일 사용자">☺</div>
           </div>
         </header>
 
-        <div className="tabbar">
-          {tabs.map(t => {
-            const menu = findMenu(t.menuId);
-            if (!menu) return null;
-            return (
-              <div key={t.menuId} className={`tab ${active === t.menuId ? 'active' : ''}`}
-                onClick={() => setActive(t.menuId)}>
-                <span>{menu.name}</span>
-                {t.menuId !== 'dashboard' && (
-                  <button className="tab-close" onClick={e => { e.stopPropagation(); closeTab(t.menuId); }}>✕</button>
-                )}
+        {/* ── 본문: 좌측 메뉴트리 + 콘텐츠 ── */}
+        <div className="body">
+          <aside className="sidebar">
+            {groupItems.map(x => (
+              <div key={x.id} className={`side-item ${x.id === activeId ? 'on' : ''}`}>
+                <button className={`side-link ${x.implemented ? '' : 'dim'}`} onClick={() => open(x.id)}>
+                  {x.id === activeId && <span className="side-dot">●</span>}
+                  {x.name}
+                  {!x.implemented && <span className="phase-tag">P{x.phase}</span>}
+                </button>
+                <button
+                  className={`star ${favs.includes(x.id) ? 'on' : ''}`}
+                  title="즐겨찾기 바에 고정"
+                  onClick={() => toggleFav(x.id)}>★</button>
               </div>
-            );
-          })}
+            ))}
+          </aside>
+
+          <main className="content">
+            <div className="titlebar">
+              <button
+                className={`star big ${favs.includes(activeId) ? 'on' : ''}`}
+                title="즐겨찾기 바에 고정"
+                onClick={() => toggleFav(activeId)}>★</button>
+              <h2>{menu.name}</h2>
+              <div className="titlebar-right">
+                <button className="btn small" title="입력화면설정 — Phase 4">Option</button>
+                <button className="btn small" title="docs/02 기능분석 참고">도움말</button>
+              </div>
+            </div>
+            <div className="screen-card">
+              <Comp key={activeId} />
+            </div>
+          </main>
         </div>
 
-        <main className="content">
-          {tabs.map(t => {
-            const menu = findMenu(t.menuId);
-            if (!menu) return null;
-            const Comp = menu.component;
-            // 열린 탭은 모두 마운트 유지(입력 중 내용 보존), 활성 탭만 표시 — MDI 패턴
-            return (
-              <div key={t.menuId} className="tab-pane" style={{ display: active === t.menuId ? 'flex' : 'none' }}>
-                <Comp />
-              </div>
-            );
-          })}
-        </main>
+        {/* ── 사이트맵 오버레이 (이카운트 출력물 카탈로그 스타일) ── */}
+        {sitemap && (
+          <div className="sitemap-overlay" onMouseDown={e => { if (e.target === e.currentTarget) setSitemap(false); }}>
+            <div className="sitemap">
+              {MENU_GROUPS.map(g => (
+                <div key={g} className="sitemap-group">
+                  <h3>{g}</h3>
+                  {MENUS.filter(x => x.group === g).map(x => (
+                    <button key={x.id} className={x.implemented ? '' : 'dim'} onClick={() => open(x.id)}>
+                      {x.name}{!x.implemented && <span className="phase-tag">P{x.phase}</span>}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </ToastProvider>
   );

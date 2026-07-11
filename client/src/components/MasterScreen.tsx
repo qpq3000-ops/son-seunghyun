@@ -45,6 +45,17 @@ export function MasterScreen<T extends { id: number }>({ title, endpoint, column
 
   useEffect(() => { load(); }, [load]);
 
+  // 이카운트 단축키: F2 신규 / F3 검색
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'F2') { e.preventDefault(); setEditing({ ...defaults }); }
+      else if (e.key === 'F3') { e.preventDefault(); load(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [load]);
+
   const save = async () => {
     if (!editing) return;
     for (const f of fields) {
@@ -102,13 +113,13 @@ export function MasterScreen<T extends { id: number }>({ title, endpoint, column
             value={q}
             onChange={e => setQ(e.target.value)}
           />
-          <button className="btn" onClick={load}>검색</button>
+          <button className="btn" onClick={load}>검색(F3)</button>
         </div>
         <div className="btn-group">
           <button className="btn" onClick={() => gridRef.current?.download('xlsx', `${title}.xlsx`, { sheetName: title })}>
             엑셀
           </button>
-          <button className="btn primary" onClick={() => setEditing({ ...defaults })}>신규</button>
+          <button className="btn primary" onClick={() => setEditing({ ...defaults })}>신규(F2)</button>
         </div>
       </div>
       {helpText && <p className="hint">{helpText}</p>}

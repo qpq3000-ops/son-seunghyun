@@ -1,4 +1,4 @@
-import { ReactNode, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { fmtWon, todayISO } from '../format';
 import { CodeHelp } from './CodeHelp';
 
@@ -59,6 +59,15 @@ export function VoucherForm({
   headerActions, headerExtra, priceResolver, warehouseLabel, saveLabel, footerActions,
 }: Props) {
   const [help, setHelp] = useState<{ kind: 'partner' | 'warehouse' | 'item'; lineIdx?: number } | null>(null);
+
+  // 이카운트 단축키: F8 저장
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'F8' && !saving) { e.preventDefault(); onSave(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onSave, saving]);
 
   const totals = useMemo(() => lines.reduce(
     (a, l) => ({ qty: a.qty + l.qty, supply: a.supply + l.supply, vat: a.vat + l.vat }),
@@ -166,10 +175,10 @@ export function VoucherForm({
       </table>
 
       <div className="voucher-actions">
-        {footerActions}
         <button className="btn primary" disabled={saving} onClick={onSave}>
-          {saving ? '저장 중...' : (saveLabel ?? '저장 (연속입력)')}
+          {saving ? '저장 중...' : (saveLabel ?? '저장(F8)')}
         </button>
+        {footerActions}
       </div>
 
       {help?.kind === 'partner' && (
