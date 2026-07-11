@@ -24,6 +24,9 @@ import { beanPrice } from './beanprice.mjs';
 import { mypage } from './mypage.mjs';
 import { tax } from './tax.mjs';
 import { assets } from './assets.mjs';
+import { hr } from './hr.mjs';
+import { groupware } from './groupware.mjs';
+import { admin } from './admin.mjs';
 
 migrate();
 try { backfillJournals(); } catch (e) { console.warn('[분개 백필] 실패:', e.message); }
@@ -50,6 +53,9 @@ app.route('/api', beanPrice);   // /api/bean-price*
 app.route('/api', mypage);      // /api/mypage
 app.route('/api', tax);         // /api/vat-return, /api/tax-invoice-report, /api/tax-invoices*
 app.route('/api', assets);      // /api/fixed-assets*, /api/depreciation, /api/budget, /api/deposits*, /api/fund-plans*
+app.route('/api', hr);          // /api/payroll*, /api/attendance*
+app.route('/api', groupware);   // /api/board*, /api/todos*
+app.route('/api', admin);       // /api/io/export, /api/io/import/*, /api/migrate/sales/*, /api/backup/*
 app.route('/api/ecount', ecount);
 // 미등록 API 경로는 SPA fallback으로 흘려보내지 않고 404 JSON 반환
 app.all('/api/*', (c) => c.json({ error: '알 수 없는 API 경로입니다.' }, 404));

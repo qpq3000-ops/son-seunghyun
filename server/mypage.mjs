@@ -75,8 +75,13 @@ mypage.get('/mypage', (c) => {
     .slice(0, 5)
     .map(r => ({ partner_id: r.partner_id, partner_code: r.partner_code, partner_name: r.partner_name, balance: r.balance }));
 
-  // ── To Do: R5 실데이터 예정. 지금은 항상 빈 배열 ──
-  const todos = [];
+  // ── To Do: 미완료 상위 8건 — 기한 임박 우선. groupware.mjs /api/todos와 동일 SQL을 파일 격리를 위해 로컬 복제(§3.7) ──
+  const todos = db.prepare(`
+    SELECT id, content, due_date, done FROM todo
+    WHERE done = 0
+    ORDER BY (due_date='') ASC, due_date ASC, id DESC
+    LIMIT 8
+  `).all();
 
   // ── 달력 미니: reports.mjs /calendar와 동일 3쿼리, 활동 있는 날짜만 ──
   const days = {};
