@@ -484,3 +484,43 @@ code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
 .pnl-detail td { color: #666; font-size: 12px; }
 .pnl-detail .pnl-detail-name { padding-left: 24px; }
 .pnl-empty { text-align: center; color: var(--sub); padding: 24px; }
+
+/* ── R3: IA 재편성 — 서브탭 스트립 · 2단 사이드바 · 빈 대메뉴 · 사이트맵 서브그룹(설계-R3-IA재편성.md §2/§4) ── */
+.subtabs {
+  display: flex; gap: 2px; background: #fff; border-bottom: 1px solid var(--line);
+  padding: 0 16px;
+}
+.subtabs button {
+  background: none; border: 0; border-bottom: 2px solid transparent;
+  color: var(--sub); font-size: 12.5px; font-weight: 600; cursor: pointer;
+  padding: 8px 12px; font-family: inherit;
+}
+.subtabs button:hover { color: var(--accent); }
+.subtabs button.on { color: var(--accent); border-bottom-color: var(--accent); }
+
+.side-section {
+  font-size: 11.5px; font-weight: 700; color: var(--sub);
+  padding: 6px 10px 4px; margin-top: 2px;
+}
+
+.groupmenu button.reserved { color: #c3c8d2; cursor: default; }
+.groupmenu button.reserved:hover { color: #c3c8d2; }
+
+.sitemap-sub h4 {
+  margin: 8px 0 4px; font-size: 12px; color: var(--sub); font-weight: 700;
+}
+.sm-reserved { color: #a4abb8; font-size: 12px; }
+
+/* ── R3: MyPage 위젯 — 마이너스 재고 강조 · 미수금 TOP · 달력 미니(설계 §4.3) ── */
+.widget-table .neg { color: var(--danger); font-weight: 700; }
+.mini-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: 11px; }
+.mini-cal .mc-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; border-radius: 4px; color: #555; }
+.mini-cal .mc-day.dow { color: #9aa4b1; font-weight: 700; aspect-ratio: auto; }
+.mini-cal .mc-day.today { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.mini-cal .mc-dot { display: flex; gap: 2px; margin-top: 1px; }
+.mini-cal .mc-dot i { width: 4px; height: 4px; border-radius: 50%; display: inline-block; }
+.mc-dot .d-roast { background: #b5651d; } .mc-dot .d-sale { background: var(--accent); } .mc-dot .d-due { background: var(--gold); }
+
+/* ── R3: 재고불러오기/이익계산/찾기 모달 공용 — mini-table 마이너스 강조(범용, widget-table 밖에서도 사용) ── */
+.mini-table .neg, .voucher-lines .neg { color: var(--danger); font-weight: 700; }

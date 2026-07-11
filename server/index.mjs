@@ -21,6 +21,7 @@ import { glEntries } from './gl.mjs';
 import { cash } from './cash.mjs';
 import { messageApi } from './message.mjs';
 import { beanPrice } from './beanprice.mjs';
+import { mypage } from './mypage.mjs';
 
 migrate();
 try { backfillJournals(); } catch (e) { console.warn('[분개 백필] 실패:', e.message); }
@@ -44,6 +45,7 @@ app.route('/api', glEntries);   // /api/gl-entries*
 app.route('/api', cash);        // /api/cash
 app.route('/api', messageApi);  // /api/message
 app.route('/api', beanPrice);   // /api/bean-price*
+app.route('/api', mypage);      // /api/mypage
 app.route('/api/ecount', ecount);
 // 미등록 API 경로는 SPA fallback으로 흘려보내지 않고 404 JSON 반환
 app.all('/api/*', (c) => c.json({ error: '알 수 없는 API 경로입니다.' }, 404));

@@ -25,6 +25,8 @@ export interface VoucherHeader {
   warehouse_name: string;
   tax_mode: '과세' | '면세';
   memo: string;
+  emp_id: number | null;   // 담당자(사원) — 선택(R3)
+  emp_name: string;
 }
 
 export function emptyLine(): VoucherLine {
@@ -52,13 +54,14 @@ interface Props {
   warehouseLabel?: string;            // 기본 '창고' (구매는 '입고창고')
   saveLabel?: string;                 // 기본 '저장 (연속입력)'
   footerActions?: ReactNode;          // 저장 버튼 옆 슬롯 (수정모드의 삭제/목록으로 버튼 등)
+  showEmp?: boolean;                  // 담당자(사원) 필드 노출 여부(R3, 판매입력에서 true)
 }
 
 export function VoucherForm({
   title, header, lines, vatRound = 'floor', onChange, onSave, saving,
-  headerActions, headerExtra, priceResolver, warehouseLabel, saveLabel, footerActions,
+  headerActions, headerExtra, priceResolver, warehouseLabel, saveLabel, footerActions, showEmp,
 }: Props) {
-  const [help, setHelp] = useState<{ kind: 'partner' | 'warehouse' | 'item'; lineIdx?: number } | null>(null);
+  const [help, setHelp] = useState<{ kind: 'partner' | 'warehouse' | 'item' | 'emp'; lineIdx?: number } | null>(null);
 
   // 이카운트 단축키: F8 저장
   useEffect(() => {
@@ -111,6 +114,12 @@ export function VoucherForm({
               <option>과세</option><option>면세</option>
             </select>
           </label>
+          {showEmp && (
+            <label>담당자
+              <input className="input lookup" readOnly value={header.emp_name}
+                placeholder="선택(선택사항)" onClick={() => setHelp({ kind: 'emp' })} />
+            </label>
+          )}
           {headerExtra}
           <label className="grow">적요
             <input className="input" value={header.memo}
@@ -201,6 +210,11 @@ export function VoucherForm({
             unit: String(r.unit ?? 'kg'),
             price: priceResolver ? priceResolver(r.id, Number(r.price_out ?? 0)) : Number(r.price_out ?? 0),
           })} />
+      )}
+      {help?.kind === 'emp' && (
+        <CodeHelp title="담당자" endpoint="/api/employees"
+          onClose={() => setHelp(null)}
+          onSelect={r => setHeader({ emp_id: r.id, emp_name: r.name })} />
       )}
     </div>
   );

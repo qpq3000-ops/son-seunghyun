@@ -1,16 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { VoucherForm, VoucherHeader, VoucherLine, emptyLine, calcLine } from '../components/VoucherForm';
 import { PullSourceModal } from '../components/PullSourceModal';
+import { StockPickModal } from '../components/StockPickModal';
+import { ProfitCalcModal } from '../components/ProfitCalcModal';
+import { DocFindModal } from '../components/DocFindModal';
 import { PrintDoc, PrintCompany } from '../components/PrintDoc';
 import { Confirm } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { api } from '../api';
 import { todayISO } from '../format';
-import type { Doc } from '../types';
+import type { Doc, StockRow } from '../types';
 
 // 판매입력/구매입력 — 이카운트의 전표 입력 화면. kind로 판매/구매를 나누고
 // mode로 신규입력/수정을 겸용한다(수정은 VoucherList의 행 더블클릭에서 진입).
 // Phase 1.5: 주문서/발주서 [끌어오기] 버튼(PullSourceModal)과 판매수정의 [인쇄](거래명세서) 추가.
+// R3(설계-R3-IA재편성.md §5): 판매입력 버튼 행 5개(찾기/거래내역보기/재고불러오기/이익계산/전표불러오기) + 담당자 필드.
 
 type Kind = 'sale' | 'purchase';
 
@@ -27,6 +31,7 @@ function emptyHeader(): VoucherHeader {
     warehouse_id: null, warehouse_name: '',
     tax_mode: '과세',
     memo: '',
+    emp_id: null, emp_name: '',
   };
 }
 
@@ -50,6 +55,9 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
   const [loadedNo, setLoadedNo] = useState<string | null>(null);
   const [sourceDocId, setSourceDocId] = useState<number | null>(null);
   const [pullOpen, setPullOpen] = useState(false);
+  const [findOpen, setFindOpen] = useState(false);
+  const [stockPickOpen, setStockPickOpen] = useState(false);
+  const [profitOpen, setProfitOpen] = useState(false);
   const [printData, setPrintData] = useState<{ company: PrintCompany; doc: Doc } | null>(null);
 
   // 서버와 동일한 부가세 반올림 규칙을 미리보기에도 적용(설계 0장: 클라 계산식은 서버와 비트단위 일치)
@@ -82,6 +90,7 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
         partner_id: d.partner_id, partner_name: d.partner_name ?? '',
         warehouse_id: d.warehouse_id, warehouse_name: d.warehouse_name ?? '',
         tax_mode: d.tax_mode, memo: d.memo,
+        emp_id: d.emp_id ?? null, emp_name: d.emp_name ?? '',
       });
       setLines(d.lines.length ? d.lines.map(l => ({
         item_id: l.item_id, item_code: l.item_code ?? '', item_name: l.item_name ?? '',
@@ -122,6 +131,7 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
         tax_mode: header.tax_mode,
         project_id: null,
         memo: header.memo,
+        emp_id: header.emp_id,
         lines: lines.filter(l => l.item_id && l.qty > 0).map(l => ({
           item_id: l.item_id, qty: l.qty, price: l.price, remarks: l.memo,
         })),
@@ -196,6 +206,51 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
     }
   };
 
+  // 찾기(F3, 설계 R3 §5.4) — 기존 판매 전표를 신규 입력의 템플릿으로 불러온다(sourceDocId 미연결 = 체인 아님).
+  const loadFromFind = async (id: number) => {
+    try {
+      const d = await api.get<Doc>(`/api/docs/${id}`);
+      setHeaderState({
+        date: d.io_date,
+        partner_id: d.partner_id, partner_name: d.partner_name ?? '',
+        warehouse_id: d.warehouse_id, warehouse_name: d.warehouse_name ?? '',
+        tax_mode: d.tax_mode, memo: d.memo,
+        emp_id: d.emp_id ?? null, emp_name: d.emp_name ?? '',
+      });
+      setLines(d.lines.length ? d.lines.map(l => ({
+        item_id: l.item_id, item_code: l.item_code ?? '', item_name: l.item_name ?? '',
+        unit: l.unit ?? 'kg', qty: l.qty, price: l.price,
+        supply: l.supply_amt, vat: l.vat_amt, memo: l.remarks,
+      })) : [emptyLine()]);
+      setSourceDocId(null);
+      toast.show(`전표 ${d.doc_no} 내용을 불러왔습니다(저장 시 신규 전표로 발행됩니다).`);
+    } catch (e) {
+      toast.show((e as Error).message, 'error');
+    }
+  };
+
+  // 재고불러오기(설계 R3 §5.2) — 선택 품목을 현재 라인에 append. 빈 선행 라인은 유지, 새 라인 뒤에 append.
+  const addFromStock = (selected: StockRow[]) => {
+    const added = selected.map(s => calcLine({
+      item_id: s.item_id, item_code: s.item_code, item_name: s.item_name, unit: s.unit,
+      qty: 0, price: priceMap.get(s.item_id) ?? 0, supply: 0, vat: 0, memo: '',
+    }, header.tax_mode, vatRound));
+    setLines(prev => [...prev.filter(l => l.item_id), ...added, emptyLine()]);
+  };
+
+  // 판매입력 전용 단축키: F3 → 찾기 팝업(VoucherForm의 F8 저장과 별개 리스너)
+  useEffect(() => {
+    if (kind !== 'sale') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'F3') {
+        e.preventDefault();
+        if (!findOpen && !stockPickOpen && !profitOpen && !pullOpen) setFindOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [kind, findOpen, stockPickOpen, profitOpen, pullOpen]);
+
   // 거래명세서 인쇄(설계 4.7) — 판매수정 화면에서만 노출
   const doPrint = async () => {
     if (!docId) return;
@@ -238,13 +293,19 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
         priceResolver={priceResolver}
         warehouseLabel={kind === 'purchase' ? '입고창고' : '창고'}
         saveLabel={mode === 'edit' ? '저장(F8)' : '저장(F8)'}
+        showEmp={kind === 'sale'}
         headerActions={
-          <>
-            {kind === 'sale' && <button className="btn small" onClick={copyRecent}>지난 주문 복사</button>}
-            <button className="btn small" onClick={() => setPullOpen(true)}>
-              {kind === 'sale' ? '주문서 불러오기' : '발주서 불러오기'}
-            </button>
-          </>
+          kind === 'sale' ? (
+            <>
+              <button className="btn small" onClick={() => setFindOpen(true)}>찾기(F3)</button>
+              <button className="btn small" onClick={copyRecent}>거래내역보기</button>
+              <button className="btn small" onClick={() => setStockPickOpen(true)}>재고불러오기</button>
+              <button className="btn small" onClick={() => setProfitOpen(true)}>이익계산</button>
+              <button className="btn small" onClick={() => setPullOpen(true)}>전표불러오기</button>
+            </>
+          ) : (
+            <button className="btn small" onClick={() => setPullOpen(true)}>발주서 불러오기</button>
+          )
         }
         footerActions={mode === 'edit' ? (
           <>
@@ -264,6 +325,19 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
           onPick={applyPulled}
           onClose={() => setPullOpen(false)}
         />
+      )}
+      {findOpen && (
+        <DocFindModal onLoad={loadFromFind} onClose={() => setFindOpen(false)} />
+      )}
+      {stockPickOpen && (
+        <StockPickModal
+          partnerId={header.partner_id}
+          onAdd={addFromStock}
+          onClose={() => setStockPickOpen(false)}
+        />
+      )}
+      {profitOpen && (
+        <ProfitCalcModal lines={lines} onClose={() => setProfitOpen(false)} />
       )}
       {printData && <PrintDoc variant="거래명세서" company={printData.company} doc={printData.doc} />}
     </div>

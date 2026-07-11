@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MENUS, MENU_GROUPS, findMenu } from './menus';
+import { MENUS, MENU_GROUPS, SUBGROUP_ORDER, findMenu, MenuDef } from './menus';
 import { ToastProvider } from './components/Toast';
 
 // AppShell — 이카운트 실화면(2026) 레이아웃 재현:
-// [최상단 즐겨찾기 바: 메뉴검색 + 사이트맵 + 고정 메뉴 링크] → [로고/대메뉴 바] → [좌측 메뉴트리 + 콘텐츠]
+// [최상단 즐겨찾기 바: 메뉴검색 + 사이트맵 + 고정 메뉴 링크] → [로고/대메뉴 바] → [서브탭 스트립] → [좌측 메뉴트리(서브그룹 섹션) + 콘텐츠]
 // 로고·아이콘은 자체 제작(자산 비복제), 배치·크기·동선만 맞춘다.
+// R3: 대메뉴 재편성(설계-R3-IA재편성.md §2) — activeId + subOverride를 단일 진실원으로 서브탭/사이드바를 파생시킨다.
 
 const FAV_KEY = 'erp_favorites';
 
@@ -22,8 +23,28 @@ export default function App() {
   const activeGroup = menu.group;
   const groupItems = useMemo(() => MENUS.filter(x => x.group === activeGroup), [activeGroup]);
 
+  // 현재 대메뉴가 갖는 서브그룹 목록(정의 순서 우선, 없으면 배열 등장 순서)
+  const subgroups = useMemo(() => {
+    const present = [...new Set(groupItems.map(x => x.subgroup).filter(Boolean))] as string[];
+    const order = SUBGROUP_ORDER[activeGroup];
+    return order ? order.filter(s => present.includes(s)) : present;
+  }, [groupItems, activeGroup]);
+
+  // 서브탭 브라우징용 override. 실제 네비게이션(open) 시 null로 리셋 → 활성 메뉴의 subgroup으로 재동기화
+  const [subOverride, setSubOverride] = useState<string | null>(null);
+  const activeSubgroup =
+    (subOverride && subgroups.includes(subOverride)) ? subOverride
+    : (menu.subgroup ?? subgroups[0] ?? null);
+
+  // 사이드바에 그릴 항목: 서브그룹이 있으면 활성 서브그룹만, 없으면 그룹 전체(현행 동작)
+  const sideItems = useMemo(
+    () => subgroups.length ? groupItems.filter(x => x.subgroup === activeSubgroup) : groupItems,
+    [groupItems, subgroups.length, activeSubgroup],
+  );
+
   const open = useCallback((id: string) => {
     setActiveId(id);
+    setSubOverride(null);
     setSitemap(false);
     setQ('');
   }, []);
@@ -39,6 +60,12 @@ export default function App() {
   }, [q]);
 
   const Comp = menu.component;
+
+  const renderSitemapBtn = (x: MenuDef) => (
+    <button key={x.id} className={x.implemented ? '' : 'dim'} onClick={() => open(x.id)}>
+      {x.name}{!x.implemented && <span className="phase-tag">P{x.phase}</span>}
+    </button>
+  );
 
   return (
     <ToastProvider>
@@ -82,17 +109,18 @@ export default function App() {
             <span className="logo-mark">☕</span><b>로스팅</b>ERP
           </button>
           <nav className="groupmenu">
-            {MENU_GROUPS.map(g => (
-              <button
-                key={g}
-                className={g === activeGroup ? 'on' : ''}
-                onClick={() => {
-                  const first = MENUS.find(x => x.group === g);
-                  if (first) open(first.id);
-                }}>
-                {g}
-              </button>
-            ))}
+            {MENU_GROUPS.map(g => {
+              const first = MENUS.find(x => x.group === g);
+              return (
+                <button
+                  key={g}
+                  className={`${g === activeGroup ? 'on' : ''} ${first ? '' : 'reserved'}`}
+                  title={first ? undefined : 'R4·R5에서 추가될 메뉴 자리입니다'}
+                  onClick={() => { if (first) open(first.id); }}>
+                  {g}
+                </button>
+              );
+            })}
           </nav>
           <div className="logobar-right">
             <button className="icon-btn" title="환경설정" onClick={() => open('settings')}>⚙️</button>
@@ -100,10 +128,25 @@ export default function App() {
           </div>
         </header>
 
-        {/* ── 본문: 좌측 메뉴트리 + 콘텐츠 ── */}
+        {/* ── 서브탭 스트립 (서브그룹이 있는 대메뉴에서만 렌더) ── */}
+        {subgroups.length > 0 && (
+          <div className="subtabs">
+            {subgroups.map(sg => (
+              <button
+                key={sg}
+                className={sg === activeSubgroup ? 'on' : ''}
+                onClick={() => setSubOverride(sg)}>
+                {sg}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* ── 본문: 좌측 메뉴트리(서브그룹 섹션) + 콘텐츠 ── */}
         <div className="body">
           <aside className="sidebar">
-            {groupItems.map(x => (
+            {subgroups.length > 0 && <div className="side-section">{activeSubgroup}</div>}
+            {sideItems.map(x => (
               <div key={x.id} className={`side-item ${x.id === activeId ? 'on' : ''}`}>
                 <button className={`side-link ${x.implemented ? '' : 'dim'}`} onClick={() => open(x.id)}>
                   {x.id === activeId && <span className="side-dot">●</span>}
@@ -136,20 +179,28 @@ export default function App() {
           </main>
         </div>
 
-        {/* ── 사이트맵 오버레이 (이카운트 출력물 카탈로그 스타일) ── */}
+        {/* ── 사이트맵 오버레이 (이카운트 출력물 카탈로그 스타일, 재고Ⅰ은 서브그룹 소제목으로 중첩) ── */}
         {sitemap && (
           <div className="sitemap-overlay" onMouseDown={e => { if (e.target === e.currentTarget) setSitemap(false); }}>
             <div className="sitemap">
-              {MENU_GROUPS.map(g => (
-                <div key={g} className="sitemap-group">
-                  <h3>{g}</h3>
-                  {MENUS.filter(x => x.group === g).map(x => (
-                    <button key={x.id} className={x.implemented ? '' : 'dim'} onClick={() => open(x.id)}>
-                      {x.name}{!x.implemented && <span className="phase-tag">P{x.phase}</span>}
-                    </button>
-                  ))}
-                </div>
-              ))}
+              {MENU_GROUPS.map(g => {
+                const items = MENUS.filter(x => x.group === g);
+                const subs = SUBGROUP_ORDER[g]?.filter(s => items.some(x => x.subgroup === s));
+                return (
+                  <div key={g} className="sitemap-group">
+                    <h3>{g}</h3>
+                    {!items.length && <span className="sm-reserved">R4·R5 예정</span>}
+                    {subs?.length
+                      ? subs.map(sg => (
+                          <div key={sg} className="sitemap-sub">
+                            <h4>{sg}</h4>
+                            {items.filter(x => x.subgroup === sg).map(renderSitemapBtn)}
+                          </div>
+                        ))
+                      : items.map(renderSitemapBtn)}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

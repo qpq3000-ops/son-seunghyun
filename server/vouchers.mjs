@@ -28,10 +28,11 @@ function loadDocDetail(id) {
            p.biz_no AS partner_biz_no, p.ceo AS partner_ceo, p.address AS partner_address, p.phone AS partner_phone,
            d.warehouse_id, w.name AS warehouse_name, d.tax_mode, d.project_id, d.memo,
            d.total_qty, d.total_supply, d.total_vat, d.total_amount,
-           d.status, d.time_date, d.source_doc_id
+           d.status, d.time_date, d.source_doc_id, d.emp_id, e.name AS emp_name
     FROM doc d
     LEFT JOIN partner p ON p.id = d.partner_id
     JOIN warehouse w ON w.id = d.warehouse_id
+    LEFT JOIN employee e ON e.id = d.emp_id
     WHERE d.id = ? AND d.doc_type IN ('sale','purchase','quote','order','purchase_order')
   `).get(id);
   if (!doc) return null;
@@ -165,6 +166,8 @@ vouchers.post('/docs', async (c) => {
   const memo = String(body.memo ?? '');
   // 납기일자(order/purchase_order만 유효, 그 외 무시). 형식이 아니면 NULL로 저장.
   const timeDate = ['order', 'purchase_order'].includes(type) && isValidDate(body.time_date) ? body.time_date : null;
+  // 담당자(사원, 선택). 미존재 id는 FK가 방어(friendlySqlError로 400).
+  const empId = Number(body.emp_id) || null;
 
   // 끌어오기 원본(옵션): target→source 매핑(PULL_MAP)에 맞는 status='대기' 원본이어야 함
   let sourceDocId = null;
@@ -200,11 +203,11 @@ vouchers.post('/docs', async (c) => {
       const info = db.prepare(`
         INSERT INTO doc (doc_no, doc_type, io_date, partner_id, warehouse_id, tax_mode,
                           project_id, memo, total_qty, total_supply, total_vat, total_amount,
-                          status, source_doc_id, time_date)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                          status, source_doc_id, time_date, emp_id)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
       `).run(docNo, type, ioDate, partnerId, warehouseId, taxMode, projectId, memo,
              round1(totalQty), totalSupply, totalVat, totalSupply + totalVat,
-             status, sourceDocId, timeDate);
+             status, sourceDocId, timeDate, empId);
       const docId = info.lastInsertRowid;
 
       const insLine = db.prepare(`
@@ -265,6 +268,8 @@ vouchers.put('/docs/:id', async (c) => {
   const projectId = Number(body.project_id) || null;
   const memo = String(body.memo ?? '');
   const timeDate = ['order', 'purchase_order'].includes(type) && isValidDate(body.time_date) ? body.time_date : null;
+  // 담당자(사원, 선택). 미존재 id는 FK가 방어(friendlySqlError로 400).
+  const empId = Number(body.emp_id) || null;
 
   const parsed = validateLines(body.lines, '품목 라인을 1개 이상 입력하세요.');
   if (parsed.error) return err(c, 400, parsed.error);
@@ -284,10 +289,10 @@ vouchers.put('/docs/:id', async (c) => {
       });
 
       db.prepare(`
-        UPDATE doc SET partner_id=?, warehouse_id=?, tax_mode=?, project_id=?, memo=?, time_date=?,
+        UPDATE doc SET partner_id=?, warehouse_id=?, tax_mode=?, project_id=?, memo=?, time_date=?, emp_id=?,
           total_qty=?, total_supply=?, total_vat=?, total_amount=?, updated_at=datetime('now','localtime')
         WHERE id=?
-      `).run(partnerId, warehouseId, taxMode, projectId, memo, timeDate,
+      `).run(partnerId, warehouseId, taxMode, projectId, memo, timeDate, empId,
              round1(totalQty), totalSupply, totalVat, totalSupply + totalVat, id);
 
       // 원장 재작성: 기존 라인·원장을 지우고 새로 채운다(트랜잭션 안). quote/order/po는 애초에 원장이 없음.

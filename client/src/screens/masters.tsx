@@ -1,6 +1,6 @@
 import { MasterScreen, FormField } from '../components/MasterScreen';
 import type { ColumnDefinition } from '../components/DataGrid';
-import type { Item, Partner, Warehouse, Project } from '../types';
+import type { Item, Partner, Warehouse, Project, Employee } from '../types';
 import { fmtWon } from '../format';
 
 const won = (field: string, title: string, width = 100): ColumnDefinition => ({
@@ -127,5 +127,28 @@ export const ProjectMaster = () => (
     ]}
     defaults={{ code: '', name: '', memo: '', active: 1 }}
     helpText="납품 채널(도매/택배/행사 등)처럼 전표를 묶어 보고 싶은 단위를 등록하세요."
+  />
+);
+
+// ───────────────────────── 사원등록 (R3: 전표 담당자) ─────────────────────────
+export const EmployeeMaster = () => (
+  <MasterScreen<Employee>
+    title="사원등록"
+    endpoint="/api/employees"
+    columns={[
+      { title: '사원코드', field: 'code', width: 100 },
+      { title: '사원명', field: 'name', minWidth: 140 },
+      { title: '연락처', field: 'phone', width: 130 },
+      { title: '메모', field: 'memo', minWidth: 140 },
+      { title: '사용', field: 'active', width: 54, hozAlign: 'center', formatter: yn },
+    ]}
+    fields={[
+      { name: 'code', label: '사원코드', type: 'text', required: true, placeholder: '예: E001' },
+      { name: 'name', label: '사원명', type: 'text', required: true },
+      { name: 'phone', label: '연락처', type: 'text' },
+      { name: 'memo', label: '메모', type: 'textarea' },
+    ]}
+    defaults={{ code: '', name: '', phone: '', memo: '', active: 1 }}
+    helpText="판매/구매 등 전표의 담당자로 선택할 사원을 등록하세요."
   />
 );

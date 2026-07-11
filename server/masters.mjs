@@ -30,6 +30,12 @@ const TABLES = {
     required: ['code', 'name'],
     label: '프로젝트',
   },
+  employees: {
+    table: 'employee',
+    cols: ['code', 'name', 'phone', 'memo', 'active'],
+    required: ['code', 'name'],
+    label: '사원',
+  },
 };
 
 export const masters = new Hono();

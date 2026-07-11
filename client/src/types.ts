@@ -104,6 +104,8 @@ export interface Doc {
   status?: '대기' | '완료';    // 견적/주문/발주 진행상태(Phase 1.5)
   time_date?: string | null;   // 납기일자(주문/발주, Phase 1.5)
   source_doc_id?: number | null; // 끌어오기 원본 전표 id(Phase 1.5)
+  emp_id?: number | null;       // 담당자(사원) id — 선택(R3)
+  emp_name?: string;            // 담당자명(조회용, R3)
   total_qty: number;
   total_supply: number;
   total_vat: number;
@@ -654,4 +656,66 @@ export interface StockFlowRow {
 export interface StockFlow {
   rows: StockFlowRow[];
   summary: { count: number };
+}
+
+// ───────────────────────── R3: IA 재편성 + MyPage + 사원(담당자) ─────────────────────────
+
+// 사원(담당자) 마스터 (GET/POST/PUT/DELETE /api/employees) — MasterScreen<Employee>로 사용
+export interface Employee {
+  id: number;
+  code: string;
+  name: string;
+  phone: string;
+  memo: string;
+  active: 0 | 1;
+  created_at?: string;
+}
+
+// MyPage 재고현황 위젯 1행 (GET /api/mypage 의 stock[])
+export interface MyPageStockRow {
+  item_id: number;
+  item_code: string;
+  item_name: string;
+  spec: string;
+  unit: string;
+  qty: number;
+  below_safety: boolean;
+}
+
+// MyPage 판매현황 위젯 1행 (GET /api/mypage 의 sales[])
+export interface MyPageSaleRow {
+  id: number;
+  doc_no: string;
+  io_date: string;
+  item_summary: string;
+  total_qty: number;
+  total_supply: number;
+  total_vat: number;
+  total_amount: number;
+  partner_name: string | null;
+}
+
+// MyPage 미수금 TOP 위젯 1행 (GET /api/mypage 의 receivables_top[])
+export interface MyPageReceivableRow {
+  partner_id: number;
+  partner_code: string;
+  partner_name: string;
+  balance: number;
+}
+
+// MyPage 달력 미니 위젯 — 일자별 집계 1건 (GET /api/mypage 의 calendar.days[key])
+export interface MyPageCalendarDay {
+  roast_count: number;
+  sale_count: number;
+  order_due_count: number;
+}
+
+// MyPage 위젯 통합 응답 (GET /api/mypage, 파라미터 없음)
+export interface MyPageData {
+  ym: string;
+  stock: MyPageStockRow[];
+  sales: MyPageSaleRow[];
+  receivables_top: MyPageReceivableRow[];
+  todos: unknown[];
+  calendar: { year: number; month: number; days: Record<string, MyPageCalendarDay> };
 }

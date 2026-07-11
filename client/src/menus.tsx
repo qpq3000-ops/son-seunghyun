@@ -1,6 +1,6 @@
 import { ComponentType } from 'react';
 import { Dashboard } from './screens/Dashboard';
-import { ItemMaster, PartnerMaster, WarehouseMaster, ProjectMaster } from './screens/masters';
+import { ItemMaster, PartnerMaster, WarehouseMaster, ProjectMaster, EmployeeMaster } from './screens/masters';
 import { PriceSpecialScreen } from './screens/PriceSpecialScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { Placeholder } from './screens/Placeholder';
@@ -28,7 +28,7 @@ import { ReportScreen } from './components/ReportScreen';
 import { REPORT_DEFS } from './screens/reportDefs';
 import { PnlStatement } from './screens/PnlStatement';
 
-// 전체 메뉴 트리 (docs/01 기획서 5장 메뉴맵) — 미구현 메뉴는 Placeholder로 Phase 표시
+// 전체 메뉴 트리 (docs/설계-R3-IA재편성.md §1 — 이카운트식 대메뉴 재편성) — 미구현 메뉴는 Placeholder로 Phase 표시
 export interface MenuDef {
   id: string;
   group: string;
@@ -36,6 +36,7 @@ export interface MenuDef {
   component: ComponentType;
   phase: number;          // 구현 Phase
   implemented: boolean;
+  subgroup?: string;       // 서브그룹(선택). 현재는 재고Ⅰ 소속 메뉴만 값을 가짐
 }
 
 const ph = (name: string, phase: number): ComponentType =>
@@ -45,84 +46,108 @@ const ph = (name: string, phase: number): ComponentType =>
 const R = (id: string): ComponentType =>
   () => <ReportScreen def={REPORT_DEFS[id]} />;
 
-const m = (id: string, group: string, name: string, phase: number, component?: ComponentType): MenuDef => ({
+const m = (id: string, group: string, name: string, phase: number, component?: ComponentType, subgroup?: string): MenuDef => ({
   id, group, name, phase,
   implemented: !!component,
   component: component ?? ph(name, phase),
+  subgroup,
 });
 
 export const MENUS: MenuDef[] = [
-  m('dashboard', '대시보드', '메인 대시보드', 0, Dashboard),
+  m('dashboard', 'MyPage', '메인 대시보드', 0, Dashboard),
 
-  m('quote', '영업', '견적서입력/조회', 1, QuoteList),
-  m('order', '영업', '주문서입력/조회', 1, OrderList),
-  m('sale', '영업', '판매입력', 1, SaleInput),
-  m('sale-status', '영업', '판매조회', 1, SaleList),
-  m('receipt', '영업', '수금입력', 1, ReceiptScreen),
-  m('receivable', '영업', '미수금현황', 1, ReceivableScreen),
-  m('receipt-status', '영업', '수금현황', 5, R('receipt-status')),
-  m('statement-print', '영업', '거래명세서인쇄', 1, StatementPrint),
-  m('message', '영업', '거래처 메시지', 4, MessageScreen),
-  m('order-missing', '영업', '미주문현황', 6, R('order-missing')),
-  m('quote-status', '영업', '견적서현황', 6, R('quote-status')),
-  m('order-status', '영업', '주문서현황', 6, R('order-status')),
-  m('sales-summary', '영업', '판매구매 집계표', 6, R('sales-summary')),
+  // ── 재고Ⅰ — 기초등록 ──
+  m('employee', '재고Ⅰ', '사원등록', 0, EmployeeMaster, '기초등록'),
+  m('item', '재고Ⅰ', '품목등록', 0, ItemMaster, '기초등록'),
+  m('partner', '재고Ⅰ', '거래처등록', 0, PartnerMaster, '기초등록'),
+  m('warehouse', '재고Ⅰ', '창고등록', 0, WarehouseMaster, '기초등록'),
+  m('price', '재고Ⅰ', '단가관리', 0, PriceSpecialScreen, '기초등록'),
+  m('project', '재고Ⅰ', '프로젝트등록', 0, ProjectMaster, '기초등록'),
 
-  m('po', '구매', '발주서입력/조회', 1, PurchaseOrderList),
-  m('purchase', '구매', '구매입력', 1, PurchaseInput),
-  m('purchase-status', '구매', '구매조회', 1, PurchaseList),
-  m('payment', '구매', '지불입력', 1, PaymentScreen),
-  m('payable', '구매', '미지급금현황', 1, PayableScreen),
-  m('payment-status', '구매', '지급현황', 5, R('payment-status')),
-  m('bean-price', '구매', '생두 단가비교', 4, BeanPriceScreen),
-  m('po-status', '구매', '발주서현황', 6, R('po-status')),
+  // ── 재고Ⅰ — 영업관리 ──
+  m('quote', '재고Ⅰ', '견적서입력/조회', 1, QuoteList, '영업관리'),
+  m('order', '재고Ⅰ', '주문서입력/조회', 1, OrderList, '영업관리'),
+  m('sale', '재고Ⅰ', '판매입력', 1, SaleInput, '영업관리'),
+  m('sale-status', '재고Ⅰ', '판매조회', 1, SaleList, '영업관리'),
+  m('receipt', '재고Ⅰ', '수금입력', 1, ReceiptScreen, '영업관리'),
+  m('receivable', '재고Ⅰ', '미수금현황', 1, ReceivableScreen, '영업관리'),
+  m('statement-print', '재고Ⅰ', '거래명세서인쇄', 1, StatementPrint, '영업관리'),
+  m('message', '재고Ⅰ', '거래처 메시지', 4, MessageScreen, '영업관리'),
 
-  m('bom', '생산', 'BOM등록', 2, BomScreen),
-  m('roast-sheet', '생산', '로스팅 입력', 1, RoastInput),
-  m('prod-in', '생산', '생산입고', 2, ProdInScreen),
-  m('prod-status', '생산', '생산현황/수율분석', 2, ProductionStatus),
-  m('mrp', '생산', '소요량계산', 2, MrpScreen),
+  // ── 재고Ⅰ — 구매관리 ──
+  m('po', '재고Ⅰ', '발주서입력/조회', 1, PurchaseOrderList, '구매관리'),
+  m('purchase', '재고Ⅰ', '구매입력', 1, PurchaseInput, '구매관리'),
+  m('purchase-status', '재고Ⅰ', '구매조회', 1, PurchaseList, '구매관리'),
+  m('payment', '재고Ⅰ', '지불입력', 1, PaymentScreen, '구매관리'),
+  m('payable', '재고Ⅰ', '미지급금현황', 1, PayableScreen, '구매관리'),
+  m('bean-price', '재고Ⅰ', '생두 단가비교', 4, BeanPriceScreen, '구매관리'),
 
-  m('stock-status', '재고', '재고현황', 1, StockStatus),
-  m('stock-wh', '재고', '창고별재고현황', 1, StockByWarehouse),
-  m('stock-ledger', '재고', '재고수불부', 1, StockLedger),
-  m('move', '재고', '창고이동', 1, StockMove),
-  m('self-use', '재고', '자가사용', 1, SelfUse),
-  m('defect', '재고', '불량처리', 1, Defect),
-  m('adjust', '재고', '재고조정', 1, StockAdjust),
-  m('lot', '재고', '로트조회', 2, LotScreen),
-  m('profit-status', '재고', '이익현황', 5, R('profit-status')),
-  m('other-moves', '재고', '기타이동현황', 6, R('other-moves')),
-  m('stock-flow', '재고', '재고변동표', 6, R('stock-flow')),
+  // ── 재고Ⅰ — 생산·외주 ──
+  m('bom', '재고Ⅰ', 'BOM등록', 2, BomScreen, '생산·외주'),
+  m('roast-sheet', '재고Ⅰ', '로스팅 입력', 1, RoastInput, '생산·외주'),
+  m('prod-in', '재고Ⅰ', '생산입고', 2, ProdInScreen, '생산·외주'),
+  m('prod-status', '재고Ⅰ', '생산현황/수율분석', 2, ProductionStatus, '생산·외주'),
+  m('mrp', '재고Ⅰ', '소요량계산', 2, MrpScreen, '생산·외주'),
 
-  m('vat-book', '회계', '매입매출장(부가세)', 3, VatBook),
-  m('journal', '회계', '분개장', 3, JournalScreen),
-  m('acct-ledger', '회계', '계정별원장', 5, R('acct-ledger')),        // 기존 placeholder → 연결(id 동결)
-  m('general-ledger', '회계', '총계정원장', 5, R('general-ledger')),
-  m('cashbook', '회계', '현금출납장', 5, R('cashbook')),
-  m('trial-balance', '회계', '합계잔액시산표', 5, R('trial-balance')),
-  m('income-statement', '회계', '손익계산서', 5, PnlStatement),
-  m('partner-ledger', '회계', '거래처원장', 3, PartnerLedger),
-  m('monthly-pl', '회계', '월별손익', 3, MonthlyPL),
-  m('gl-entry', '회계', '일반전표(경비)', 3, GlEntryScreen),
-  m('cash', '회계', '자금현황', 3, CashScreen),
+  // ── 재고Ⅰ — 기타이동 ──
+  m('move', '재고Ⅰ', '창고이동', 1, StockMove, '기타이동'),
+  m('self-use', '재고Ⅰ', '자가사용', 1, SelfUse, '기타이동'),
+  m('defect', '재고Ⅰ', '불량처리', 1, Defect, '기타이동'),
+  m('adjust', '재고Ⅰ', '재고조정', 1, StockAdjust, '기타이동'),
 
-  m('calendar', '일정', '달력(로스팅/납기)', 2, CalendarScreen),
-  m('memo', '일정', '메모', 4),
+  // ── 재고Ⅰ — 출력물 ──
+  m('stock-status', '재고Ⅰ', '재고현황', 1, StockStatus, '출력물'),
+  m('stock-wh', '재고Ⅰ', '창고별재고현황', 1, StockByWarehouse, '출력물'),
+  m('stock-ledger', '재고Ⅰ', '재고수불부', 1, StockLedger, '출력물'),
+  m('stock-flow', '재고Ⅰ', '재고변동표', 6, R('stock-flow'), '출력물'),
+  m('other-moves', '재고Ⅰ', '기타이동현황', 6, R('other-moves'), '출력물'),
+  m('profit-status', '재고Ⅰ', '이익현황', 5, R('profit-status'), '출력물'),
+  m('sales-summary', '재고Ⅰ', '판매구매 집계표', 6, R('sales-summary'), '출력물'),
+  m('order-missing', '재고Ⅰ', '미주문현황', 6, R('order-missing'), '출력물'),
+  m('quote-status', '재고Ⅰ', '견적서현황', 6, R('quote-status'), '출력물'),
+  m('order-status', '재고Ⅰ', '주문서현황', 6, R('order-status'), '출력물'),
+  m('po-status', '재고Ⅰ', '발주서현황', 6, R('po-status'), '출력물'),
+  m('receipt-status', '재고Ⅰ', '수금현황', 5, R('receipt-status'), '출력물'),
+  m('payment-status', '재고Ⅰ', '지급현황', 5, R('payment-status'), '출력물'),
 
-  m('item', '기초등록', '품목등록', 0, ItemMaster),
-  m('partner', '기초등록', '거래처등록', 0, PartnerMaster),
-  m('warehouse', '기초등록', '창고등록', 0, WarehouseMaster),
-  m('price', '기초등록', '단가관리', 0, PriceSpecialScreen),
-  m('project', '기초등록', '프로젝트등록', 0, ProjectMaster),
-  m('account', '기초등록', '계정과목', 3, AccountMaster),
+  // ── 재고Ⅱ ──
+  m('lot', '재고Ⅱ', '로트조회', 2, LotScreen),
 
-  m('settings', '설정', '환경설정', 0, SettingsScreen),
-  m('io', '설정', '엑셀 업로드/다운로드', 4),
-  m('backup', '설정', '백업/복원', 4),
-  m('migrate', '설정', '기존앱 데이터 이관', 1),
+  // ── 회계Ⅰ ──
+  m('vat-book', '회계Ⅰ', '매입매출장(부가세)', 3, VatBook),
+  m('journal', '회계Ⅰ', '분개장', 3, JournalScreen),
+  m('gl-entry', '회계Ⅰ', '일반전표(경비)', 3, GlEntryScreen),
+  m('acct-ledger', '회계Ⅰ', '계정별원장', 5, R('acct-ledger')),
+  m('general-ledger', '회계Ⅰ', '총계정원장', 5, R('general-ledger')),
+  m('cashbook', '회계Ⅰ', '현금출납장', 5, R('cashbook')),
+  m('partner-ledger', '회계Ⅰ', '거래처원장', 3, PartnerLedger),
+  m('trial-balance', '회계Ⅰ', '합계잔액시산표', 5, R('trial-balance')),
+  m('income-statement', '회계Ⅰ', '손익계산서', 5, PnlStatement),
+  m('monthly-pl', '회계Ⅰ', '월별손익', 3, MonthlyPL),
+  m('account', '회계Ⅰ', '계정과목', 3, AccountMaster),
+
+  // ── 회계Ⅱ ──
+  m('cash', '회계Ⅱ', '자금현황', 3, CashScreen),
+
+  // ── 그룹웨어 ──
+  m('calendar', '그룹웨어', '달력(로스팅/납기)', 2, CalendarScreen),
+  m('memo', '그룹웨어', '메모', 4),
+
+  // ── Self-Customizing ──
+  m('settings', 'Self-Customizing', '환경설정', 0, SettingsScreen),
+  m('io', 'Self-Customizing', '엑셀 업로드/다운로드', 4),
+  m('backup', 'Self-Customizing', '백업/복원', 4),
+  m('migrate', 'Self-Customizing', '기존앱 데이터 이관', 1),
 ];
 
-export const MENU_GROUPS = ['대시보드', '영업', '구매', '생산', '재고', '회계', '일정', '기초등록', '설정'];
+// 대메뉴(9) 순서 — 관리/세무는 R4·R5 전용 예약 그룹(소속 메뉴 0개, App.tsx에서 dim+no-op 처리)
+export const MENU_GROUPS = [
+  'MyPage', '재고Ⅰ', '재고Ⅱ', '회계Ⅰ', '회계Ⅱ', '관리', '세무', '그룹웨어', 'Self-Customizing',
+];
+
+// 서브그룹을 갖는 대메뉴는 현재 재고Ⅰ 하나. 순서는 이카운트 실화면 그대로.
+export const SUBGROUP_ORDER: Record<string, string[]> = {
+  '재고Ⅰ': ['기초등록', '영업관리', '구매관리', '생산·외주', '기타이동', '출력물'],
+};
 
 export const findMenu = (id: string): MenuDef | undefined => MENUS.find(x => x.id === id);

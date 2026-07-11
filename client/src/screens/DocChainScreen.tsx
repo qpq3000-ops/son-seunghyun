@@ -23,6 +23,7 @@ function emptyHeader(): VoucherHeader {
     warehouse_id: null, warehouse_name: '',
     tax_mode: '과세',
     memo: '',
+    emp_id: null, emp_name: '',
   };
 }
 
@@ -76,6 +77,7 @@ function DocChainScreen({ kind, mode = 'create', docId, onSaved, onDeleted, onCa
       partner_id: d.partner_id, partner_name: d.partner_name ?? '',
       warehouse_id: d.warehouse_id, warehouse_name: d.warehouse_name ?? '',
       tax_mode: d.tax_mode, memo: d.memo,
+      emp_id: d.emp_id ?? null, emp_name: d.emp_name ?? '',
     } as VoucherHeader,
     lines: d.lines.length ? d.lines.map(l => ({
       item_id: l.item_id, item_code: l.item_code ?? '', item_name: l.item_name ?? '',
