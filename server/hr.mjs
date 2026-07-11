@@ -6,7 +6,7 @@
 // 각 공제액은 급여대장 저장 시 수기 조정할 수 있다(auto:false).
 import { Hono } from 'hono';
 import { db } from './db.mjs';
-import { err, readBody, friendlySqlError, isValidDate, todayISO, validId } from './ledger.mjs';
+import { err, readBody, friendlySqlError, isValidDate, validId } from './ledger.mjs';
 
 export const hr = new Hono();
 
