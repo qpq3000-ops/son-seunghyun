@@ -10,6 +10,7 @@ import {
   isValidDate, round1, validateLines, stockWarnings, validId,
   DOC_EMITS_LEDGER,
 } from './ledger.mjs';
+import { writeJournalForDoc } from './accounting.mjs';
 
 export const vouchers = new Hono();
 
@@ -226,6 +227,9 @@ vouchers.post('/docs', async (c) => {
         db.prepare(`UPDATE doc SET status = '완료', updated_at = datetime('now','localtime') WHERE id = ?`).run(sourceDocId);
       }
 
+      // 자동분개(같은 트랜잭션 안). sale/purchase가 아니면 no-op(quote/order/purchase_order 안전).
+      writeJournalForDoc(docId);
+
       return docId;
     })();
 
@@ -304,6 +308,9 @@ vouchers.put('/docs/:id', async (c) => {
           insLedger.run(id, lineInfo.lastInsertRowid, ioDate, l.item_id, warehouseId, ioType, sign * l.qty);
         }
       });
+
+      // 자동분개 재작성(같은 트랜잭션 안)
+      writeJournalForDoc(id);
     })();
 
     const detail = loadDocDetail(id);

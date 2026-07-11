@@ -22,3 +22,12 @@ export const monthStartISO = (): string => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
 };
+
+// year/month(1~12)에서 delta개월 이동한 연/월 계산 — 달력(CalendarScreen)의 ◀▶ 월 이동에 사용
+export const addMonths = (year: number, month: number, delta: number): { year: number; month: number } => {
+  let m = month + delta;
+  let y = year;
+  while (m < 1) { m += 12; y -= 1; }
+  while (m > 12) { m -= 12; y += 1; }
+  return { year: y, month: m };
+};

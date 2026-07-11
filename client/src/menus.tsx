@@ -12,6 +12,10 @@ import { StockStatus, StockLedger } from './screens/StockScreens';
 import { QuoteList, OrderList, PurchaseOrderList } from './screens/DocChainList';
 import { StockMove, SelfUse, Defect, StockAdjust } from './screens/MoveScreens';
 import { PaymentScreen, PayableScreen } from './screens/PaymentScreen';
+import { AccountMaster, JournalScreen, PartnerLedger, MonthlyPL, VatBook } from './screens/AccountingScreens';
+import { BomScreen, ProductionStatus } from './screens/ProductionScreens';
+import { StockByWarehouse } from './screens/StockByWarehouse';
+import { CalendarScreen } from './screens/CalendarScreen';
 
 // 전체 메뉴 트리 (docs/01 기획서 5장 메뉴맵) — 미구현 메뉴는 Placeholder로 Phase 표시
 export interface MenuDef {
@@ -50,14 +54,14 @@ export const MENUS: MenuDef[] = [
   m('payable', '구매', '미지급금현황', 1, PayableScreen),
   m('bean-price', '구매', '생두 단가비교', 4),
 
-  m('bom', '생산', 'BOM등록', 2),
+  m('bom', '생산', 'BOM등록', 2, BomScreen),
   m('roast-sheet', '생산', '로스팅 입력', 1, RoastInput),
   m('prod-in', '생산', '생산입고', 2),
-  m('prod-status', '생산', '생산현황/수율분석', 2),
+  m('prod-status', '생산', '생산현황/수율분석', 2, ProductionStatus),
   m('mrp', '생산', '소요량계산', 2),
 
   m('stock-status', '재고', '재고현황', 1, StockStatus),
-  m('stock-wh', '재고', '창고별재고현황', 1),
+  m('stock-wh', '재고', '창고별재고현황', 1, StockByWarehouse),
   m('stock-ledger', '재고', '재고수불부', 1, StockLedger),
   m('move', '재고', '창고이동', 1, StockMove),
   m('self-use', '재고', '자가사용', 1, SelfUse),
@@ -65,15 +69,15 @@ export const MENUS: MenuDef[] = [
   m('adjust', '재고', '재고조정', 1, StockAdjust),
   m('lot', '재고', '로트조회', 2),
 
-  m('vat-book', '회계', '매입매출장(부가세)', 3),
-  m('journal', '회계', '분개장', 3),
+  m('vat-book', '회계', '매입매출장(부가세)', 3, VatBook),
+  m('journal', '회계', '분개장', 3, JournalScreen),
   m('acct-ledger', '회계', '계정별원장', 3),
-  m('partner-ledger', '회계', '거래처원장', 3),
-  m('monthly-pl', '회계', '월별손익', 3),
+  m('partner-ledger', '회계', '거래처원장', 3, PartnerLedger),
+  m('monthly-pl', '회계', '월별손익', 3, MonthlyPL),
   m('gl-entry', '회계', '일반전표(경비)', 3),
   m('cash', '회계', '자금현황', 3),
 
-  m('calendar', '일정', '달력(로스팅/납기)', 2),
+  m('calendar', '일정', '달력(로스팅/납기)', 2, CalendarScreen),
   m('memo', '일정', '메모', 4),
 
   m('item', '기초등록', '품목등록', 0, ItemMaster),
@@ -81,7 +85,7 @@ export const MENUS: MenuDef[] = [
   m('warehouse', '기초등록', '창고등록', 0, WarehouseMaster),
   m('price', '기초등록', '단가관리', 0, PriceSpecialScreen),
   m('project', '기초등록', '프로젝트등록', 0, ProjectMaster),
-  m('account', '기초등록', '계정과목', 3),
+  m('account', '기초등록', '계정과목', 3, AccountMaster),
 
   m('settings', '설정', '환경설정', 0, SettingsScreen),
   m('io', '설정', '엑셀 업로드/다운로드', 4),

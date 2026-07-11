@@ -11,8 +11,11 @@ import { vouchers } from './vouchers.mjs';
 import { moves } from './moves.mjs';
 import { receipts } from './receipts.mjs';
 import { reports } from './reports.mjs';
+import { accounting, backfillJournals } from './accounting.mjs';
+import { production } from './production.mjs';
 
 migrate();
+try { backfillJournals(); } catch (e) { console.warn('[분개 백필] 실패:', e.message); }
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const app = new Hono();
@@ -22,7 +25,9 @@ app.route('/api', masters);
 app.route('/api', vouchers);   // /api/docs*, /api/roast*
 app.route('/api', moves);      // /api/moves* (창고이동/자가사용/불량처리/재고조정)
 app.route('/api', receipts);   // /api/receipts*, /api/receivables, /api/payables
-app.route('/api', reports);    // /api/stock/status, /api/stock/ledger
+app.route('/api', reports);    // /api/stock/status, /api/stock/ledger, /api/stock/by-warehouse, /api/calendar*
+app.route('/api', accounting); // /api/accounts*, /api/journal, /api/partner-ledger, /api/monthly-pl, /api/vat-book
+app.route('/api', production); // /api/bom(/:itemId), /api/production/summary
 app.route('/api/ecount', ecount);
 // 미등록 API 경로는 SPA fallback으로 흘려보내지 않고 404 JSON 반환
 app.all('/api/*', (c) => c.json({ error: '알 수 없는 API 경로입니다.' }, 404));

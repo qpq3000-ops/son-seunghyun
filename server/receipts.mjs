@@ -4,6 +4,7 @@
 import { Hono } from 'hono';
 import { db } from './db.mjs';
 import { err, readBody, friendlySqlError, nextSeqNo, isValidDate, todayISO, validId } from './ledger.mjs';
+import { writeJournalForReceipt } from './accounting.mjs';
 
 export const receipts = new Hono();
 
@@ -65,6 +66,7 @@ receipts.post('/receipts', async (c) => {
         INSERT INTO receipt (receipt_no, kind, io_date, partner_id, method, amount, project_id, memo)
         VALUES (?,?,?,?,?,?,?,?)
       `).run(receiptNo, kind, ioDate, partnerId, method, amount, projectId, memo);
+      writeJournalForReceipt(info.lastInsertRowid);
       return info.lastInsertRowid;
     })();
     return c.json(loadReceipt(id), 201);
@@ -99,6 +101,7 @@ receipts.put('/receipts/:id', async (c) => {
           updated_at=datetime('now','localtime')
         WHERE id=?
       `).run(ioDate, partnerId, method, amount, projectId, memo, id);
+      writeJournalForReceipt(id);
     })();
     return c.json(loadReceipt(id));
   } catch (e) {

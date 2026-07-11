@@ -293,3 +293,188 @@ export interface PullRow {
   total_amount: number;
   time_date?: string | null;
 }
+
+// ───────────────────────── Phase 3: 회계 코어(계정과목/분개/원장/손익) ─────────────────────────
+
+// 계정과목 (GET/POST/PUT /api/accounts) — MasterScreen<Account>로 사용
+export interface Account {
+  id: number;
+  code: string;
+  name: string;
+  category: '자산' | '부채' | '자본' | '수익' | '비용';
+  is_system: 0 | 1;
+  active: 0 | 1;
+  memo: string;
+}
+
+// 분개장 1행 = 분개 라인 1건 (GET /api/journal)
+export interface JournalRow {
+  journal_id: number;
+  line_no: number;
+  io_date: string;
+  doc_no: string;
+  entry_type: '매출' | '매입' | '수금' | '지불';
+  account_code: string;
+  account_name: string;
+  dr: number;
+  cr: number;
+  partner_id: number | null;
+  partner_name: string | null;
+  summary: string;
+}
+
+// 거래처원장 1행 (GET /api/partner-ledger 의 rows[])
+export interface PartnerLedgerRow {
+  io_date: string;
+  doc_no: string;
+  entry_type: string;
+  summary: string;
+  increase: number;
+  decrease: number;
+  balance: number;
+}
+
+// 거래처원장 응답 (GET /api/partner-ledger)
+export interface PartnerLedger {
+  partner: { id: number; code: string; name: string };
+  side: '매출' | '매입';
+  account: { code: string; name: string };
+  opening: number;
+  rows: PartnerLedgerRow[];
+  sum_increase: number;
+  sum_decrease: number;
+  closing: number;
+}
+
+// 월별손익 1행 (GET /api/monthly-pl 의 rows[])
+export interface MonthlyPLRow {
+  key: string;
+  label: string;
+  values: number[];   // 12개월치
+  total: number;
+}
+
+// 월별손익 응답 (GET /api/monthly-pl)
+export interface MonthlyPL {
+  year: number;
+  months: string[];   // 'YYYY-MM' × 12
+  rows: MonthlyPLRow[];
+}
+
+// 매입매출장 1행 (GET /api/vat-book 의 rows[])
+export interface VatBookRow {
+  io_date: string;
+  doc_no: string;
+  kind: '매출' | '매입';
+  tax_mode: '과세' | '면세';
+  partner_name: string;
+  item_summary: string;
+  supply: number;
+  vat: number;
+  total: number;
+}
+
+export interface VatBookSummarySide {
+  과세공급: number;
+  부가세: number;
+  면세공급: number;
+  합계: number;
+}
+
+// 매입매출장 응답 (GET /api/vat-book)
+export interface VatBook {
+  rows: VatBookRow[];
+  summary: { 매출: VatBookSummarySide; 매입: VatBookSummarySide };
+}
+
+// ───────────────────────── Phase 2: 생산(BOM/수율)·창고별재고·달력 ─────────────────────────
+
+// BOM등록 1행 (GET/PUT /api/bom(/:itemId))
+export interface BomRow {
+  item_id: number;
+  item_code: string;
+  item_name: string;
+  item_type: string;
+  paired_item_id: number | null;
+  paired_item_code: string | null;
+  paired_item_name: string | null;
+  default_yield: number;
+}
+
+// 생산현황/수율분석 — 산출품목별 1행
+export interface ProdItemRow {
+  output_item_id: number;
+  output_item_name: string;
+  batch_count: number;
+  input_total: number;
+  output_total: number;
+  avg_yield: number | null;
+}
+
+// 생산현황/수율분석 — 월별 1행
+export interface ProdMonthRow {
+  ym: string;
+  batch_count: number;
+  input_total: number;
+  output_total: number;
+  avg_yield: number | null;
+}
+
+// 생산현황/수율분석 응답 (GET /api/production/summary)
+export interface ProductionSummary {
+  totals: { batch_count: number; input_total: number; output_total: number; avg_yield: number | null };
+  by_item: ProdItemRow[];
+  by_month: ProdMonthRow[];
+}
+
+// 창고별재고현황 1행 (GET /api/stock/by-warehouse 의 rows[])
+export interface StockWhRow {
+  item_id: number;
+  item_code: string;
+  item_name: string;
+  unit: string;
+  by_wh: Record<string, number>;
+  total: number;
+}
+
+// 창고별재고현황 응답 (GET /api/stock/by-warehouse)
+export interface StockWhMatrix {
+  warehouses: { id: number; name: string }[];
+  rows: StockWhRow[];
+}
+
+// 달력 — 일자별 집계 1건 (GET /api/calendar 의 days[key])
+export interface CalendarDay {
+  roast_count: number;
+  roast_kg: number;
+  sale_count: number;
+  sale_kg: number;
+  sale_amount: number;
+  order_due_count: number;
+}
+
+// 달력 — 월 조회 응답 (GET /api/calendar?year&month)
+export interface CalendarMonth {
+  year: number;
+  month: number;
+  days: Record<string, CalendarDay>;
+}
+
+// 달력 — 일자 상세 이벤트 1건 (GET /api/calendar/day 의 events[])
+export interface CalendarEvent {
+  kind: '로스팅' | '판매' | '주문납기';
+  doc_type: string;
+  id: number;
+  doc_no: string;
+  partner_name: string | null;
+  title: string;
+  qty: number;
+  amount: number;
+  time_date?: string;
+}
+
+// 달력 — 일자 상세 응답 (GET /api/calendar/day?date=)
+export interface CalendarDayDetail {
+  date: string;
+  events: CalendarEvent[];
+}
