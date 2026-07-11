@@ -1,6 +1,6 @@
 /* 로스팅 ERP — 자체 제작 테마 (이카운트의 밀도 높은 업무 화면 '느낌'만 재현, 자산 복제 없음) */
 :root {
-  --accent: #2e6be6;       /* 주 파랑 (버튼/활성) */
+  --accent: #1f48d4;       /* 주 파랑 — 이카운트 F12 실측 rgb(31,72,212) */
   --accent-soft: #eef2fd;  /* 활성 메뉴 연파랑 배경 */
   --brand: #d6423a;        /* 자체 로고 색 */
   --bg: #f3f4f6;           /* 콘텐츠 회색 배경 */
@@ -15,7 +15,7 @@
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
 body {
-  font-family: 'Pretendard Variable', Pretendard, 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', system-ui, sans-serif;
+  font-family: 'Malgun Gothic', Arial, 'Apple SD Gothic Neo', Gulim, system-ui, sans-serif; /* 이카운트 F12 실측 */
   font-size: 12.5px; color: var(--txt); background: var(--bg);
 }
 button { font-family: inherit; }
@@ -166,11 +166,11 @@ code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
 /* ── 버튼/입력 ── */
 .btn {
   border: 1px solid var(--line); background: #fff; color: var(--txt);
-  border-radius: 3px; padding: 5px 12px; font-size: 12.5px; cursor: pointer; font-weight: 600;
+  border-radius: 5px; padding: 5px 12px; font-size: 12.5px; cursor: pointer; font-weight: 600;
 }
 .btn:hover { border-color: var(--accent); color: var(--accent); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn.primary:hover { background: #275db2; color: #fff; }
+.btn.primary { background: var(--accent); border: 0.667px solid var(--accent); color: #fff; }
+.btn.primary:hover { background: #1a3db6; color: #fff; }
 .btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
 .btn.small { padding: 4px 10px; font-size: 12px; }
 .btn:disabled { opacity: .55; cursor: default; }
