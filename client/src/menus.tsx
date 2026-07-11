@@ -9,6 +9,9 @@ import { SaleList, PurchaseList } from './screens/VoucherList';
 import { ReceiptScreen, ReceivableScreen } from './screens/ReceiptScreen';
 import { RoastInput } from './screens/RoastInput';
 import { StockStatus, StockLedger } from './screens/StockScreens';
+import { QuoteList, OrderList, PurchaseOrderList } from './screens/DocChainList';
+import { StockMove, SelfUse, Defect, StockAdjust } from './screens/MoveScreens';
+import { PaymentScreen, PayableScreen } from './screens/PaymentScreen';
 
 // 전체 메뉴 트리 (docs/01 기획서 5장 메뉴맵) — 미구현 메뉴는 Placeholder로 Phase 표시
 export interface MenuDef {
@@ -32,19 +35,19 @@ const m = (id: string, group: string, name: string, phase: number, component?: C
 export const MENUS: MenuDef[] = [
   m('dashboard', '대시보드', '메인 대시보드', 0, Dashboard),
 
-  m('quote', '영업', '견적서입력/조회', 1),
-  m('order', '영업', '주문서입력/조회', 1),
+  m('quote', '영업', '견적서입력/조회', 1, QuoteList),
+  m('order', '영업', '주문서입력/조회', 1, OrderList),
   m('sale', '영업', '판매입력', 1, SaleInput),
   m('sale-status', '영업', '판매조회', 1, SaleList),
   m('receipt', '영업', '수금입력', 1, ReceiptScreen),
   m('receivable', '영업', '미수금현황', 1, ReceivableScreen),
   m('message', '영업', '거래처 메시지', 4),
 
-  m('po', '구매', '발주서입력/조회', 1),
+  m('po', '구매', '발주서입력/조회', 1, PurchaseOrderList),
   m('purchase', '구매', '구매입력', 1, PurchaseInput),
   m('purchase-status', '구매', '구매조회', 1, PurchaseList),
-  m('payment', '구매', '지불입력', 1),
-  m('payable', '구매', '미지급금현황', 1),
+  m('payment', '구매', '지불입력', 1, PaymentScreen),
+  m('payable', '구매', '미지급금현황', 1, PayableScreen),
   m('bean-price', '구매', '생두 단가비교', 4),
 
   m('bom', '생산', 'BOM등록', 2),
@@ -56,10 +59,10 @@ export const MENUS: MenuDef[] = [
   m('stock-status', '재고', '재고현황', 1, StockStatus),
   m('stock-wh', '재고', '창고별재고현황', 1),
   m('stock-ledger', '재고', '재고수불부', 1, StockLedger),
-  m('move', '재고', '창고이동', 1),
-  m('self-use', '재고', '자가사용', 1),
-  m('defect', '재고', '불량처리', 1),
-  m('adjust', '재고', '재고조정', 1),
+  m('move', '재고', '창고이동', 1, StockMove),
+  m('self-use', '재고', '자가사용', 1, SelfUse),
+  m('defect', '재고', '불량처리', 1, Defect),
+  m('adjust', '재고', '재고조정', 1, StockAdjust),
   m('lot', '재고', '로트조회', 2),
 
   m('vat-book', '회계', '매입매출장(부가세)', 3),

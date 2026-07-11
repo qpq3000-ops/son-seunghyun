@@ -109,6 +109,41 @@ export function validateLines(rawLines, emptyMessage) {
   return { lines };
 }
 
+// ── Phase 1.5: doc_type 규칙 헬퍼 (2장 규칙표) ────────────────
+// 원장(stock_ledger)을 발생시키는 doc_type 집합. quote/order/purchase_order는 원장 미발생.
+export const DOC_EMITS_LEDGER = new Set(['sale', 'purchase', 'roast', 'move', 'self_use', 'defect', 'adjust']);
+
+// 기타이동 4종(move/self_use/defect/adjust) 라인 1건에 대한 stock_ledger 삽입행(들)을 만든다.
+// - move: 보내는창고 기타출고(-) + 받는창고 기타입고(+) 2행(총재고 불변)
+// - self_use/defect: 창고 기타출고(-) 1행
+// - adjust: diff(=실사-장부)가 0이면 미발생, 아니면 diff>0 기타입고(+) / diff<0 기타출고(-) 1행
+// qty는 라인의 절대 수량(양수), adjust만 diff(부호 있는 값)를 별도로 받는다.
+export function buildMoveLedgerRows({ docType, itemId, warehouseId, whToId, qty, diff }) {
+  if (docType === 'move') {
+    return [
+      { itemId, warehouseId, ioType: '기타출고', qty: -qty },
+      { itemId, warehouseId: whToId, ioType: '기타입고', qty },
+    ];
+  }
+  if (docType === 'self_use' || docType === 'defect') {
+    return [{ itemId, warehouseId, ioType: '기타출고', qty: -qty }];
+  }
+  if (docType === 'adjust') {
+    if (!diff) return [];
+    return [{ itemId, warehouseId, ioType: diff > 0 ? '기타입고' : '기타출고', qty: diff }];
+  }
+  return [];
+}
+
+// 재고조정 장부수량: 지정 시점(asOf) 이하 해당 (품목,창고) 조합의 stock_ledger 누계.
+// 조정 저장 시 이 값을 기준으로 diff를 계산하므로, 저장 전(원장 재작성 delete 이후) 호출해야 한다.
+export function bookQty(itemId, warehouseId, asOf) {
+  const row = db.prepare(
+    `SELECT COALESCE(SUM(qty), 0) AS bal FROM stock_ledger WHERE item_id = ? AND warehouse_id = ? AND io_date <= ?`
+  ).get(itemId, warehouseId, asOf);
+  return round1(row.bal);
+}
+
 // ── 재고 경고 ─────────────────────────────────────────────
 // 저장 후 영향받은 (품목,창고) 조합의 현재 잔량을 확인해 음수면 경고 문자열을 만든다.
 // 음수재고 자체는 막지 않는다(이카운트와 동일) — 저장이 이미 커밋된 뒤 호출해서 안내만 담는다.

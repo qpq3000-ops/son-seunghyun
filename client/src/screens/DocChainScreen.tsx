@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { VoucherForm, VoucherHeader, VoucherLine, emptyLine, calcLine } from '../components/VoucherForm';
+import { VoucherForm, VoucherHeader, VoucherLine, emptyLine } from '../components/VoucherForm';
 import { PullSourceModal } from '../components/PullSourceModal';
 import { PrintDoc, PrintCompany } from '../components/PrintDoc';
 import { Confirm } from '../components/Modal';
@@ -8,17 +8,13 @@ import { api } from '../api';
 import { todayISO } from '../format';
 import type { Doc } from '../types';
 
-// 판매입력/구매입력 — 이카운트의 전표 입력 화면. kind로 판매/구매를 나누고
-// mode로 신규입력/수정을 겸용한다(수정은 VoucherList의 행 더블클릭에서 진입).
-// Phase 1.5: 주문서/발주서 [끌어오기] 버튼(PullSourceModal)과 판매수정의 [인쇄](거래명세서) 추가.
+// 견적서/주문서/발주서 입력·수정 — 판매입력(VoucherScreen)과 동일한 VoucherForm 기반이지만
+// 원장을 발생시키지 않는 3종 전표(quote/order/purchase_order)를 다룬다(설계 4.1).
+// 진행상태(status)·납기일자(time_date)·끌어오기(source_doc_id)가 판매/구매와 다른 점.
 
-type Kind = 'sale' | 'purchase';
+type Kind = 'quote' | 'order' | 'purchase_order';
 
-interface RecentSaleLine {
-  item_id: number; item_code: string; item_name: string; unit: string;
-  qty: number; price: number; remarks: string;
-}
-interface RecentSaleResp { found: boolean; doc_no?: string; io_date?: string; lines?: RecentSaleLine[] }
+const TITLE: Record<Kind, string> = { quote: '견적서', order: '주문서', purchase_order: '발주서' };
 
 function emptyHeader(): VoucherHeader {
   return {
@@ -31,7 +27,6 @@ function emptyHeader(): VoucherHeader {
 }
 
 interface Props {
-  kind: Kind;
   mode?: 'create' | 'edit';
   docId?: number;
   onSaved?: () => void;    // 수정 저장 성공(목록 복귀 + 재조회는 호출부 책임)
@@ -39,10 +34,11 @@ interface Props {
   onCancel?: () => void;   // [목록으로]
 }
 
-export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted, onCancel }: Props) {
+function DocChainScreen({ kind, mode = 'create', docId, onSaved, onDeleted, onCancel }: Props & { kind: Kind }) {
   const toast = useToast();
   const [header, setHeaderState] = useState<VoucherHeader>(emptyHeader());
   const [lines, setLines] = useState<VoucherLine[]>([emptyLine()]);
+  const [timeDate, setTimeDate] = useState('');
   const [vatRound, setVatRound] = useState<'floor' | 'round'>('floor');
   const [saving, setSaving] = useState(false);
   const [priceMap, setPriceMap] = useState<Map<number, number>>(new Map());
@@ -52,14 +48,14 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
   const [pullOpen, setPullOpen] = useState(false);
   const [printData, setPrintData] = useState<{ company: PrintCompany; doc: Doc } | null>(null);
 
-  // 서버와 동일한 부가세 반올림 규칙을 미리보기에도 적용(설계 0장: 클라 계산식은 서버와 비트단위 일치)
+  // 서버와 동일한 부가세 반올림 규칙을 미리보기에도 적용(설계 0장)
   useEffect(() => {
     api.get<Record<string, string>>('/api/settings')
       .then(s => setVatRound(s.vat_round === 'round' ? 'round' : 'floor'))
       .catch(() => {});
   }, []);
 
-  // 거래처 선택 시 특별단가 로드 → 특별단가 → 품목 출고단가 → 0(싯가) 순으로 자동적용
+  // 거래처 선택 시 특별단가 로드(발주는 특별단가 대신 품목 입/출고단가를 그대로 사용해도 무방 — 설계 4.1)
   useEffect(() => {
     if (!header.partner_id) { setPriceMap(new Map()); return; }
     let alive = true;
@@ -74,30 +70,38 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
     [priceMap],
   );
 
+  const docToForm = (d: Doc) => ({
+    header: {
+      date: d.io_date,
+      partner_id: d.partner_id, partner_name: d.partner_name ?? '',
+      warehouse_id: d.warehouse_id, warehouse_name: d.warehouse_name ?? '',
+      tax_mode: d.tax_mode, memo: d.memo,
+    } as VoucherHeader,
+    lines: d.lines.length ? d.lines.map(l => ({
+      item_id: l.item_id, item_code: l.item_code ?? '', item_name: l.item_name ?? '',
+      unit: l.unit ?? 'kg', qty: l.qty, price: l.price,
+      supply: l.supply_amt, vat: l.vat_amt, memo: l.remarks,
+    })) : [emptyLine()],
+  });
+
   const loadDoc = useCallback(async (id: number) => {
     try {
       const d = await api.get<Doc>(`/api/docs/${id}`);
-      setHeaderState({
-        date: d.io_date,
-        partner_id: d.partner_id, partner_name: d.partner_name ?? '',
-        warehouse_id: d.warehouse_id, warehouse_name: d.warehouse_name ?? '',
-        tax_mode: d.tax_mode, memo: d.memo,
-      });
-      setLines(d.lines.length ? d.lines.map(l => ({
-        item_id: l.item_id, item_code: l.item_code ?? '', item_name: l.item_name ?? '',
-        unit: l.unit ?? 'kg', qty: l.qty, price: l.price,
-        supply: l.supply_amt, vat: l.vat_amt, memo: l.remarks,
-      })) : [emptyLine()]);
+      const { header: h, lines: l } = docToForm(d);
+      setHeaderState(h);
+      setLines(l);
+      setTimeDate(d.time_date ?? '');
+      setSourceDocId(d.source_doc_id ?? null);
       setLoadedNo(d.doc_no);
     } catch (e) {
       toast.show((e as Error).message, 'error');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
 
   useEffect(() => {
     if (mode === 'edit' && docId) loadDoc(docId);
-    // loadDoc은 toast 컨텍스트 객체(다른 탭의 토스트에도 매번 새 참조)에 의존하므로
-    // deps에 넣으면 무관한 토스트에도 재조회되어 입력 중인 내용을 덮어쓸 수 있다 → id 변경시에만 로딩
+    // loadDoc은 toast 컨텍스트 참조로 매번 새로 생성되므로 id 변경시에만 로딩(VoucherScreen과 동일 이유)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, docId]);
 
@@ -126,6 +130,7 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
           item_id: l.item_id, qty: l.qty, price: l.price, remarks: l.memo,
         })),
       };
+      if (kind !== 'quote') body.time_date = timeDate || null;
       if (sourceDocId) body.source_doc_id = sourceDocId;
       const res = mode === 'edit' && docId
         ? await api.put<Doc>(`/api/docs/${docId}`, body)
@@ -135,7 +140,7 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
       if (mode === 'edit') {
         onSaved?.();
       } else {
-        // 라인만 초기화, 헤더(일자/거래처/창고/거래유형)는 유지 → 연속입력. 끌어온 원본 연결도 리셋.
+        // 라인만 초기화, 헤더는 유지 → 연속입력. 끌어온 원본 연결도 리셋(설계 4.1)
         setLines([emptyLine()]);
         setSourceDocId(null);
       }
@@ -159,44 +164,23 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
     }
   };
 
-  const copyRecent = async () => {
-    if (!header.partner_id) { toast.show('거래처를 먼저 선택하세요.', 'error'); return; }
-    try {
-      const r = await api.get<RecentSaleResp>(`/api/docs/recent-sale?partner_id=${header.partner_id}`);
-      if (!r.found || !r.lines?.length) { toast.show('최근 판매 내역이 없습니다.', 'error'); return; }
-      setLines(r.lines.map(l => calcLine({
-        item_id: l.item_id, item_code: l.item_code, item_name: l.item_name,
-        unit: l.unit, qty: l.qty, price: l.price, supply: 0, vat: 0, memo: l.remarks ?? '',
-      }, header.tax_mode, vatRound)));
-    } catch (e) {
-      toast.show((e as Error).message, 'error');
-    }
-  };
-
-  // 주문서/발주서 끌어오기(설계 4.4) — target은 저장하려는 전표 종류와 동일한 값('sale'|'purchase')
   const applyPulled = async (id: number) => {
     try {
       const d = await api.get<Doc>(`/api/docs/${id}`);
-      setHeaderState(h => ({
+      const { header: h, lines: l } = docToForm(d);
+      setHeaderState(prev => ({
         ...h,
-        partner_id: h.partner_id ?? d.partner_id,
-        partner_name: h.partner_id ? h.partner_name : (d.partner_name ?? ''),
-        warehouse_id: d.warehouse_id,
-        warehouse_name: d.warehouse_name ?? '',
-        tax_mode: d.tax_mode,
+        // 거래처가 폼에 이미 있으면 유지, 없으면 원본 거래처로 세팅(설계 4.3)
+        partner_id: prev.partner_id ?? h.partner_id,
+        partner_name: prev.partner_id ? prev.partner_name : h.partner_name,
       }));
-      setLines(d.lines.length ? d.lines.map(l => ({
-        item_id: l.item_id, item_code: l.item_code ?? '', item_name: l.item_name ?? '',
-        unit: l.unit ?? 'kg', qty: l.qty, price: l.price,
-        supply: l.supply_amt, vat: l.vat_amt, memo: l.remarks,
-      })) : [emptyLine()]);
+      setLines(l);
       setSourceDocId(id);
     } catch (e) {
       toast.show((e as Error).message, 'error');
     }
   };
 
-  // 거래명세서 인쇄(설계 4.7) — 판매수정 화면에서만 노출
   const doPrint = async () => {
     if (!docId) return;
     try {
@@ -223,12 +207,12 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
     return () => clearTimeout(t);
   }, [printData]);
 
-  const title = kind === 'sale' ? '판매입력' : '구매입력';
+  const title = TITLE[kind];
 
   return (
     <div className="screen">
       <VoucherForm
-        title={mode === 'edit' ? `${title} 수정${loadedNo ? ` (전표 ${loadedNo})` : ''}` : title}
+        title={mode === 'edit' ? `${title} 수정${loadedNo ? ` (전표 ${loadedNo})` : ''}` : `${title} 입력`}
         header={header}
         lines={lines}
         vatRound={vatRound}
@@ -236,20 +220,20 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
         onSave={save}
         saving={saving}
         priceResolver={priceResolver}
-        warehouseLabel={kind === 'purchase' ? '입고창고' : '창고'}
+        warehouseLabel={kind === 'purchase_order' ? '입고창고' : '창고'}
         saveLabel={mode === 'edit' ? '저장' : '저장 (연속입력)'}
-        headerActions={
-          <>
-            {kind === 'sale' && <button className="btn small" onClick={copyRecent}>지난 주문 복사</button>}
-            <button className="btn small" onClick={() => setPullOpen(true)}>
-              {kind === 'sale' ? '주문서 불러오기' : '발주서 불러오기'}
-            </button>
-          </>
-        }
+        headerActions={kind === 'order' ? (
+          <button className="btn small" onClick={() => setPullOpen(true)}>견적 불러오기</button>
+        ) : undefined}
+        headerExtra={kind !== 'quote' ? (
+          <label>납기일자
+            <input className="input" type="date" value={timeDate} onChange={e => setTimeDate(e.target.value)} />
+          </label>
+        ) : undefined}
         footerActions={mode === 'edit' ? (
           <>
             <button className="btn" onClick={onCancel}>목록으로</button>
-            {kind === 'sale' && <button className="btn" onClick={doPrint}>인쇄</button>}
+            {kind === 'quote' && <button className="btn" onClick={doPrint}>인쇄</button>}
             <button className="btn danger" onClick={() => setConfirmDel(true)}>삭제</button>
           </>
         ) : undefined}
@@ -259,16 +243,17 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
       )}
       {pullOpen && (
         <PullSourceModal
-          target={kind}
+          target="order"
           partnerId={header.partner_id}
           onPick={applyPulled}
           onClose={() => setPullOpen(false)}
         />
       )}
-      {printData && <PrintDoc variant="거래명세서" company={printData.company} doc={printData.doc} />}
+      {printData && <PrintDoc variant="견적서" company={printData.company} doc={printData.doc} />}
     </div>
   );
 }
 
-export const SaleInput = () => <VoucherScreen kind="sale" />;
-export const PurchaseInput = () => <VoucherScreen kind="purchase" />;
+export const QuoteInput = (props: Props) => <DocChainScreen kind="quote" {...props} />;
+export const OrderInput = (props: Props) => <DocChainScreen kind="order" {...props} />;
+export const PurchaseOrderInput = (props: Props) => <DocChainScreen kind="purchase_order" {...props} />;

@@ -75,6 +75,7 @@ export interface DocLine {
   item_code?: string;
   item_name?: string;
   unit?: string;
+  spec?: string;               // 규격(인쇄용, Phase 1.5)
   line_role?: 'normal' | 'input' | 'output';
   qty: number;
   price: number;
@@ -87,15 +88,22 @@ export interface DocLine {
 export interface Doc {
   id: number;
   doc_no: string;
-  doc_type: 'sale' | 'purchase' | 'roast';
+  doc_type: 'sale' | 'purchase' | 'roast' | 'quote' | 'order' | 'purchase_order';
   io_date: string;
   partner_id: number | null;
   partner_name?: string;
+  partner_biz_no?: string;     // 인쇄용(Phase 1.5) — 공급받는자 사업자번호
+  partner_ceo?: string;
+  partner_address?: string;
+  partner_phone?: string;
   warehouse_id: number;
   warehouse_name?: string;
   tax_mode: '과세' | '면세';
   project_id: number | null;
   memo: string;
+  status?: '대기' | '완료';    // 견적/주문/발주 진행상태(Phase 1.5)
+  time_date?: string | null;   // 납기일자(주문/발주, Phase 1.5)
+  source_doc_id?: number | null; // 끌어오기 원본 전표 id(Phase 1.5)
   total_qty: number;
   total_supply: number;
   total_vat: number;
@@ -108,7 +116,7 @@ export interface Doc {
 export interface DocListRow {
   id: number;
   doc_no: string;
-  doc_type: 'sale' | 'purchase' | 'roast';
+  doc_type: 'sale' | 'purchase' | 'roast' | 'quote' | 'order' | 'purchase_order';
   io_date: string;
   partner_id: number | null;
   partner_name: string | null;
@@ -120,6 +128,8 @@ export interface DocListRow {
   total_supply: number;
   total_vat: number;
   total_amount: number;
+  status?: '대기' | '완료';
+  time_date?: string | null;
   memo: string;
 }
 
@@ -209,4 +219,77 @@ export interface LedgerReport {
   sum_in: number;
   sum_out: number;
   closing: number;
+}
+
+// ───────────────────────── Phase 1.5: 전표체인·기타이동·인쇄 ─────────────────────────
+
+// 기타이동 4종 라인 (GET/POST/PUT /api/moves(/:id) 응답의 lines[])
+export interface MoveLine {
+  line_no?: number;
+  item_id: number;
+  item_code?: string;
+  item_name?: string;
+  unit?: string;
+  qty: number;               // move/self_use/defect=입력수량, adjust=실사수량(저장 후 확정값)
+  book_qty?: number | null;  // adjust 전용: 저장 시점 장부수량(참고 표시)
+  real_qty?: number;         // adjust 요청 전용(POST/PUT body에서만 사용, 응답엔 qty로 내려옴)
+  remarks: string;
+}
+
+// 기타이동 1건 상세 (GET/POST/PUT /api/moves(/:id) 응답 — POST/PUT은 warnings 포함)
+export interface MoveDetail {
+  id: number;
+  doc_no: string;
+  doc_type: 'move' | 'self_use' | 'defect' | 'adjust';
+  io_date: string;
+  warehouse_id: number;
+  warehouse_name: string;
+  wh_to_id?: number | null;
+  wh_to_name?: string | null;
+  memo: string;
+  method?: string | null;    // defect='폐기', 그 외 null
+  lines: MoveLine[];
+  warnings?: string[];
+}
+
+// 기타이동 목록 1행 (GET /api/moves)
+export interface MoveListRow {
+  id: number;
+  doc_no: string;
+  doc_type: 'move' | 'self_use' | 'defect' | 'adjust';
+  io_date: string;
+  warehouse_id: number;
+  warehouse_name: string;
+  wh_to_id?: number | null;
+  wh_to_name?: string | null;
+  item_summary: string;
+  line_count: number;
+  total_qty: number;
+  memo: string;
+  method?: string | null;
+}
+
+// 미지급현황 1행 (GET /api/payables) — Receivable과 동일 구조, 매입 기준
+export interface Payable {
+  partner_id: number;
+  partner_code: string;
+  partner_name: string;
+  pay_cycle: '당일' | '월별';
+  purchase_total: number;
+  payment_total: number;
+  balance: number;
+}
+
+// 끌어오기 후보 1행 (GET /api/docs/pullable)
+export interface PullRow {
+  id: number;
+  doc_no: string;
+  doc_type: string;
+  io_date: string;
+  partner_id: number | null;
+  partner_name: string;
+  item_summary: string;
+  line_count: number;
+  total_amount: number;
+  time_date?: string | null;
 }

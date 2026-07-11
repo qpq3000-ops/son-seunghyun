@@ -47,6 +47,7 @@ interface Props {
   onSave: () => void;
   saving?: boolean;
   headerActions?: ReactNode;          // vh-title 우측 슬롯 (지난주문복사 버튼 등)
+  headerExtra?: ReactNode;            // vh-fields 안(거래유형 다음·적요 앞)에 렌더되는 추가 헤더 필드(납기일자 등, Phase 1.5)
   priceResolver?: (itemId: number, priceOut: number) => number;  // 품목 선택 시 단가 결정
   warehouseLabel?: string;            // 기본 '창고' (구매는 '입고창고')
   saveLabel?: string;                 // 기본 '저장 (연속입력)'
@@ -55,7 +56,7 @@ interface Props {
 
 export function VoucherForm({
   title, header, lines, vatRound = 'floor', onChange, onSave, saving,
-  headerActions, priceResolver, warehouseLabel, saveLabel, footerActions,
+  headerActions, headerExtra, priceResolver, warehouseLabel, saveLabel, footerActions,
 }: Props) {
   const [help, setHelp] = useState<{ kind: 'partner' | 'warehouse' | 'item'; lineIdx?: number } | null>(null);
 
@@ -102,6 +103,7 @@ export function VoucherForm({
               <option>과세</option><option>면세</option>
             </select>
           </label>
+          {headerExtra}
           <label className="grow">적요
             <input className="input" value={header.memo}
               onChange={e => setHeader({ memo: e.target.value })} />

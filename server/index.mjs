@@ -8,6 +8,7 @@ import { migrate } from './db.mjs';
 import { masters } from './masters.mjs';
 import { ecount } from './ecount.mjs';
 import { vouchers } from './vouchers.mjs';
+import { moves } from './moves.mjs';
 import { receipts } from './receipts.mjs';
 import { reports } from './reports.mjs';
 
@@ -19,6 +20,7 @@ const app = new Hono();
 app.get('/api/health', (c) => c.json({ ok: true, name: '로스팅 ERP', phase: 0 }));
 app.route('/api', masters);
 app.route('/api', vouchers);   // /api/docs*, /api/roast*
+app.route('/api', moves);      // /api/moves* (창고이동/자가사용/불량처리/재고조정)
 app.route('/api', receipts);   // /api/receipts*, /api/receivables, /api/payables
 app.route('/api', reports);    // /api/stock/status, /api/stock/ledger
 app.route('/api/ecount', ecount);
