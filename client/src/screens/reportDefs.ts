@@ -1,6 +1,6 @@
 // 그리드형 보고서 정의 7종 — 설계-R1-보고서엔진.md §3.5.
 // ReportScreen(공통 컴포넌트) + 이 정의만으로 화면이 완성된다. 손익계산서(서식형)는 PnlStatement.tsx.
-import { fmtWon } from '../format';
+import { fmtWon, fmtQty } from '../format';
 import type { ReportDef } from '../components/ReportScreen';
 
 interface MethodTotal { method: string; count: number; amount: number }
@@ -150,5 +150,184 @@ export const REPORT_DEFS: Record<string, ReportDef> = {
       { title: '이익률', field: 'margin_pct', width: 80, align: 'right', fmt: 'pct' },
     ],
     summaryLine: e => `판매액 ${fmtWon(e.summary.sales)} · 원가 ${fmtWon(e.summary.cost)} · 이익 ${fmtWon(e.summary.margin)} (${e.summary.margin_pct}%)`,
+  },
+
+  // ── R2: 영업·재고 현황 7종 (설계-R2-영업재고현황.md §3.2) ──
+
+  // 9. 미주문현황 ⭐ — 집계형, 기간 내 주문 없는 매출 거래처
+  'order-missing': {
+    id: 'order-missing', title: '미주문현황', endpoint: '/api/order-missing',
+    filters: [
+      { key: 'range', kind: 'date-range' },
+      {
+        key: 'basis', kind: 'select', label: '기준',
+        options: ['주문서 기준', '주문·판매 기준'], default: '주문서 기준',
+        mapValue: { '주문서 기준': 'order', '주문·판매 기준': 'order_sale' },
+      },
+    ],
+    columns: [
+      { title: '거래처코드', field: 'code', width: 110, align: 'center' },
+      { title: '거래처명', field: 'name', minWidth: 200 },
+      { title: '입금주기', field: 'pay_cycle', width: 80, align: 'center' },
+      { title: '마지막주문일', field: 'last_order', width: 120, align: 'center' },
+      { title: '마지막판매일', field: 'last_sale', width: 120, align: 'center' },
+      { title: '미주문일수', field: 'days_since', width: 90, align: 'right' },
+    ],
+    summaryLine: e => `미주문 ${e.summary.count}개 거래처 (${e.summary.basis} 기준)`,
+  },
+
+  // 10. 견적서현황 — 라인 단위 집계형
+  'quote-status': {
+    id: 'quote-status', title: '견적서현황', endpoint: '/api/quote-status',
+    filters: [
+      { key: 'range', kind: 'date-range' },
+      { key: 'partner_id', kind: 'partner', label: '거래처', omitWhen: '', helpEndpoint: '/api/partners', width: 150 },
+      { key: 'item_id', kind: 'item', label: '품목', omitWhen: '', helpEndpoint: '/api/items', width: 180 },
+      { key: 'status', kind: 'select', label: '상태', options: ['전체', '대기', '완료'], default: '전체', omitWhen: '전체' },
+    ],
+    columns: [
+      { title: '일자', field: 'io_date', width: 100 },
+      { title: '전표번호', field: 'doc_no', width: 120 },
+      { title: '거래처', field: 'partner_name', minWidth: 140 },
+      { title: '품목코드', field: 'item_code', width: 84, align: 'center' },
+      { title: '품목명', field: 'item_name', minWidth: 180 },
+      { title: '수량', field: 'qty', width: 80, align: 'right', fmt: 'qty', sum: true },
+      { title: '단가', field: 'price', width: 90, align: 'right', fmt: 'won' },
+      { title: '공급가액', field: 'supply_amt', width: 110, align: 'right', fmt: 'won', sum: true },
+      { title: '부가세', field: 'vat_amt', width: 100, align: 'right', fmt: 'won', sum: true },
+      { title: '합계', field: 'amount', width: 110, align: 'right', fmt: 'won', bold: true, sum: true },
+      { title: '상태', field: 'status', width: 60, align: 'center' },
+    ],
+    summaryLine: e => `${e.summary.count}건 · 수량 ${fmtQty(e.summary.qty)} · 공급 ${fmtWon(e.summary.supply)} · 합계 ${fmtWon(e.summary.total)}`,
+  },
+
+  // 11. 주문서현황 — 견적서현황 + 납기일자 컬럼
+  'order-status': {
+    id: 'order-status', title: '주문서현황', endpoint: '/api/order-status',
+    filters: [
+      { key: 'range', kind: 'date-range' },
+      { key: 'partner_id', kind: 'partner', label: '거래처', omitWhen: '', helpEndpoint: '/api/partners', width: 150 },
+      { key: 'item_id', kind: 'item', label: '품목', omitWhen: '', helpEndpoint: '/api/items', width: 180 },
+      { key: 'status', kind: 'select', label: '상태', options: ['전체', '대기', '완료'], default: '전체', omitWhen: '전체' },
+    ],
+    columns: [
+      { title: '일자', field: 'io_date', width: 100 },
+      { title: '전표번호', field: 'doc_no', width: 120 },
+      { title: '거래처', field: 'partner_name', minWidth: 140 },
+      { title: '품목코드', field: 'item_code', width: 84, align: 'center' },
+      { title: '품목명', field: 'item_name', minWidth: 180 },
+      { title: '수량', field: 'qty', width: 80, align: 'right', fmt: 'qty', sum: true },
+      { title: '단가', field: 'price', width: 90, align: 'right', fmt: 'won' },
+      { title: '공급가액', field: 'supply_amt', width: 110, align: 'right', fmt: 'won', sum: true },
+      { title: '부가세', field: 'vat_amt', width: 100, align: 'right', fmt: 'won', sum: true },
+      { title: '합계', field: 'amount', width: 110, align: 'right', fmt: 'won', bold: true, sum: true },
+      { title: '상태', field: 'status', width: 60, align: 'center' },
+      { title: '납기일자', field: 'time_date', width: 100, align: 'center' },
+    ],
+    summaryLine: e => `${e.summary.count}건 · 수량 ${fmtQty(e.summary.qty)} · 공급 ${fmtWon(e.summary.supply)} · 합계 ${fmtWon(e.summary.total)}`,
+  },
+
+  // 12. 발주서현황 — 주문서현황과 동형(거래처=매입처)
+  'po-status': {
+    id: 'po-status', title: '발주서현황', endpoint: '/api/po-status',
+    filters: [
+      { key: 'range', kind: 'date-range' },
+      { key: 'partner_id', kind: 'partner', label: '거래처', omitWhen: '', helpEndpoint: '/api/partners', width: 150 },
+      { key: 'item_id', kind: 'item', label: '품목', omitWhen: '', helpEndpoint: '/api/items', width: 180 },
+      { key: 'status', kind: 'select', label: '상태', options: ['전체', '대기', '완료'], default: '전체', omitWhen: '전체' },
+    ],
+    columns: [
+      { title: '일자', field: 'io_date', width: 100 },
+      { title: '전표번호', field: 'doc_no', width: 120 },
+      { title: '거래처', field: 'partner_name', minWidth: 140 },
+      { title: '품목코드', field: 'item_code', width: 84, align: 'center' },
+      { title: '품목명', field: 'item_name', minWidth: 180 },
+      { title: '수량', field: 'qty', width: 80, align: 'right', fmt: 'qty', sum: true },
+      { title: '단가', field: 'price', width: 90, align: 'right', fmt: 'won' },
+      { title: '공급가액', field: 'supply_amt', width: 110, align: 'right', fmt: 'won', sum: true },
+      { title: '부가세', field: 'vat_amt', width: 100, align: 'right', fmt: 'won', sum: true },
+      { title: '합계', field: 'amount', width: 110, align: 'right', fmt: 'won', bold: true, sum: true },
+      { title: '상태', field: 'status', width: 60, align: 'center' },
+      { title: '납기일자', field: 'time_date', width: 100, align: 'center' },
+    ],
+    summaryLine: e => `${e.summary.count}건 · 수량 ${fmtQty(e.summary.qty)} · 공급 ${fmtWon(e.summary.supply)} · 합계 ${fmtWon(e.summary.total)}`,
+  },
+
+  // 13. 판매구매 집계표 — group×tx 8조합, 컬럼 고정 → 단일 정의
+  'sales-summary': {
+    id: 'sales-summary', title: '판매구매 집계표', endpoint: '/api/sales-purchase-summary',
+    filters: [
+      { key: 'range', kind: 'date-range' },
+      {
+        key: 'tx', kind: 'select', label: '구분', options: ['판매', '구매'], default: '판매',
+        mapValue: { '판매': 'sale', '구매': 'purchase' },
+      },
+      {
+        key: 'group', kind: 'select', label: '기준', options: ['일별', '월별', '거래처별', '품목별'], default: '일별',
+        mapValue: { '일별': 'day', '월별': 'month', '거래처별': 'partner', '품목별': 'item' },
+      },
+    ],
+    columns: [
+      { title: '코드', field: 'code', width: 110, align: 'center' },
+      { title: '기준', field: 'label', minWidth: 200 },
+      { title: '수량', field: 'qty', width: 90, align: 'right', fmt: 'qty', sum: true },
+      { title: '공급가액', field: 'supply', width: 120, align: 'right', fmt: 'won', sum: true },
+      { title: '부가세', field: 'vat', width: 110, align: 'right', fmt: 'won', sum: true },
+      { title: '합계', field: 'total', width: 130, align: 'right', fmt: 'won', bold: true, sum: true },
+    ],
+    summaryLine: e => `${e.summary.count}건 · 수량 ${fmtQty(e.summary.qty)} · 공급 ${fmtWon(e.summary.supply)} · 부가세 ${fmtWon(e.summary.vat)} · 합계 ${fmtWon(e.summary.total)}`,
+  },
+
+  // 14. 기타이동현황 — stock_ledger grain
+  'other-moves': {
+    id: 'other-moves', title: '기타이동현황', endpoint: '/api/other-moves',
+    filters: [
+      { key: 'range', kind: 'date-range' },
+      {
+        key: 'type', kind: 'select', label: '유형',
+        options: ['전체', '창고이동', '자가사용', '불량처리', '재고조정'], default: '전체', omitWhen: '전체',
+        mapValue: { '창고이동': 'move', '자가사용': 'self_use', '불량처리': 'defect', '재고조정': 'adjust' },
+      },
+    ],
+    columns: [
+      { title: '일자', field: 'io_date', width: 100 },
+      { title: '전표번호', field: 'doc_no', width: 120 },
+      { title: '유형', field: 'type', width: 80, align: 'center' },
+      { title: '품목코드', field: 'item_code', width: 84, align: 'center' },
+      { title: '품목명', field: 'item_name', minWidth: 180 },
+      { title: '창고', field: 'warehouse_name', width: 110 },
+      { title: '입출고', field: 'io_type', width: 80, align: 'center' },
+      { title: '수량', field: 'qty', width: 90, align: 'right', fmt: 'qty', sum: true },
+      { title: '적요', field: 'memo', minWidth: 160 },
+    ],
+    summaryLine: e => `${e.summary.count}건 · 순증감 ${fmtQty(e.summary.net_qty)}kg`,
+  },
+
+  // 15. 재고변동표 — 수불부의 전 품목 버전(합계행 없음)
+  'stock-flow': {
+    id: 'stock-flow', title: '재고변동표', endpoint: '/api/stock-flow',
+    filters: [
+      { key: 'range', kind: 'date-range' },
+      {
+        key: 'item_type', kind: 'select', label: '품목구분',
+        options: ['전체', '원재료', '부자재', '제품', '상품'], default: '전체', omitWhen: '전체',
+      },
+      {
+        key: 'show', kind: 'select', label: '표시',
+        options: ['변동·잔량만', '전체 품목'], default: '변동·잔량만',
+        mapValue: { '변동·잔량만': 'active', '전체 품목': 'all' },
+      },
+    ],
+    columns: [
+      { title: '품목코드', field: 'code', width: 84, align: 'center' },
+      { title: '품목명', field: 'name', minWidth: 200 },
+      { title: '규격', field: 'spec', width: 90 },
+      { title: '단위', field: 'unit', width: 56, align: 'center' },
+      { title: '이월', field: 'opening', width: 90, align: 'right', fmt: 'qty' },
+      { title: '입고', field: 'in_qty', width: 90, align: 'right', fmt: 'qty' },
+      { title: '출고', field: 'out_qty', width: 90, align: 'right', fmt: 'qty' },
+      { title: '잔량', field: 'closing', width: 100, align: 'right', fmt: 'qty', bold: true },
+    ],
+    summaryLine: e => `${e.summary.count}개 품목`,
   },
 };

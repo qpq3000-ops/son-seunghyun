@@ -10,7 +10,7 @@ import { fmtWon, fmtQty, monthStartISO, todayISO, periodPreset, PERIOD_PRESETS }
 // 계정별원장·총계정원장·현금출납장·합계잔액시산표·수금현황·지급현황·이익현황 7종은 이 컴포넌트 +
 // 정의 객체(screens/reportDefs.ts)만으로 완성된다. 손익계산서는 서식형이라 별도 화면(PnlStatement.tsx).
 
-export type FilterKind = 'date-range' | 'account' | 'partner' | 'select' | 'as-of';
+export type FilterKind = 'date-range' | 'account' | 'partner' | 'item' | 'select' | 'as-of';
 
 export interface ReportFilter {
   key: string;                          // 쿼리 파라미터 이름(date-range는 무시 — from/to 고정)
@@ -79,7 +79,7 @@ const initVals = (def: ReportDef): Record<string, string> => {
 
 const initLabels = (def: ReportDef): Record<string, string> => {
   const l: Record<string, string> = {};
-  for (const f of def.filters) if (f.kind === 'account' || f.kind === 'partner') l[f.key] = '';
+  for (const f of def.filters) if (f.kind === 'account' || f.kind === 'partner' || f.kind === 'item') l[f.key] = '';
   return l;
 };
 
@@ -331,7 +331,7 @@ export function ReportScreen({ def }: ReportScreenProps) {
 
       {helpFilter && (
         <CodeHelp
-          title={helpFilter.label ?? (helpFilter.kind === 'account' ? '계정과목' : '거래처')}
+          title={helpFilter.label ?? (helpFilter.kind === 'account' ? '계정과목' : helpFilter.kind === 'item' ? '품목' : '거래처')}
           endpoint={helpFilter.helpEndpoint ?? (helpFilter.kind === 'account' ? '/api/accounts' : '/api/partners')}
           onClose={() => setHelpFilter(null)}
           onSelect={r => {

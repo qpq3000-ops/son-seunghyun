@@ -63,6 +63,10 @@ export const MENUS: MenuDef[] = [
   m('receipt-status', '영업', '수금현황', 5, R('receipt-status')),
   m('statement-print', '영업', '거래명세서인쇄', 1, StatementPrint),
   m('message', '영업', '거래처 메시지', 4, MessageScreen),
+  m('order-missing', '영업', '미주문현황', 6, R('order-missing')),
+  m('quote-status', '영업', '견적서현황', 6, R('quote-status')),
+  m('order-status', '영업', '주문서현황', 6, R('order-status')),
+  m('sales-summary', '영업', '판매구매 집계표', 6, R('sales-summary')),
 
   m('po', '구매', '발주서입력/조회', 1, PurchaseOrderList),
   m('purchase', '구매', '구매입력', 1, PurchaseInput),
@@ -71,6 +75,7 @@ export const MENUS: MenuDef[] = [
   m('payable', '구매', '미지급금현황', 1, PayableScreen),
   m('payment-status', '구매', '지급현황', 5, R('payment-status')),
   m('bean-price', '구매', '생두 단가비교', 4, BeanPriceScreen),
+  m('po-status', '구매', '발주서현황', 6, R('po-status')),
 
   m('bom', '생산', 'BOM등록', 2, BomScreen),
   m('roast-sheet', '생산', '로스팅 입력', 1, RoastInput),
@@ -87,6 +92,8 @@ export const MENUS: MenuDef[] = [
   m('adjust', '재고', '재고조정', 1, StockAdjust),
   m('lot', '재고', '로트조회', 2, LotScreen),
   m('profit-status', '재고', '이익현황', 5, R('profit-status')),
+  m('other-moves', '재고', '기타이동현황', 6, R('other-moves')),
+  m('stock-flow', '재고', '재고변동표', 6, R('stock-flow')),
 
   m('vat-book', '회계', '매입매출장(부가세)', 3, VatBook),
   m('journal', '회계', '분개장', 3, JournalScreen),

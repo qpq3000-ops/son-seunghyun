@@ -602,3 +602,56 @@ export interface ProfitStatus {
   rows: ProfitStatusRow[];
   summary: { qty: number; sales: number; cost: number; margin: number; margin_pct: number };
 }
+
+// ───────────────────────── R2: 영업·재고 현황 7종 (설계-R2-영업재고현황.md §1) ─────────────────────────
+
+// ── 1. 미주문현황 (GET /api/order-missing, 집계형) ──
+export interface OrderMissingRow {
+  partner_id: number; code: string; name: string; pay_cycle: string;
+  last_order: string | null; last_sale: string | null; days_since: number | null;
+}
+export interface OrderMissing {
+  rows: OrderMissingRow[];
+  summary: { count: number; basis: string };
+}
+
+// ── 2/3/4. 견적서·주문서·발주서 현황 (GET /api/quote-status, /api/order-status, /api/po-status — 라인 단위, 공용) ──
+export interface DocStatusRow {
+  io_date: string; doc_no: string; partner_name: string;
+  item_code: string; item_name: string; qty: number; price: number;
+  supply_amt: number; vat_amt: number; amount: number; status: string;
+  time_date: string | null; memo: string;
+}
+export interface DocStatus {
+  rows: DocStatusRow[];
+  summary: { count: number; qty: number; supply: number; vat: number; total: number };
+}
+
+// ── 5. 판매구매 집계표 (GET /api/sales-purchase-summary, 집계형·group×tx 8조합 공용) ──
+export interface SalesSummaryRow {
+  code: string; label: string; qty: number; supply: number; vat: number; total: number;
+}
+export interface SalesSummary {
+  rows: SalesSummaryRow[];
+  summary: { count: number; qty: number; supply: number; vat: number; total: number };
+}
+
+// ── 6. 기타이동현황 (GET /api/other-moves, stock_ledger grain) ──
+export interface OtherMovesRow {
+  io_date: string; doc_no: string; type: string; item_code: string; item_name: string;
+  warehouse_name: string; io_type: string; qty: number; memo: string;
+}
+export interface OtherMoves {
+  rows: OtherMovesRow[];
+  summary: { count: number; net_qty: number };
+}
+
+// ── 7. 재고변동표 (GET /api/stock-flow, 전 품목 이월/입고/출고/잔량) ──
+export interface StockFlowRow {
+  item_id: number; code: string; name: string; spec: string; unit: string;
+  opening: number; in_qty: number; out_qty: number; closing: number;
+}
+export interface StockFlow {
+  rows: StockFlowRow[];
+  summary: { count: number };
+}
