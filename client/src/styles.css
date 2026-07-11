@@ -524,3 +524,75 @@ code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
 
 /* ── R3: 재고불러오기/이익계산/찾기 모달 공용 — mini-table 마이너스 강조(범용, widget-table 밖에서도 사용) ── */
 .mini-table .neg, .voucher-lines .neg { color: var(--danger); font-weight: 700; }
+
+/* ══════════════════════════ R4: 세무 + 회계Ⅱ (설계-R4-세무회계2.md §4.7) ══════════════════════════ */
+
+/* 외부 전송 stub 버튼(국세청/전자발행 전송) — 항상 비활성, 인쇄 시 숨김 */
+.stub-btn { color: #9aa4b1 !important; border-color: var(--line) !important; cursor: not-allowed !important; }
+.stub-btn:hover { color: #9aa4b1 !important; border-color: var(--line) !important; }
+@media print { .stub-btn { display: none; } }
+
+/* ── 부가가치세신고서(VatReturn) — pnl-sheet 톤 재사용 서식 ── */
+.vat-screen { overflow-y: auto; }
+.vat-sheet { font-size: 12.5px; color: #111; max-width: 720px; margin: 16px auto 0; }
+.vat-title { text-align: center; font-size: 22px; font-weight: 800; letter-spacing: 6px; margin-bottom: 10px; }
+.vat-meta { display: flex; justify-content: space-between; font-size: 12.5px; color: #333; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; }
+.vat-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.vat-table th { background: #f3f5f9; border: 1px solid #333; padding: 7px; }
+.vat-table th.num, .vat-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.vat-table td { border: 1px solid #ccc; padding: 6px 10px; }
+.vat-table .vat-sec { text-align: center; font-weight: 700; background: #fafbfe; }
+.vat-table .vat-emph td { font-weight: 700; background: #fafbfe; }
+.vat-table .vat-final td { font-size: 13.5px; border-top: 2px solid #333; }
+.vat-note { margin-top: 8px; }
+
+/* ── 세금계산서합계표(TaxInvoiceReport) — stmt-sheet 톤 재사용, stmt-table 그대로 사용 ── */
+.tax-sum-screen { overflow-y: auto; }
+.tax-sum-sheet { font-size: 12.5px; color: #111; }
+.tax-sum-block { margin-bottom: 22px; }
+.tax-sum-title { text-align: center; font-size: 18px; font-weight: 800; margin: 6px 0 10px; }
+.tax-sum-meta { display: flex; justify-content: space-between; font-size: 12.5px; color: #333; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; }
+
+/* ── 전자세금계산서 진행단계(EtaxInvoiceScreen) — 단계별 배지 행 ── */
+.etax-screen { overflow-y: auto; }
+.etax-badges { display: flex; gap: 8px; margin: 4px 0 10px; flex-wrap: wrap; }
+.etax-badge {
+  border: 1px solid var(--line); background: #fbfcfe; color: var(--txt);
+  border-radius: 14px; padding: 5px 12px; font-size: 12px; cursor: pointer; font-weight: 600;
+}
+.etax-badge b { margin-left: 4px; }
+.etax-badge:hover { border-color: var(--accent); color: var(--accent); }
+.etax-badge.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+/* ── 고정자산등록(FixedAssetScreen) — 감가상각 스케줄/현황 패널 ── */
+.fa-screen { overflow-y: auto; }
+.fa-schedule { margin-top: 14px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: #fbfcfe; }
+.fa-schedule-head { display: flex; gap: 16px; align-items: center; font-size: 13px; margin-bottom: 8px; flex-wrap: wrap; }
+.fa-schedule-head span { color: var(--sub); }
+.fa-schedule-scroll { max-height: 260px; overflow: auto; border: 1px solid var(--line); }
+.fa-dep-section { margin-top: 18px; }
+.dep-summary { margin: 4px 0 8px; }
+.dep-tables { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; align-items: start; }
+.dep-table { font-size: 12px; }
+
+/* ── 예산관리(BudgetScreen) — 계정×12월 겹표(편성 입력/실적 회색) ── */
+.budget-screen { overflow-y: auto; }
+.budget-grid-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 6px; }
+.budget-grid { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+.budget-grid th { background: #f3f5f9; border: 1px solid var(--line); padding: 6px 5px; color: var(--sub); }
+.budget-grid td { border: 1px solid #e4e8ee; padding: 3px 5px; }
+.budget-grid th.budget-acct, .budget-grid td.budget-acct { position: sticky; left: 0; z-index: 1; text-align: left; }
+.budget-grid th.budget-acct { background: #f3f5f9; z-index: 2; }
+.budget-grid td.budget-acct { background: #fff; }
+.budget-cell { padding: 2px 4px; }
+.budget-cell input.cell { width: 64px; text-align: right; }
+.budget-actual { display: block; color: var(--sub); font-size: 10.5px; text-align: right; }
+.budget-grid td.over { color: var(--danger); font-weight: 800; }
+
+/* ── 자금계획(FundPlanScreen) — 예정 수입/지출 요약 바(cash-tile 톤 재사용) ── */
+.fund-screen { overflow-y: auto; }
+.fund-summary {
+  display: flex; gap: 18px; align-items: center; padding: 8px 12px;
+  border: 1px solid var(--line); border-radius: 8px; background: #fbfcfe; font-size: 13px; margin: 8px 0;
+}
+.fund-summary b { font-variant-numeric: tabular-nums; }

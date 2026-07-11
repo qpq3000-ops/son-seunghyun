@@ -27,6 +27,13 @@ import { BeanPriceScreen } from './screens/BeanPriceScreen';
 import { ReportScreen } from './components/ReportScreen';
 import { REPORT_DEFS } from './screens/reportDefs';
 import { PnlStatement } from './screens/PnlStatement';
+import { VatReturn } from './screens/VatReturn';
+import { TaxInvoiceReport } from './screens/TaxInvoiceReport';
+import { EtaxInvoiceScreen } from './screens/EtaxInvoiceScreen';
+import { FixedAssetScreen } from './screens/FixedAssetScreen';
+import { BudgetScreen } from './screens/BudgetScreen';
+import { DepositScreen } from './screens/DepositScreen';
+import { FundPlanScreen } from './screens/FundPlanScreen';
 
 // 전체 메뉴 트리 (docs/설계-R3-IA재편성.md §1 — 이카운트식 대메뉴 재편성) — 미구현 메뉴는 Placeholder로 Phase 표시
 export interface MenuDef {
@@ -125,9 +132,18 @@ export const MENUS: MenuDef[] = [
   m('income-statement', '회계Ⅰ', '손익계산서', 5, PnlStatement),
   m('monthly-pl', '회계Ⅰ', '월별손익', 3, MonthlyPL),
   m('account', '회계Ⅰ', '계정과목', 3, AccountMaster),
+  m('e-tax-invoice', '회계Ⅰ', '전자세금계산서', 7, EtaxInvoiceScreen),
 
   // ── 회계Ⅱ ──
   m('cash', '회계Ⅱ', '자금현황', 3, CashScreen),
+  m('fixed-asset', '회계Ⅱ', '고정자산등록', 7, FixedAssetScreen),
+  m('budget', '회계Ⅱ', '예산관리', 7, BudgetScreen),
+  m('deposit', '회계Ⅱ', '예적금현황', 7, DepositScreen),
+  m('fund-plan', '회계Ⅱ', '자금계획', 7, FundPlanScreen),
+
+  // ── 세무 (R4 신설) ──
+  m('vat-return', '세무', '부가가치세신고서', 7, VatReturn),
+  m('tax-invoice-report', '세무', '세금계산서합계표', 7, TaxInvoiceReport),
 
   // ── 그룹웨어 ──
   m('calendar', '그룹웨어', '달력(로스팅/납기)', 2, CalendarScreen),

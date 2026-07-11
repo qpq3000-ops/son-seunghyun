@@ -719,3 +719,77 @@ export interface MyPageData {
   todos: unknown[];
   calendar: { year: number; month: number; days: Record<string, MyPageCalendarDay> };
 }
+
+// ───────────────────────── R4: 세무 + 회계Ⅱ(설계-R4-세무회계2.md §4.6) ─────────────────────────
+// 주의: 화면 컴포넌트명(VatReturn/TaxInvoiceReport)과 이름이 겹치므로 응답 타입은
+// VatReturnData/TaxInvoiceReportData로 명명한다(설계 §4.6 원안의 VatReturn/TaxInvoiceReport에서 변경).
+
+// ── 부가가치세신고서 (GET /api/vat-return) ──
+export interface VatReturnData {
+  from: string; to: string; company_name: string; company_biz_no: string; company_ceo: string;
+  sales: { taxable_supply: number; sales_vat: number; free_supply: number; count: number };
+  purchase: { taxable_supply: number; purchase_vat: number; free_supply: number; count: number };
+  tax_base: number; sales_vat: number; purchase_vat: number; payable: number;
+}
+
+// ── 세금계산서합계표 (GET /api/tax-invoice-report) ──
+export interface TaxInvoiceSide {
+  rows: { partner_id: number | null; partner_name: string; biz_no: string; sheet_count: number; supply: number; vat: number }[];
+  totals: { partner_count: number; sheet_count: number; supply: number; vat: number };
+}
+export interface TaxInvoiceReportData {
+  from: string; to: string; company_name: string; company_biz_no: string;
+  sales: TaxInvoiceSide; purchase: TaxInvoiceSide;
+}
+
+// ── 전자세금계산서 진행단계 (GET/PUT /api/tax-invoices) ──
+export interface EtaxRow {
+  doc_id: number; doc_no: string; io_date: string; partner_name: string | null; biz_no: string;
+  item_summary: string; supply: number; vat: number; total: number;
+  status: string; issued_at: string | null; approval_no: string; memo: string;
+}
+export interface EtaxList { rows: EtaxRow[]; counts: Record<string, number>; }
+
+// ── 고정자산 (GET/POST/PUT/DELETE /api/fixed-assets) ──
+export interface FixedAsset {
+  id: number; code: string; name: string; asset_account: string; acq_date: string;
+  acq_cost: number; salvage_value: number; life_years: number; method: string; memo: string; active: 0 | 1;
+}
+
+// ── 감가상각 스케줄(GET /api/fixed-assets/:id/schedule) · 현황(GET /api/depreciation) ──
+export interface DepScheduleRow { ym: string; dep: number; accum: number; book_value: number; }
+export interface DepSchedule { asset: FixedAsset; monthly_dep: number; total_dep: number; rows: DepScheduleRow[]; }
+export interface DepreciationReport {
+  by_asset: {
+    code: string; name: string; asset_account: string; acq_date: string; acq_cost: number;
+    salvage_value: number; monthly_dep: number; dep_in_range: number; accum_to: number; book_value: number;
+  }[];
+  by_month: { ym: string; dep: number }[];
+  totals: { asset_count: number; dep_in_range: number; accum_to: number };
+}
+
+// ── 예산관리 (GET/PUT /api/budget) ──
+export interface BudgetRow {
+  account_code: string; account_name: string; category: string;
+  budget: number[]; actual: number[]; budget_total: number; actual_total: number; variance: number; rate_pct: number;
+}
+export interface BudgetReport {
+  year: number; rows: BudgetRow[];
+  totals: { budget_total: number; actual_total: number; variance: number; rate_pct: number };
+}
+
+// ── 예적금현황 (GET/POST/PUT/DELETE /api/deposits) — MasterScreen<Deposit>로 사용 ──
+export interface Deposit {
+  id: number; code: string; name: string; bank: string; account_no: string; kind: '예금' | '적금';
+  principal: number; rate: number; start_date: string; maturity_date: string; memo: string; active: 0 | 1;
+}
+
+// ── 자금계획 (GET/POST/PUT/DELETE /api/fund-plans) ──
+export interface FundPlanRow {
+  id: number; plan_date: string; flow: '수입' | '지출'; amount: number;
+  partner_id: number | null; partner_name: string | null; title: string; memo: string;
+}
+export interface FundPlanList {
+  rows: FundPlanRow[];
+  summary: { in_total: number; out_total: number; net: number; count: number };
+}
