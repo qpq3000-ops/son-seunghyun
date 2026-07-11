@@ -12,6 +12,31 @@ export const parseWon = (s: string): number => {
   return Number.isNaN(n) ? 0 : n;
 };
 
+// 금액의 한글 표기 (이카운트 거래명세서: "금 액 : 팔십이만칠천이백원 정")
+export const wonToKorean = (n: number): string => {
+  const num = Math.trunc(Math.abs(n));
+  if (num === 0) return '영';
+  const digits = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+  const smalls = ['', '십', '백', '천'];
+  const groups = ['', '만', '억', '조'];
+  const chunks: number[] = [];
+  let v = num;
+  while (v > 0) { chunks.push(v % 10000); v = Math.floor(v / 10000); }
+  let out = '';
+  for (let g = chunks.length - 1; g >= 0; g--) {
+    const chunk = chunks[g];
+    if (!chunk) continue;
+    let part = '';
+    for (let p = 3; p >= 0; p--) {
+      const d = Math.floor(chunk / (10 ** p)) % 10;
+      if (!d) continue;
+      part += (d === 1 && p > 0 ? '' : digits[d]) + smalls[p];
+    }
+    out += part + groups[g];
+  }
+  return (n < 0 ? '마이너스 ' : '') + out;
+};
+
 export const todayISO = (): string => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

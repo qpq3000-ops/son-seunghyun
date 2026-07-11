@@ -56,6 +56,9 @@ export function SettingsScreen() {
           <input className="input" value={s.company_phone ?? ''} onChange={e => set('company_phone', e.target.value)} /></label>
         <label className="span2"><span className="form-label">주소</span>
           <input className="input" value={s.company_address ?? ''} onChange={e => set('company_address', e.target.value)} /></label>
+        <label className="span2"><span className="form-label">입금계좌·안내문구 (거래명세서 하단에 표시)</span>
+          <textarea className="input" rows={3} placeholder={'예)\n예금주명: ○○○\n계좌번호: (은행) 000-0000-0000\n*귀하의 사업에 번영과 발전을 기원합니다.'}
+            value={s.bank_account_info ?? ''} onChange={e => set('bank_account_info', e.target.value)} /></label>
       </div>
 
       <h3>업무 설정</h3>

@@ -363,3 +363,44 @@ code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
 .cal-detail { border: 1px solid var(--line); border-radius: 3px; padding: 10px 12px; }
 .cal-detail .row-ev { display: flex; gap: 10px; padding: 4px 0; border-bottom: 1px dashed var(--line); font-size: 12.5px; }
 .cal-detail .row-ev .k { color: var(--sub); min-width: 60px; }
+
+/* ── 거래명세서인쇄 (이카운트 실화면 재현) ── */
+.stmt-screen { overflow-y: auto; }
+.stmt-search { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: #fbfcfe; }
+.stmt-cond { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.stmt-cond label { color: var(--sub); font-size: 12.5px; font-weight: 600; }
+.w-140 { width: 140px; } .w-180 { width: 180px; }
+.stmt-presets { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
+.stmt-list { margin-top: 16px; }
+.stmt-list-title { text-align: center; font-size: 21px; font-weight: 800; margin: 6px 0 10px; }
+.stmt-list-meta { display: flex; justify-content: space-between; font-size: 12.5px; color: #333; margin-bottom: 5px; }
+.stmt-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.stmt-table th { background: #f3f5f9; border: 1px solid var(--line); padding: 6px; color: #333; }
+.stmt-table td { border: 1px solid #e4e8ee; padding: 5px 7px; }
+.stmt-table td.num, .stmt-table th.num { text-align: right; }
+.stmt-table td.sub { color: var(--sub); }
+.stmt-table .empty-cell { text-align: center; color: var(--sub); padding: 20px; }
+.stmt-table tfoot td { background: #eef2f8; padding: 6px 7px; }
+/* 명세서 양식 */
+.stmt-sheet { font-size: 12.5px; color: #111; }
+.stmt-head { display: flex; gap: 10px; align-items: stretch; }
+.stmt-left { flex: 1; }
+.stmt-title { font-size: 24px; font-weight: 800; letter-spacing: 6px; margin-bottom: 8px; }
+.stmt-recv { border: 1px solid #333; padding: 8px 10px; line-height: 1.55; }
+.stmt-recv .sub { color: #555; font-size: 11.5px; margin-top: 4px; }
+.stmt-supplier { border-collapse: collapse; font-size: 11.5px; min-width: 380px; }
+.stmt-supplier th, .stmt-supplier td { border: 1px solid #333; padding: 4px 7px; }
+.stmt-supplier th { background: #f2f3f5; font-weight: 600; white-space: nowrap; }
+.stmt-sup-label { width: 22px; text-align: center; }
+.stmt-amount { display: flex; justify-content: space-between; border: 2px solid #111; margin-top: 8px; padding: 7px 12px; font-weight: 800; font-size: 14px; }
+.stmt-lines { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+.stmt-lines th { border: 1px solid #333; background: #f2f3f5; padding: 5px; }
+.stmt-lines td { border: 1px solid #666; padding: 4px 7px; }
+.stmt-lines td.num { text-align: right; } .stmt-lines td.ctr { text-align: center; }
+.stmt-totals { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+.stmt-totals th, .stmt-totals td { border: 1px solid #333; padding: 5px 7px; }
+.stmt-totals th { background: #f2f3f5; white-space: nowrap; }
+.stmt-totals td.num { text-align: right; } .stmt-totals td.ctr, .stmt-totals th.ctr { text-align: center; }
+.stmt-bank { display: flex; border: 1px solid #333; margin-top: 8px; }
+.stmt-bank-label { width: 90px; display: flex; align-items: center; justify-content: center; background: #f2f3f5; border-right: 1px solid #333; font-weight: 700; }
+.stmt-bank-body { padding: 8px 12px; white-space: pre-line; line-height: 1.6; flex: 1; }

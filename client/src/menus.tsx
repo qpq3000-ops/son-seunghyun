@@ -9,6 +9,7 @@ import { SaleList, PurchaseList } from './screens/VoucherList';
 import { ReceiptScreen, ReceivableScreen } from './screens/ReceiptScreen';
 import { RoastInput } from './screens/RoastInput';
 import { StockStatus, StockLedger } from './screens/StockScreens';
+import { StatementPrint } from './screens/StatementPrint';
 import { QuoteList, OrderList, PurchaseOrderList } from './screens/DocChainList';
 import { StockMove, SelfUse, Defect, StockAdjust } from './screens/MoveScreens';
 import { PaymentScreen, PayableScreen } from './screens/PaymentScreen';
@@ -45,6 +46,7 @@ export const MENUS: MenuDef[] = [
   m('sale-status', '영업', '판매조회', 1, SaleList),
   m('receipt', '영업', '수금입력', 1, ReceiptScreen),
   m('receivable', '영업', '미수금현황', 1, ReceivableScreen),
+  m('statement-print', '영업', '거래명세서인쇄', 1, StatementPrint),
   m('message', '영업', '거래처 메시지', 4),
 
   m('po', '구매', '발주서입력/조회', 1, PurchaseOrderList),
