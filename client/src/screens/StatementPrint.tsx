@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api';
-import { fmtWon, fmtQty, monthStartISO, todayISO, wonToKorean } from '../format';
+import { fmtWon, fmtQty, monthStartISO, periodPreset, todayISO, wonToKorean } from '../format';
 import { CodeHelp } from '../components/CodeHelp';
 import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
@@ -19,8 +19,6 @@ interface StatementDetail {
   totals: { qty: number; supply: number; vat: number; total: number };
   prev_balance: number; receipt_period: number; after_balance: number; last_doc_no: string;
 }
-
-const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export function StatementPrint() {
   const toast = useToast();
@@ -50,18 +48,11 @@ export function StatementPrint() {
     return () => window.removeEventListener('keydown', onKey);
   }, [search]);
 
-  // 기간 프리셋 (이카운트 하단 버튼 바: 금일/전일/금주/전주/금월/전월)
+  // 기간 프리셋 (이카운트 하단 버튼 바: 금일/전일/금주/전주/금월/전월) — format.ts의 periodPreset()으로 승격(설계-R1-보고서엔진.md)
   const preset = (kind: string) => {
-    const now = new Date();
-    let f = new Date(now), t = new Date(now);
-    if (kind === '전일') { f.setDate(f.getDate() - 1); t = new Date(f); }
-    else if (kind === '금주') { f.setDate(f.getDate() - ((f.getDay() + 6) % 7)); }
-    else if (kind === '전주') { f.setDate(f.getDate() - ((f.getDay() + 6) % 7) - 7); t = new Date(f); t.setDate(t.getDate() + 6); }
-    else if (kind === '금월') { f.setDate(1); }
-    else if (kind === '전월') { f = new Date(now.getFullYear(), now.getMonth() - 1, 1); t = new Date(now.getFullYear(), now.getMonth(), 0); }
-    const fs = iso(f), ts = iso(t);
-    setFrom(fs); setTo(ts);
-    search(fs, ts);
+    const { from: f, to: t } = periodPreset(kind);
+    setFrom(f); setTo(t);
+    search(f, t);
   };
 
   const openDetail = async (partnerId: number) => {

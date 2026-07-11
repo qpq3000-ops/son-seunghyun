@@ -24,6 +24,9 @@ import { GlEntryScreen } from './screens/GlEntryScreen';
 import { CashScreen } from './screens/CashScreen';
 import { MessageScreen } from './screens/MessageScreen';
 import { BeanPriceScreen } from './screens/BeanPriceScreen';
+import { ReportScreen } from './components/ReportScreen';
+import { REPORT_DEFS } from './screens/reportDefs';
+import { PnlStatement } from './screens/PnlStatement';
 
 // 전체 메뉴 트리 (docs/01 기획서 5장 메뉴맵) — 미구현 메뉴는 Placeholder로 Phase 표시
 export interface MenuDef {
@@ -37,6 +40,10 @@ export interface MenuDef {
 
 const ph = (name: string, phase: number): ComponentType =>
   () => <Placeholder name={name} phase={phase} />;
+
+// R1 보고서 엔진(ReportScreen 공통 화면) — 정의 id로 REPORT_DEFS에서 조회해 마운트
+const R = (id: string): ComponentType =>
+  () => <ReportScreen def={REPORT_DEFS[id]} />;
 
 const m = (id: string, group: string, name: string, phase: number, component?: ComponentType): MenuDef => ({
   id, group, name, phase,
@@ -53,6 +60,7 @@ export const MENUS: MenuDef[] = [
   m('sale-status', '영업', '판매조회', 1, SaleList),
   m('receipt', '영업', '수금입력', 1, ReceiptScreen),
   m('receivable', '영업', '미수금현황', 1, ReceivableScreen),
+  m('receipt-status', '영업', '수금현황', 5, R('receipt-status')),
   m('statement-print', '영업', '거래명세서인쇄', 1, StatementPrint),
   m('message', '영업', '거래처 메시지', 4, MessageScreen),
 
@@ -61,6 +69,7 @@ export const MENUS: MenuDef[] = [
   m('purchase-status', '구매', '구매조회', 1, PurchaseList),
   m('payment', '구매', '지불입력', 1, PaymentScreen),
   m('payable', '구매', '미지급금현황', 1, PayableScreen),
+  m('payment-status', '구매', '지급현황', 5, R('payment-status')),
   m('bean-price', '구매', '생두 단가비교', 4, BeanPriceScreen),
 
   m('bom', '생산', 'BOM등록', 2, BomScreen),
@@ -77,10 +86,15 @@ export const MENUS: MenuDef[] = [
   m('defect', '재고', '불량처리', 1, Defect),
   m('adjust', '재고', '재고조정', 1, StockAdjust),
   m('lot', '재고', '로트조회', 2, LotScreen),
+  m('profit-status', '재고', '이익현황', 5, R('profit-status')),
 
   m('vat-book', '회계', '매입매출장(부가세)', 3, VatBook),
   m('journal', '회계', '분개장', 3, JournalScreen),
-  m('acct-ledger', '회계', '계정별원장', 3),
+  m('acct-ledger', '회계', '계정별원장', 5, R('acct-ledger')),        // 기존 placeholder → 연결(id 동결)
+  m('general-ledger', '회계', '총계정원장', 5, R('general-ledger')),
+  m('cashbook', '회계', '현금출납장', 5, R('cashbook')),
+  m('trial-balance', '회계', '합계잔액시산표', 5, R('trial-balance')),
+  m('income-statement', '회계', '손익계산서', 5, PnlStatement),
   m('partner-ledger', '회계', '거래처원장', 3, PartnerLedger),
   m('monthly-pl', '회계', '월별손익', 3, MonthlyPL),
   m('gl-entry', '회계', '일반전표(경비)', 3, GlEntryScreen),

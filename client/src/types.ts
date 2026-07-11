@@ -523,3 +523,82 @@ export interface BeanPriceRow {
 export interface BeanMonthRow { ym: string; qty: number; supply: number; }
 export interface BeanPriceReport { rows: BeanPriceRow[]; monthly: BeanMonthRow[]; }
 export interface BeanHistoryRow { io_date: string; doc_no: string; partner_name: string | null; qty: number; price: number; supply_amt: number; }
+
+// ───────────────────────── R1: 재무 보고서 8종 (설계-R1-보고서엔진.md §1) ─────────────────────────
+
+// ── 1. 계정별원장 (GET /api/account-ledger, 원장형) ──
+export interface AccountLedgerRow {
+  io_date: string; doc_no: string; entry_type: string;
+  partner_name: string | null; dr: number; cr: number; balance: number; summary: string;
+}
+export interface AccountLedger {
+  meta: { account: { code: string; name: string; category: string; dr_side: boolean } };
+  opening: number;
+  rows: AccountLedgerRow[];
+  sum_dr: number; sum_cr: number; closing: number;
+}
+
+// ── 2. 총계정원장 (GET /api/general-ledger, 집계형) ──
+export interface GeneralLedgerRow {
+  code: string; name: string; category: string;
+  opening: number; dr: number; cr: number; balance: number;
+}
+export interface GeneralLedger {
+  rows: GeneralLedgerRow[];
+  summary: { sum_dr: number; sum_cr: number };
+}
+
+// ── 3. 현금출납장 (GET /api/cashbook, 원장형) ──
+export interface CashbookRow {
+  io_date: string; doc_no: string; kind: string;
+  partner_name: string | null; in_amt: number; out_amt: number; balance: number; summary: string;
+}
+export interface Cashbook {
+  meta: { account: { code: string; name: string } };
+  opening: number;
+  rows: CashbookRow[];
+  sum_in: number; sum_out: number; closing: number;
+}
+
+// ── 4. 합계잔액시산표 (GET /api/trial-balance, 집계형) ──
+export interface TrialBalanceRow {
+  code: string; name: string; category: string;
+  sum_dr: number; sum_cr: number; bal_dr: number; bal_cr: number;
+}
+export interface TrialBalance {
+  rows: TrialBalanceRow[];
+  totals: { sum_dr: number; sum_cr: number; bal_dr: number; bal_cr: number; balanced: boolean };
+}
+
+// ── 5. 손익계산서 (GET /api/income-statement, 서식형 — PnlStatement.tsx) ──
+export interface PnlDetail { code: string; name: string; amount: number; }
+export interface PnlSection {
+  key: string; no: string; label: string; amount: number; emphasis: boolean; details: PnlDetail[];
+}
+export interface IncomeStatement {
+  from: string; to: string; company_name: string; sections: PnlSection[];
+}
+
+// ── 6/7. 수금현황·지급현황 (GET /api/receipt-status, /api/payment-status — 동형) ──
+export interface ReceiptStatusRow {
+  io_date: string; receipt_no: string; partner_name: string;
+  method: string; amount: number; memo: string;
+}
+export interface ReceiptStatusSummary {
+  count: number; total: number;
+  by_method: { method: string; count: number; amount: number }[];
+}
+export interface ReceiptStatus { rows: ReceiptStatusRow[]; summary: ReceiptStatusSummary; }
+export type PaymentStatus = ReceiptStatus;
+
+// ── 8. 이익현황 (GET /api/profit-status, 집계형) ──
+export interface ProfitStatusRow {
+  key: number; code: string; name: string; qty: number;
+  sales: number; cost: number; margin: number; margin_pct: number;
+  // 'mixed' = group=partner 등 한 그룹에 원가 소스가 다른 라인이 섞인 경우(서버 finreports.mjs 실 거동)
+  cost_source: 'std' | 'avg' | 'none' | 'mixed';
+}
+export interface ProfitStatus {
+  rows: ProfitStatusRow[];
+  summary: { qty: number; sales: number; cost: number; margin: number; margin_pct: number };
+}

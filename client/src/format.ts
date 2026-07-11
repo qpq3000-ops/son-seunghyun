@@ -56,3 +56,22 @@ export const addMonths = (year: number, month: number, delta: number): { year: n
   while (m > 12) { m -= 12; y += 1; }
   return { year: y, month: m };
 };
+
+// ── 기간 프리셋(이카운트 하단 버튼 바: 금일/전일/금주/전주/금월/전월) ──
+// StatementPrint.tsx에 있던 인라인 preset() 로직을 승격(설계-R1-보고서엔진.md §3.4/§5).
+// ReportScreen(신규 보고서 7종)과 StatementPrint·PnlStatement이 공용으로 사용한다.
+export const PERIOD_PRESETS = ['금일', '전일', '금주', '전주', '금월', '전월'] as const;
+
+const presetISO = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+export function periodPreset(kind: string): { from: string; to: string } {
+  const now = new Date();
+  let f = new Date(now), t = new Date(now);
+  if (kind === '전일') { f.setDate(f.getDate() - 1); t = new Date(f); }
+  else if (kind === '금주') { f.setDate(f.getDate() - ((f.getDay() + 6) % 7)); }
+  else if (kind === '전주') { f.setDate(f.getDate() - ((f.getDay() + 6) % 7) - 7); t = new Date(f); t.setDate(t.getDate() + 6); }
+  else if (kind === '금월') { f.setDate(1); }
+  else if (kind === '전월') { f = new Date(now.getFullYear(), now.getMonth() - 1, 1); t = new Date(now.getFullYear(), now.getMonth(), 0); }
+  return { from: presetISO(f), to: presetISO(t) };
+}

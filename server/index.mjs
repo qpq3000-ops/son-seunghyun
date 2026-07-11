@@ -13,6 +13,7 @@ import { receipts } from './receipts.mjs';
 import { reports } from './reports.mjs';
 import { statements } from './statements.mjs';
 import { accounting, backfillJournals } from './accounting.mjs';
+import { finreports } from './finreports.mjs';
 import { production } from './production.mjs';
 import { prodQuery } from './prodquery.mjs';
 import { glEntries } from './gl.mjs';
@@ -34,6 +35,7 @@ app.route('/api', receipts);   // /api/receipts*, /api/receivables, /api/payable
 app.route('/api', reports);    // /api/stock/status, /api/stock/ledger, /api/stock/by-warehouse, /api/calendar*
 app.route('/api', statements); // /api/statements* (거래명세서인쇄)
 app.route('/api', accounting); // /api/accounts*, /api/journal, /api/partner-ledger, /api/monthly-pl, /api/vat-book
+app.route('/api', finreports); // /api/account-ledger, /api/general-ledger, /api/cashbook, /api/trial-balance, /api/income-statement, /api/receipt-status, /api/payment-status, /api/profit-status
 app.route('/api', production); // /api/bom(/:itemId), /api/production/summary
 app.route('/api', prodQuery);   // /api/roast-docs, /api/mrp
 app.route('/api', glEntries);   // /api/gl-entries*

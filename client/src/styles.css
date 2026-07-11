@@ -452,3 +452,35 @@ code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
 .detail-panel .dp-title-row .dp-title { margin-bottom:0; }
 /* MRP 강조 셀은 기존 .danger-text 재사용 */
 .widget-empty { color: var(--sub); font-size: 12.5px; margin: 6px 0; }
+
+/* ── R1: 보고서 엔진(ReportScreen) 공통 — 기간 프리셋 pill + 검색조건 저장 탭 ── */
+.rpt-presets { display: flex; gap: 5px; margin: 2px 0 8px; flex-wrap: wrap; }
+.report-tabs { display: flex; align-items: flex-end; gap: 3px; margin: 0 0 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.report-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--line); border-bottom: none; background: #eef1f6; color: var(--sub);
+  padding: 5px 12px; font-size: 12.5px; font-weight: 600; border-radius: 5px 5px 0 0;
+  cursor: pointer; position: relative; top: 1px;
+}
+.report-tab.on { background: #fff; color: var(--txt); border-color: var(--accent); }
+.report-tab-x { color: #a4abb8; font-size: 11px; line-height: 1; }
+.report-tab-x:hover { color: var(--danger); }
+.report-tab-add {
+  border: 1px dashed var(--line); background: #fff; color: var(--sub);
+  border-radius: 5px 5px 0 0; padding: 5px 10px; font-size: 13px; cursor: pointer;
+}
+.report-tab-add:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── R1: 손익계산서(PnlStatement) 서식 — StatementPrint 인쇄 패턴(.print-only/.print-sheet) 재사용 ── */
+.pnl-screen { overflow-y: auto; }
+.pnl-sheet { font-size: 12.5px; color: #111; max-width: 640px; margin: 16px auto 0; }
+.pnl-title { text-align: center; font-size: 22px; font-weight: 800; letter-spacing: 6px; margin-bottom: 10px; }
+.pnl-meta { display: flex; justify-content: space-between; font-size: 12.5px; color: #333; margin-bottom: 8px; }
+.pnl-table { width: 100%; border-collapse: collapse; }
+.pnl-table th { background: #f3f5f9; border: 1px solid #333; padding: 7px; }
+.pnl-table th.num, .pnl-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.pnl-table td { border: 1px solid #ccc; padding: 6px 10px; }
+.pnl-emph td { font-weight: 800; border-top: 2px solid #333; background: #fafbfe; }
+.pnl-detail td { color: #666; font-size: 12px; }
+.pnl-detail .pnl-detail-name { padding-left: 24px; }
+.pnl-empty { text-align: center; color: var(--sub); padding: 24px; }
