@@ -682,17 +682,49 @@ export interface MyPageStockRow {
   below_safety: boolean;
 }
 
-// MyPage 판매현황 위젯 1행 (GET /api/mypage 의 sales[])
+// MyPage 판매현황 위젯 1행 (GET /api/mypage 의 sales[]) — 참고서 §2/설계-R8 §1.2: 전표 품목 줄 단위로 변경
 export interface MyPageSaleRow {
+  io_date: string;
+  doc_no: string;
+  item_name: string;
+  spec: string;
+  unit: string;            // 규격 없을 때 [단위] 폴백 표기용
+  qty: number;
+  unit_price: number;      // 공급가액÷수량 반올림(서버계산)
+  supply: number;
+  vat: number;
+  total: number;
+  partner_name: string | null;
+}
+
+// 쪽지함리스트 1행 — GET /api/mypage 의 messages[] (현재 그룹웨어 쪽지 저장소가 없어 항상 [])
+export interface MyPageMessageRow {
   id: number;
+  content: string;
+  from_name: string;
+  created_at: string;
+}
+
+// 매입매출장 위젯 1행 — GET /api/mypage 의 pnl_ledger[]
+export interface MyPagePnlRow {
+  io_date: string;
+  doc_no: string;
+  kind: '매출' | '매입';
+  partner_name: string | null;
+  item_summary: string;
+  supply: number;
+  vat: number;
+  total: number;
+}
+
+// (세금)계산서진행단계 1행 — GET /api/mypage 의 tax_invoice[] (R8에서는 항상 [])
+export interface MyPageTaxInvoiceRow {
+  doc_id: number;
   doc_no: string;
   io_date: string;
-  item_summary: string;
-  total_qty: number;
-  total_supply: number;
-  total_vat: number;
-  total_amount: number;
   partner_name: string | null;
+  total: number;
+  status: string;
 }
 
 // MyPage 미수금 TOP 위젯 1행 (GET /api/mypage 의 receivables_top[])
@@ -718,14 +750,17 @@ export interface MyPageTodo {
   done: 0 | 1;
 }
 
-// MyPage 위젯 통합 응답 (GET /api/mypage, 파라미터 없음)
+// MyPage 위젯 통합 응답 (GET /api/mypage, 파라미터 없음) — 설계-R8-실물매칭.md §1.2
 export interface MyPageData {
   ym: string;
   stock: MyPageStockRow[];
   sales: MyPageSaleRow[];
-  receivables_top: MyPageReceivableRow[];
+  receivables_top: MyPageReceivableRow[];   // 유지(렌더 제외, SHOW_LEGACY_WIDGETS 전용)
   todos: MyPageTodo[];
-  calendar: { year: number; month: number; days: Record<string, MyPageCalendarDay> };
+  calendar: { year: number; month: number; days: Record<string, MyPageCalendarDay> }; // 유지(렌더 제외, SHOW_LEGACY_WIDGETS 전용)
+  messages: MyPageMessageRow[];
+  pnl_ledger: MyPagePnlRow[];
+  tax_invoice: MyPageTaxInvoiceRow[];
 }
 
 // ───────────────────────── R4: 세무 + 회계Ⅱ(설계-R4-세무회계2.md §4.6) ─────────────────────────

@@ -735,3 +735,84 @@ code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
 .sa-note { margin-left: 8px; font-size: 12px; color: var(--sub); }
 /* 파일관리 등 미연동 링크 — 회색 안내 링크 */
 .link.muted { color: var(--sub); text-decoration: none; cursor: default; }
+
+/* ══════════════════════════ R8 실물매칭 (append-only, override 전용) ══════════════════════════ */
+:root {
+  --r8-primary:  #1b3da1;   /* 주 파랑 버튼(인쇄·검색·신규) 참고서 §1 */
+  --r8-link:     #19358c;   /* 코드/일자 링크 */
+  --r8-neg-bg:   #f2dede;   /* 마이너스 수량 셀 배경(보고서 그리드 전용) */
+  --r8-th-bg:    #f7f8f9;   /* 그리드 머리글·짝수행 줄무늬 */
+  --r8-border:   #dee2e6;   /* 카드/버튼 보더 0.667px */
+}
+body { font-size: 12px; }                         /* 참고서 §1 body 12px */
+
+/* 실물 주 버튼(파랑) — 전역 .btn.primary는 건드리지 않고 별도 클래스 */
+.btn.r8-primary { background: var(--r8-primary); border: 0.667px solid var(--r8-primary); color: #fff; font-weight: 600; padding: 7px 10px; border-radius: 5px; }
+.btn.r8-primary:hover { background: #16307f; color: #fff; }
+/* 스플릿 버튼(좌 본체 + ▲ 드롭다운) */
+.btn.r8-split { border-radius: 5px 0 0 5px; }
+.btn.r8-split-caret { background: var(--r8-primary); border: 0.667px solid var(--r8-primary); border-left: 1px solid #16307f; color: #fff; border-radius: 0 5px 5px 0; padding: 7px 6px; cursor: pointer; }
+/* 보조 버튼(흰 배경) */
+.btn.r8-ghost { background: #fff; color: #142444; border: 0.667px solid var(--r8-border); border-radius: 5px; padding: 7px 10px; font-weight: 600; }
+.btn.r8-ghost:disabled { color: #9aa4b1; cursor: not-allowed; }
+
+/* 실물 타이틀바(★ 제목 + 우측 검색/버튼군) */
+.r8-titlebar { display: flex; align-items: center; gap: 8px; padding: 6px 2px 10px; flex-wrap: wrap; }
+.r8-titlebar .r8-star { color: var(--gold); font-size: 16px; }
+.r8-titlebar h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.r8-titlebar-right { margin-left: auto; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.r8-enter-input { border: 1px solid var(--r8-border); border-radius: 4px; padding: 6px 9px; font-size: 12px; width: 190px; font-family: inherit; }
+
+/* 상태 pill 필터 */
+.r8-pills { display: inline-flex; gap: 4px; }
+.r8-pill { border: 0.667px solid var(--r8-border); background: #fff; color: #495057; border-radius: 13px; padding: 4px 12px; font-size: 12px; cursor: pointer; }
+.r8-pill.on { background: var(--r8-primary); border-color: var(--r8-primary); color: #fff; font-weight: 700; }
+.r8-pill:disabled { color: #b6bdc9; cursor: not-allowed; }
+
+/* 페이지네이션 표기줄 + 조회기간 표기 */
+.r8-listbar { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #495057; margin: 2px 0 6px; }
+.r8-pager { display: inline-flex; align-items: center; gap: 6px; }
+.r8-pager .on { color: var(--r8-primary); font-weight: 700; }
+.r8-period { color: #495057; }
+
+/* 보고서 결과 실물 프레임(중앙 제목 + 회사/기준일 줄 + 하단 버튼바) */
+.r8-report-title { text-align: center; font-size: 24px; font-weight: 700; margin: 6px 0 10px; }  /* 참고서 §3 */
+.r8-report-meta { display: flex; justify-content: space-between; font-size: 12px; color: #333; margin-bottom: 6px; }
+.r8-report-bottom { display: flex; align-items: center; gap: 6px; padding: 10px 0 2px; flex-wrap: wrap; }
+
+/* 그리드: 머리글·짝수행 줄무늬·코드 링크·마이너스 셀 (report-real 스코프로 전역 그리드 미간섭) */
+.r8-real .tabulator .tabulator-header .tabulator-col { background: var(--r8-th-bg); }
+.r8-real .tabulator .tabulator-header .tabulator-col .tabulator-col-title { color: #000; font-weight: 700; font-size: 12px; }
+.r8-real .tabulator-row.tabulator-row-even { background: var(--r8-th-bg); }
+.r8-real .tabulator-cell.r8-code { color: var(--r8-link); }
+.r8-real .tabulator-cell.r8-neg { background: var(--r8-neg-bg); }
+.r8-badge-green { color: var(--ok); font-weight: 700; }
+.r8-badge-print { background: #f6a623; color: #fff; border-radius: 9px; padding: 1px 7px; font-size: 11px; }
+
+/* MyPage 6위젯 3열 배치 (기존 .widgets는 미간섭, .mp6 스코프) */
+.widgets.mp6 {
+  grid-template-columns: 34fr 20fr 41fr;
+  grid-template-areas:
+    "stock  todo    sales"
+    "note   todo    vatbook"
+    "note   taxinv  taxinv";
+  align-items: start;
+}
+.widgets.mp6 .w-stock   { grid-area: stock; }
+.widgets.mp6 .w-todo    { grid-area: todo; }
+.widgets.mp6 .w-sales   { grid-area: sales; }
+.widgets.mp6 .w-note    { grid-area: note; }
+.widgets.mp6 .w-vatbook { grid-area: vatbook; }
+.widgets.mp6 .w-taxinv  { grid-area: taxinv; }
+.widgets.mp6 .widget-head b { font-size: 15px; font-weight: 700; color: #000; }   /* 위젯 제목 15/700 */
+/* 위젯 표: 짝수행 줄무늬·코드 링크·마이너스는 검정(참고서 §2: MyPage에선 음수도 검정) */
+.widgets.mp6 .widget-table tbody tr:nth-child(even) { background: var(--r8-th-bg); }
+.widgets.mp6 .widget-table .blue { color: var(--r8-link); }
+.widgets.mp6 .widget-table .neg { color: #000; font-weight: 400; }   /* .neg 빨강을 MyPage에서만 검정으로 되돌림 */
+
+/* ═ R8-a: 지휘관 검수 보정 — 실측 배경·보더·즐겨찾기줄 정합 (append-only) ═ */
+body { background: #f7f8f9; }
+.content { background: #f7f8f9; }          /* 콘텐츠 배경도 실측 #F7F8F9 */
+.widget { border-color: var(--r8-border); } /* 위젯 카드 보더 #DEE2E6 */
+.favbar { background: #e9ecef; }            /* 즐겨찾기 바 실측 배경 */
+.favlink { color: #495057; }                /* 즐겨찾기 링크 실측 색 */

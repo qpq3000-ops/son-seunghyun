@@ -23,7 +23,14 @@ export function StockStatus() {
   const [includeInactive, setIncludeInactive] = useState(true); // 사용중단품목포함(서버가 전 품목 반환 → 항상 포함)
   const [help, setHelp] = useState<'warehouse' | 'item' | null>(null);
   const [rows, setRows] = useState<StockRow[]>([]);
+  const [companyName, setCompanyName] = useState('');   // 실물 헤더 "회사명 : {상호}"(설계-R8-실물매칭.md §4.2)
   const gridRef = useRef<Tabulator | null>(null);
+
+  useEffect(() => {
+    api.get<Record<string, string>>('/api/settings')
+      .then(s => setCompanyName(s.company_name ?? ''))
+      .catch(() => setCompanyName(''));
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -54,24 +61,44 @@ export function StockStatus() {
     setAsOf(d.toISOString().slice(0, 10));
   };
 
+  // 실물 3열: 품목코드(가운데 머리글·파랑 링크) / 품목명[규격](좌, 규격 없으면 [단위] 폴백) / 재고수량(우, 마이너스는 배경색)
+  // 기존 규격/단위/안전재고 개별 컬럼은 품목명[규격]에 통합·제거(화면 표시만 정리, 데이터 무변경)
   const columns: ColumnDefinition[] = [
-    { title: '품목코드', field: 'item_code', width: 110 },
-    { title: '품목명', field: 'item_name', minWidth: 170 },
-    { title: '규격', field: 'spec', width: 90 },
-    { title: '단위', field: 'unit', width: 60, hozAlign: 'center' },
     {
-      title: '재고수량', field: 'qty', width: 100, hozAlign: 'right',
+      title: '품목코드', field: 'item_code', width: 120, hozAlign: 'center',
+      formatter: c => { c.getElement().classList.add('r8-code'); return String(c.getValue() ?? ''); },
+    },
+    {
+      title: '품목명[규격]', field: 'item_name', minWidth: 220,
       formatter: c => {
         const d = c.getData() as StockRow;
-        const text = fmtQty(d.qty);
-        return d.below_safety ? `<b class="danger-text">${text}</b>` : text;
+        return d.item_name + (d.spec ? `[${d.spec}]` : `[${d.unit}]`);
       },
     },
-    { title: '안전재고', field: 'safety_qty', width: 100, hozAlign: 'right', formatter: c => fmtQty(Number(c.getValue() ?? 0)) },
+    {
+      title: '재고수량', field: 'qty', width: 110, hozAlign: 'right',
+      formatter: c => {
+        const v = Number(c.getValue() ?? 0);
+        if (v < 0) c.getElement().classList.add('r8-neg');
+        return fmtQty(v);
+      },
+    },
   ];
 
   return (
     <div className="screen">
+      {/* 실물 타이틀바(설계-R8-실물매칭.md §4.2, 선택) — 검색은 아래 검색폼과 동일한 load()로 연결 */}
+      <div className="r8-titlebar">
+        <span className="r8-star">★</span>
+        <h3>재고현황</h3>
+        <div className="r8-titlebar-right">
+          <input className="r8-enter-input" placeholder="입력 후 Enter" readOnly title="검색조건은 아래 검색폼을 사용하세요" />
+          <button className="btn r8-primary" onClick={load}>Search(F3)</button>
+          <button className="btn r8-ghost" disabled title="옵션 설정은 연동 예정입니다">Option</button>
+          <button className="btn r8-ghost" disabled title="도움말은 연동 예정입니다">도움말</button>
+        </div>
+      </div>
+
       {/* 검색조건 저장 탭 (이카운트 [기본] + 추가) — 현재는 기본 1개 */}
       <div className="cond-tabs">
         <button className="cond-tab on">기본</button>
@@ -117,12 +144,25 @@ export function StockStatus() {
         <button className="btn primary" onClick={load}>검색(F8)</button>
         <button className="btn" onClick={setToday}>금일</button>
         <button className="btn" onClick={setYesterday}>전일</button>
-        <button className="btn" onClick={() => gridRef.current?.download('xlsx', '재고현황.xlsx', { sheetName: '재고현황' })}>엑셀</button>
-        <span className="sa-note">붉은색 수량은 안전재고 미달 품목입니다.</span>
+        <span className="sa-note">마이너스 수량은 배경색으로 표시됩니다.</span>
       </div>
 
-      <div className="screen-grid">
-        <DataGrid<StockRow> columns={columns} data={view} rowNumbers gridRef={t => { gridRef.current = t; }} />
+      {/* 결과 화면 실물화(설계-R8-실물매칭.md §4.2): 중앙제목 + 회사명·기준일 줄 + 3열 그리드(음수셀) + 하단 인쇄/Excel/자동알림 */}
+      <div className="r8-real">
+        <div className="r8-report-title">재고현황</div>
+        <div className="r8-report-meta">
+          <span>회사명 : {companyName}</span>
+          <span>{asOf.split('-').join('/')}</span>
+        </div>
+        <div className="screen-grid">
+          <DataGrid<StockRow> columns={columns} data={view} rowNumbers gridRef={t => { gridRef.current = t; }} />
+        </div>
+        <div className="r8-report-bottom">
+          <button className="btn r8-primary r8-split" onClick={() => window.print()}>인쇄</button>
+          <button className="btn r8-split-caret">▲</button>
+          <button className="btn r8-ghost" onClick={() => gridRef.current?.download('xlsx', '재고현황.xlsx', { sheetName: '재고현황' })}>Excel</button>
+          <button className="btn r8-ghost" disabled title="자동알림은 연동 예정입니다">자동알림</button>
+        </div>
       </div>
       {help === 'warehouse' && (
         <CodeHelp title="창고" endpoint="/api/warehouses" onClose={() => setHelp(null)}

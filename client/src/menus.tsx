@@ -144,6 +144,9 @@ export const MENUS: MenuDef[] = [
   m('income-statement', '회계Ⅰ', '손익계산서', 5, PnlStatement),
   m('monthly-pl', '회계Ⅰ', '월별손익', 3, MonthlyPL),
   m('account', '회계Ⅰ', '계정과목', 3, AccountMaster),
+  // 실물에서 거래처등록/리스트는 회계Ⅰ>기초등록 소속(참고서 §5). 기존 id 'partner'(재고Ⅰ)는 동결 —
+  // 같은 화면(PartnerMaster)을 새 id로 회계Ⅰ에도 노출한다(설계-R8-실물매칭.md §6.3).
+  m('partner-acct', '회계Ⅰ', '거래처등록', 0, PartnerMaster),
   m('e-tax-invoice', '회계Ⅰ', '전자세금계산서', 7, EtaxInvoiceScreen),
 
   // ── 회계Ⅱ ──

@@ -36,27 +36,31 @@ mypage.get('/mypage', (c) => {
     .sort((a, b) => Math.abs(b.qty) - Math.abs(a.qty))
     .slice(0, 8);
 
-  // ── 판매현황: vouchers.mjs /docs(type=sale) 축약, 이번달 최근 6건 ──
-  const saleRows = db.prepare(`
-    SELECT d.id, d.doc_no, d.io_date, p.name AS partner_name,
-           d.total_qty, d.total_supply, d.total_vat, d.total_amount
-    FROM doc d LEFT JOIN partner p ON p.id = d.partner_id
+  // ── 판매현황: 전표(doc) 단위가 아니라 '품목 줄(doc_line)' 단위로 변경(참고서 §2 실측) ──
+  // doc(doc_type='sale') ⨝ doc_line ⨝ item ⨝ partner, 이번달 최근 15줄.
+  // unit_price는 저장된 doc_line.price가 아니라 공급가액÷수량 반올림 재계산값(참고서 §2).
+  const saleLineRows = db.prepare(`
+    SELECT d.io_date, d.doc_no, i.name AS item_name, i.spec, i.unit,
+           dl.qty, dl.supply_amt AS supply, dl.vat_amt AS vat,
+           p.name AS partner_name
+    FROM doc d
+    JOIN doc_line dl ON dl.doc_id = d.id
+    JOIN item i ON i.id = dl.item_id
+    LEFT JOIN partner p ON p.id = d.partner_id
     WHERE d.doc_type = 'sale' AND d.io_date >= ? AND d.io_date <= ?
-    ORDER BY d.io_date DESC, d.id DESC LIMIT 6
+    ORDER BY d.io_date DESC, d.id DESC, dl.line_no ASC
+    LIMIT 15
   `).all(monthFrom, today);
-  const lineNames = db.prepare(`
-    SELECT i.name FROM doc_line dl JOIN item i ON i.id = dl.item_id
-    WHERE dl.doc_id = ? ORDER BY dl.line_no
-  `);
-  const sales = saleRows.map(r => {
-    const names = lineNames.all(r.id).map(x => x.name);
-    const item_summary = names.length
-      ? names[0] + (names.length > 1 ? ` 외 ${names.length - 1}건` : '')
-      : '';
+  const sales = saleLineRows.map(r => {
+    const qty = round1(r.qty);
+    const supply = r.supply;
+    const vat = r.vat;
     return {
-      id: r.id, doc_no: r.doc_no, io_date: r.io_date,
-      item_summary, total_qty: r.total_qty, total_supply: r.total_supply,
-      total_vat: r.total_vat, total_amount: r.total_amount, partner_name: r.partner_name ?? null,
+      io_date: r.io_date, doc_no: r.doc_no,
+      item_name: r.item_name, spec: r.spec, unit: r.unit,
+      qty, unit_price: qty ? Math.round(supply / qty) : 0,
+      supply, vat, total: supply + vat,
+      partner_name: r.partner_name ?? null,
     };
   });
 
@@ -107,6 +111,43 @@ mypage.get('/mypage', (c) => {
   `).all(ym);
   for (const r of orderRows) ensure(r.time_date).order_due_count = r.cnt;
 
+  // ── 매입매출장(pnl_ledger): accounting.mjs GET /api/vat-book 집계 SQL을 로컬 복제(파일 격리 규칙) ──
+  // sale+purchase, 이번달, 최근 5건. item_summary는 판매현황과 동일하게 '첫 품목명 + 외 N건'.
+  const pnlRows = db.prepare(`
+    SELECT d.id, d.io_date, d.doc_no, d.doc_type, d.total_supply, d.total_vat, d.total_amount,
+           p.name AS partner_name
+    FROM doc d LEFT JOIN partner p ON p.id = d.partner_id
+    WHERE d.doc_type IN ('sale','purchase') AND d.io_date >= ? AND d.io_date <= ?
+    ORDER BY d.io_date DESC, d.id DESC
+    LIMIT 5
+  `).all(monthFrom, today);
+  const lineNames = db.prepare(`
+    SELECT i.name FROM doc_line dl JOIN item i ON i.id = dl.item_id
+    WHERE dl.doc_id = ? ORDER BY dl.line_no
+  `);
+  const pnl_ledger = pnlRows.map(r => {
+    const names = lineNames.all(r.id).map(x => x.name);
+    const item_summary = names.length
+      ? names[0] + (names.length > 1 ? ` 외 ${names.length - 1}건` : '')
+      : '';
+    return {
+      io_date: r.io_date, doc_no: r.doc_no,
+      kind: r.doc_type === 'sale' ? '매출' : '매입',
+      partner_name: r.partner_name ?? null,
+      item_summary,
+      supply: r.total_supply, vat: r.total_vat, total: r.total_amount,
+    };
+  });
+
+  // ── 쪽지함리스트(messages): 그룹웨어 쪽지 저장 테이블이 아직 없다(message.mjs는 거래처 안내문용이라
+  // 스키마 불일치). 신규 테이블·마이그레이션 금지 규칙에 따라 항상 [] 반환 — 실물도 이 회사는 데이터 없음.
+  // shape(id,content,from_name,created_at)는 향후 쪽지 저장소 도입 시 채우도록 확정만 해 둔다.
+  const messages = [];
+
+  // ── (세금)계산서진행단계(tax_invoice): R8 범위에서는 [] 고정 반환(실물도 이 회사는 전자계산서 미발행).
+  // 향후 tax.mjs의 /api/tax-invoices 최근 5건을 재사용할 여지가 있다.
+  const tax_invoice = [];
+
   return c.json({
     ym: ymSlash,
     stock,
@@ -114,5 +155,8 @@ mypage.get('/mypage', (c) => {
     receivables_top,
     todos,
     calendar: { year, month, days },
+    messages,
+    pnl_ledger,
+    tax_invoice,
   });
 });

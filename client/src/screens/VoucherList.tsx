@@ -4,7 +4,7 @@ import { DataGrid, ColumnDefinition } from '../components/DataGrid';
 import { CodeHelp } from '../components/CodeHelp';
 import { useToast } from '../components/Toast';
 import { api } from '../api';
-import { fmtWon, fmtQty, todayISO, monthStartISO } from '../format';
+import { fmtWon, todayISO, monthStartISO } from '../format';
 import type { DocListRow } from '../types';
 import { VoucherScreen } from './VoucherScreen';
 
@@ -29,6 +29,7 @@ function VoucherListScreen({ kind }: { kind: Kind }) {
   const [help, setHelp] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const gridRef = useRef<Tabulator | null>(null);
+  const pageCount = Math.max(1, Math.ceil(rows.length / 15));   // 실물 §4: 표기 위주 스텁(실제 페이징은 Tabulator local pagination)
 
   const load = useCallback(async (f = from, t = to) => {
     try {
@@ -63,20 +64,36 @@ function VoucherListScreen({ kind }: { kind: Kind }) {
 
   useEffect(() => { load(); }, [load]);
 
+  // 실물 컬럼(설계-R8-실물매칭.md §5): 체크박스/일자-No./거래처명/품목명(요약)/금액합계/거래유형명/창고명/회계반영여부/인쇄
   const columns: ColumnDefinition[] = [
-    { title: '일자', field: 'io_date', width: 100 },
-    { title: '전표번호', field: 'doc_no', width: 120 },
-    { title: '거래처', field: 'partner_name', minWidth: 140 },
-    { title: '품목요약', field: 'item_summary', minWidth: 220 },
+    { title: '', formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign: 'center', headerSort: false, width: 40 },
     {
-      title: '수량', field: 'total_qty', width: 90, hozAlign: 'right',
-      formatter: c => fmtQty(Number(c.getValue() ?? 0)),
-      bottomCalc: 'sum', bottomCalcFormatter: c => fmtQty(Number(c.getValue() ?? 0)),
+      title: '일자-No.', field: 'io_date', width: 120,
+      formatter: c => {
+        c.getElement().classList.add('r8-code');
+        const d = c.getData() as DocListRow;
+        return `${d.io_date.split('-').join('/')} -${d.doc_no.split('-')[1]}`;
+      },
     },
-    moneyCol('total_supply', '공급가액'),
-    moneyCol('total_vat', '부가세', 100),
-    moneyCol('total_amount', '합계'),
-    { title: '적요', field: 'memo', minWidth: 120 },
+    { title: '거래처명', field: 'partner_name', minWidth: 140 },
+    { title: '품목명(요약)', field: 'item_summary', minWidth: 200 },
+    moneyCol('total_amount', '금액합계'),
+    {
+      title: '거래유형명', width: 110, hozAlign: 'center', headerSort: false,
+      // 우리 판매전표는 전부 과세 기준 — 상세 거래유형 구분 데이터가 없어 상수 표기(설계 §5)
+      formatter: () => '<span title="거래유형 상세는 연동 예정입니다">부가세율 적용</span>',
+    },
+    { title: '창고명', field: 'warehouse_name', width: 110 },
+    {
+      title: '회계반영여부', width: 100, hozAlign: 'center', headerSort: false,
+      // 백필 분개로 전 판매·구매가 회계 반영되므로 상수 초록 체크로 근사(설계 §5)
+      formatter: () => '<span class="r8-badge-green" title="회계반영">✓</span>',
+    },
+    {
+      title: '인쇄', width: 70, hozAlign: 'center', headerSort: false,
+      formatter: () => '<span class="link">인쇄</span>',
+      cellClick: () => toast.show('인쇄 기능은 연동 예정입니다.'),
+    },
   ];
 
   const title = kind === 'sale' ? '판매조회' : '구매조회';
@@ -96,6 +113,29 @@ function VoucherListScreen({ kind }: { kind: Kind }) {
 
   return (
     <div className="screen">
+      {/* 실물 타이틀바(설계-R8-실물매칭.md §5) — 상태 pill은 데이터 없어 전체만 동작 */}
+      <div className="r8-titlebar">
+        <span className="r8-star">★</span>
+        <h3>{title}</h3>
+        <div className="r8-pills">
+          <button className="r8-pill on" onClick={() => load()}>전체</button>
+          <button className="r8-pill" disabled title="결재 상태 관리는 연동 예정입니다">결재중</button>
+          <button className="r8-pill" disabled title="결재 상태 관리는 연동 예정입니다">미확인</button>
+          <button className="r8-pill" disabled title="결재 상태 관리는 연동 예정입니다">확인</button>
+        </div>
+        <div className="r8-titlebar-right">
+          <input className="r8-enter-input" placeholder="입력 후 Enter" readOnly title="검색은 아래 기간 검색을 사용하세요" />
+          <button className="btn r8-ghost" disabled title="Fn 기능은 연동 예정입니다">Fn</button>
+          <button className="btn r8-primary" onClick={() => load()}>Search(F3)</button>
+          <button className="btn r8-ghost" disabled title="옵션 설정은 연동 예정입니다">Option</button>
+          <button className="btn r8-ghost" disabled title="도움말은 연동 예정입니다">도움말</button>
+        </div>
+      </div>
+      <div className="r8-listbar">
+        <span className="r8-pager">① 2 » <b className="on">1</b>/{pageCount}</span>
+        <span className="r8-period">{from.split('-').join('/')} ~ {to.split('-').join('/')}</span>
+      </div>
+
       <div className="screen-bar">
         <div className="search-group">
           <span>기간</span>
@@ -121,13 +161,14 @@ function VoucherListScreen({ kind }: { kind: Kind }) {
           </button>
         </div>
       </div>
-      <div className="screen-grid">
+      <div className="screen-grid r8-real">
         <DataGrid<DocListRow>
           rowNumbers
           columns={columns}
           data={rows}
           onRowDblClick={r => setEditId(r.id)}
           gridRef={t => { gridRef.current = t; }}
+          options={{ selectableRows: true, pagination: true, paginationSize: 15 }}
         />
       </div>
       {help && (

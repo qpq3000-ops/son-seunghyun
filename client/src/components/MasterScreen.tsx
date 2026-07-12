@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { TabulatorFull as Tabulator } from 'tabulator-tables';
+import type { TabulatorFull as Tabulator, Options } from 'tabulator-tables';
 import { DataGrid, ColumnDefinition } from './DataGrid';
 import { Modal, Confirm } from './Modal';
 import { useToast } from './Toast';
@@ -25,9 +25,15 @@ interface Props<T extends { id: number }> {
   fields: FormField[];
   defaults: Record<string, unknown>;
   helpText?: string;
+  // ── R8 실물매칭(설계-R8-실물매칭.md §6.2): 선택 prop — 미전달 시 기존 5개 마스터는 현행 그대로 ──
+  realList?: boolean;                   // true면 컨테이너에 r8-real 클래스 + 상단 실물 타이틀바
+  bottomButtons?: { label: string; primary?: boolean; split?: boolean; stub?: string; onClick?: () => void }[];
+  gridOptions?: Partial<Options>;       // DataGrid options 패스스루(rowSelection 등)
 }
 
-export function MasterScreen<T extends { id: number }>({ title, endpoint, columns, fields, defaults, helpText }: Props<T>) {
+export function MasterScreen<T extends { id: number }>({
+  title, endpoint, columns, fields, defaults, helpText, realList, bottomButtons, gridOptions,
+}: Props<T>) {
   const toast = useToast();
   const [rows, setRows] = useState<T[]>([]);
   const [q, setQ] = useState('');
@@ -103,7 +109,24 @@ export function MasterScreen<T extends { id: number }>({ title, endpoint, column
   ], [columns]);
 
   return (
-    <div className="screen">
+    <div className={`screen${realList ? ' r8-real' : ''}`}>
+      {/* 실물 타이틀바(설계-R8-실물매칭.md §6.2, realList prop 전달 시에만) */}
+      {realList && (
+        <div className="r8-titlebar">
+          <span className="r8-star">★</span>
+          <h3>{title}</h3>
+          <label className="hint" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <input type="checkbox" disabled title="사용중단 포함 조회는 연동 예정입니다" /> 사용중단포함
+          </label>
+          <div className="r8-titlebar-right">
+            <input className="r8-enter-input" placeholder="입력 후 Enter" readOnly title="검색은 아래 검색창을 사용하세요" />
+            <button className="btn r8-ghost" disabled title="Fn 기능은 연동 예정입니다">Fn</button>
+            <button className="btn r8-primary" onClick={load}>Search(F3)</button>
+            <button className="btn r8-ghost" disabled title="옵션 설정은 연동 예정입니다">Option</button>
+            <button className="btn r8-ghost" disabled title="도움말은 연동 예정입니다">도움말</button>
+          </div>
+        </div>
+      )}
       <div className="screen-bar">
         <div className="search-group">
           <input
@@ -130,8 +153,32 @@ export function MasterScreen<T extends { id: number }>({ title, endpoint, column
           rowNumbers
           onRowDblClick={r => setEditing({ ...r })}
           gridRef={t => { gridRef.current = t; }}
+          options={gridOptions}
         />
       </div>
+
+      {/* 실물 하단 버튼바(설계-R8 §6.2) — bottomButtons 전달 시에만, stub 있으면 비활성+안내.
+          신규(F2)/Excel은 위 screen-bar와 같은 내부 동작(setEditing/gridRef)에 연결, 그 외는 caller의 onClick 사용 */}
+      {bottomButtons && (
+        <div className="r8-report-bottom">
+          {bottomButtons.map((b, i) => (
+            <span key={i}>
+              <button
+                className={`btn ${b.primary ? `r8-primary${b.split ? ' r8-split' : ''}` : 'r8-ghost'}`}
+                disabled={!!b.stub}
+                title={b.stub}
+                onClick={() => {
+                  if (b.label.startsWith('신규')) setEditing({ ...defaults });
+                  else if (b.label.startsWith('Excel')) gridRef.current?.download('xlsx', `${title}.xlsx`, { sheetName: title });
+                  else b.onClick?.();
+                }}>
+                {b.label}
+              </button>
+              {b.split && <button className="btn r8-split-caret" disabled={!!b.stub} title={b.stub}>▲</button>}
+            </span>
+          ))}
+        </div>
+      )}
 
       {editing && (
         <Modal

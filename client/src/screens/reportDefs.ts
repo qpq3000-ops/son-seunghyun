@@ -304,8 +304,10 @@ export const REPORT_DEFS: Record<string, ReportDef> = {
   },
 
   // 15. 재고변동표 — 수불부의 전 품목 버전(합계행 없음)
+  // real 옵션 예시(설계-R8-실물매칭.md §4.3): ReportScreen 실물 헤더/하단바 엔진을 재사용해봄(선택 적용)
   'stock-flow': {
     id: 'stock-flow', title: '재고변동표', endpoint: '/api/stock-flow',
+    real: { centerTitle: '재고변동표', companyLine: true, negativeField: 'closing' },
     filters: [
       { key: 'range', kind: 'date-range' },
       {

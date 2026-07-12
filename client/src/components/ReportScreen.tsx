@@ -34,6 +34,15 @@ export interface ReportColumn {
   bold?: boolean;                        // 값 굵게(잔액 컬럼 등)
 }
 
+// 실물 보고서 결과 프레임 옵션 (설계-R8-실물매칭.md §4.1) — 지정된 보고서만 실물 헤더/하단바 렌더
+export interface ReportRealOpt {
+  centerTitle?: string;        // 중앙 24/700 제목(예: '재고현황'). 없으면 def.title 사용
+  companyLine?: boolean;       // 좌측 "회사명 : {설정 상호}" 줄
+  asOfLine?: boolean;          // 우측 기준일 표기(= vals.as_of 또는 오늘)
+  negativeField?: string;      // 이 숫자 컬럼이 음수면 셀 배경 #F2DEDE(.r8-neg)
+  bottomButtons?: { label: string; primary?: boolean; split?: boolean; stub?: string }[];
+}
+
 export interface ReportDef {
   id: string;
   title: string;
@@ -47,6 +56,7 @@ export interface ReportDef {
   autoSearch?: boolean;                  // 마운트/필터 변경 시 자동조회(기본 true)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transform?: (env: any) => Record<string, unknown>[]; // 예약 필드 — R1엔 미사용
+  real?: ReportRealOpt;                  // 실물 결과 프레임(미설정 보고서는 현행 그대로)
 }
 
 interface SavedTab { name: string; cond: Record<string, string> }
@@ -124,7 +134,7 @@ const extractRows = (env: unknown, path: string): unknown[] => {
   return [];
 };
 
-const buildColumns = (columns: ReportColumn[]): ColumnDefinition[] =>
+const buildColumns = (columns: ReportColumn[], negativeField?: string): ColumnDefinition[] =>
   columns.map(c => {
     const align = c.align ?? (c.fmt === 'won' || c.fmt === 'qty' || c.fmt === 'pct' ? 'right' : undefined);
     const fmtOne = (raw: unknown): string => {
@@ -138,6 +148,10 @@ const buildColumns = (columns: ReportColumn[]): ColumnDefinition[] =>
       hozAlign: align,
       formatter: cell => {
         const text = fmtOne(cell.getValue());
+        // 실물 매칭: 지정 컬럼이 음수면 셀 배경 #F2DEDE(.r8-neg, 설계-R8 §4.1)
+        if (negativeField && c.field === negativeField && Number(cell.getValue() ?? 0) < 0) {
+          cell.getElement().classList.add('r8-neg');
+        }
         return c.bold ? `<b>${text}</b>` : text;
       },
     };
@@ -160,10 +174,19 @@ export function ReportScreen({ def }: ReportScreenProps) {
   const [helpFilter, setHelpFilter] = useState<ReportFilter | null>(null);
   const [savedTabs, setSavedTabs] = useState<SavedTab[]>(() => loadTabs(def.id));
   const [activeTab, setActiveTab] = useState(0);
+  const [companyName, setCompanyName] = useState('');
 
-  const columns = useMemo(() => buildColumns(def.columns), [def]);
+  const columns = useMemo(() => buildColumns(def.columns, def.real?.negativeField), [def]);
   const hasDateRange = useMemo(() => def.filters.some(f => f.kind === 'date-range'), [def]);
   const rows = useMemo(() => (env ? extractRows(env, def.rowsPath ?? 'rows') : []), [env, def]);
+
+  // 실물 헤더의 "회사명 : {상호}" 줄(설계-R8 §4.1) — real 옵션이 있는 보고서만 1회 조회
+  useEffect(() => {
+    if (!def.real?.companyLine) return;
+    api.get<Record<string, string>>('/api/settings')
+      .then(s => setCompanyName(s.company_name ?? ''))
+      .catch(() => setCompanyName(''));
+  }, [def.real?.companyLine]);
 
   const runSearch = useCallback(async (v: Record<string, string> = vals, silent = false) => {
     const missing = missingRequired(def, v);
@@ -241,8 +264,10 @@ export function ReportScreen({ def }: ReportScreenProps) {
     selectTab(0);
   };
 
+  const real = def.real;
+
   return (
-    <div className="screen report-screen">
+    <div className={`screen report-screen${real ? ' r8-real' : ''}`}>
       <div className="screen-bar">
         <div className="search-group">
           {def.filters.map(f => {
@@ -325,9 +350,38 @@ export function ReportScreen({ def }: ReportScreenProps) {
 
       {env && def.summaryLine && <p className="hint ledger-summary">{def.summaryLine(env)}</p>}
 
+      {real && (
+        <>
+          <div className="r8-report-title">{real.centerTitle ?? def.title}</div>
+          <div className="r8-report-meta">
+            <span>{real.companyLine ? `회사명 : ${companyName}` : ''}</span>
+            <span>{real.asOfLine ? (vals.as_of || todayISO()) : ''}</span>
+          </div>
+        </>
+      )}
+
       <div className="screen-grid">
         <DataGrid key={def.id} columns={columns} data={rows} rowNumbers gridRef={t => { gridRef.current = t; }} />
       </div>
+
+      {real?.bottomButtons && (
+        <div className="r8-report-bottom">
+          {real.bottomButtons.map((b, i) => (
+            <span key={i}>
+              <button
+                className={`btn ${b.primary ? `r8-primary${b.split ? ' r8-split' : ''}` : 'r8-ghost'}`}
+                disabled={!!b.stub}
+                title={b.stub}
+                onClick={() => { if (b.label === '인쇄') window.print(); }}>
+                {b.label}
+              </button>
+              {b.split && (
+                <button className="btn r8-split-caret" disabled={!!b.stub} title={b.stub}>▲</button>
+              )}
+            </span>
+          ))}
+        </div>
+      )}
 
       {helpFilter && (
         <CodeHelp

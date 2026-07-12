@@ -56,15 +56,26 @@ export const ItemMaster = () => (
 );
 
 // ───────────────────────── 거래처등록 ─────────────────────────
+// 실물 컬럼 순서(설계-R8-실물매칭.md §6.1) — Partner에 없는 필드(모바일/이체정보)는 스텁으로 근사
 const partnerColumns: ColumnDefinition[] = [
-  { title: '코드', field: 'code', width: 90 },
-  { title: '거래처명', field: 'name', minWidth: 160 },
-  { title: '구분', field: 'partner_type', width: 90, hozAlign: 'center' },
-  { title: '입금주기', field: 'pay_cycle', width: 84, hozAlign: 'center' },
+  { title: '', formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign: 'center', headerSort: false, width: 40 },
+  { title: '거래처코드', field: 'code', width: 100 },
+  {
+    title: '거래처명', field: 'name', minWidth: 160,
+    formatter: cell => { cell.getElement().classList.add('r8-code'); return String(cell.getValue() ?? ''); },
+  },
+  { title: '대표자명', field: 'ceo', width: 100 },
   { title: '전화', field: 'phone', width: 120 },
-  { title: '사업자번호', field: 'biz_no', width: 110 },
-  { title: '메모', field: 'memo', minWidth: 120 },
-  { title: '사용', field: 'active', width: 54, hozAlign: 'center', formatter: yn },
+  { title: '모바일', width: 100, headerSort: false, formatter: () => '' },
+  { title: '검색창내용', field: 'memo', minWidth: 140 },
+  {
+    title: '사용구분', field: 'active', width: 84, hozAlign: 'center',
+    formatter: cell => (Number(cell.getValue()) === 1 ? 'YES' : ''),
+  },
+  {
+    title: '이체정보', width: 90, hozAlign: 'center', headerSort: false,
+    formatter: () => '<span class="link" title="이체정보 등록은 연동 예정입니다">등록</span>',
+  },
 ];
 
 const partnerFields: FormField[] = [
@@ -80,6 +91,18 @@ const partnerFields: FormField[] = [
   { name: 'memo', label: '메모', type: 'textarea' },
 ];
 
+// 실물 하단 버튼바(참고서 §5) — 신규·Excel만 동작(MasterScreen 내부 처리), 나머지는 stub
+const partnerBottomButtons = [
+  { label: '신규(F2)', primary: true, split: true },
+  { label: '관계설정', stub: '연동 예정입니다' },
+  { label: '계층그룹', stub: '연동 예정입니다' },
+  { label: '변경', stub: '연동 예정입니다' },
+  { label: '사용중단/재사용', stub: '연동 예정입니다' },
+  { label: 'Excel' },
+  { label: '웹자료올리기', stub: '연동 예정입니다' },
+  { label: 'SMS', stub: '연동 예정입니다' },
+];
+
 export const PartnerMaster = () => (
   <MasterScreen<Partner>
     title="거래처등록"
@@ -88,6 +111,9 @@ export const PartnerMaster = () => (
     fields={partnerFields}
     defaults={{ code: '', name: '', biz_no: '', ceo: '', phone: '', email: '', address: '', partner_type: '매출', pay_cycle: '당일', memo: '', active: 1 }}
     helpText="카페(판매처)는 [매출], 생두 공급사는 [매입]으로 등록하세요."
+    realList
+    gridOptions={{ selectableRows: true }}
+    bottomButtons={partnerBottomButtons}
   />
 );
 
