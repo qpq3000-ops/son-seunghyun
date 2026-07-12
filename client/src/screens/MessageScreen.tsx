@@ -106,7 +106,7 @@ export function MessageScreen() {
           {partnerName && (
             <button className="icon-btn" title="거래처 선택 해제" onClick={() => { setPartnerId(null); setPartnerName(''); }}>✕</button>
           )}
-          <button className="btn primary" onClick={generate}>생성</button>
+          <button className="btn r8-primary" onClick={generate}>생성</button>
         </div>
         <div className="btn-group">
           <button className="btn" onClick={() => setTplOpen(o => !o)}>{tplOpen ? '템플릿 편집 닫기' : '템플릿 편집'}</button>
@@ -126,7 +126,7 @@ export function MessageScreen() {
             <textarea className="input" rows={4} value={shipTpl} onChange={e => setShipTpl(e.target.value)} />
           )}
           <div className="voucher-actions" style={{ marginTop: 8 }}>
-            <button className="btn primary" disabled={savingTpl} onClick={() => saveTpl(editKind)}>
+            <button className="btn r8-primary" disabled={savingTpl} onClick={() => saveTpl(editKind)}>
               {savingTpl ? '저장 중...' : '저장'}
             </button>
           </div>

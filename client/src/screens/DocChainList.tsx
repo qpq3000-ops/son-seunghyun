@@ -62,7 +62,10 @@ function DocChainListScreen({ kind }: { kind: Kind }) {
 
   const columns: ColumnDefinition[] = [
     { title: '일자', field: 'io_date', width: 100 },
-    { title: '전표번호', field: 'doc_no', width: 120 },
+    {
+      title: '전표번호', field: 'doc_no', width: 120,
+      formatter: c => { c.getElement().classList.add('r8-code'); return String(c.getValue() ?? ''); },
+    },
     { title: '거래처', field: 'partner_name', minWidth: 140 },
     { title: '품목요약', field: 'item_summary', minWidth: 200 },
   ];
@@ -95,6 +98,7 @@ function DocChainListScreen({ kind }: { kind: Kind }) {
 
   const title = TITLE[kind];
   const InputComp = INPUT_COMP[kind];
+  const pageCount = Math.max(1, Math.ceil(rows.length / 15));   // r8-listbar 표기용(VoucherList와 동일 근사)
 
   if (creating) {
     return (
@@ -120,6 +124,27 @@ function DocChainListScreen({ kind }: { kind: Kind }) {
 
   return (
     <div className="screen">
+      {/* 실물 타이틀바(VoucherList 형제 아키타입) — 상태 pill(대기/완료)은 실제 필터로 동작 */}
+      <div className="r8-titlebar">
+        <span className="r8-star">★</span>
+        <h3>{title}</h3>
+        <div className="r8-pills">
+          <button className={`r8-pill${status === '' ? ' on' : ''}`} onClick={() => setStatus('')}>전체</button>
+          <button className={`r8-pill${status === '대기' ? ' on' : ''}`} onClick={() => setStatus('대기')}>대기</button>
+          <button className={`r8-pill${status === '완료' ? ' on' : ''}`} onClick={() => setStatus('완료')}>완료</button>
+        </div>
+        <div className="r8-titlebar-right">
+          <input className="r8-enter-input" placeholder="입력 후 Enter" readOnly title="검색은 아래 기간 검색을 사용하세요" />
+          <button className="btn r8-primary" onClick={() => load()}>Search(F3)</button>
+          <button className="btn r8-ghost" disabled title="옵션 설정은 연동 예정입니다">Option</button>
+          <button className="btn r8-ghost" disabled title="도움말은 연동 예정입니다">도움말</button>
+        </div>
+      </div>
+      <div className="r8-listbar">
+        <span className="r8-pager">① 2 » <b className="on">1</b>/{pageCount}</span>
+        <span className="r8-period">{from.split('-').join('/')} ~ {to.split('-').join('/')}</span>
+      </div>
+
       <div className="screen-bar">
         <div className="search-group">
           <span>기간</span>
@@ -131,21 +156,10 @@ function DocChainListScreen({ kind }: { kind: Kind }) {
           {partnerName && (
             <button className="icon-btn" title="거래처 선택 해제" onClick={() => { setPartnerId(null); setPartnerName(''); }}>✕</button>
           )}
-          <select className="input" style={{ width: 100 }} value={status} onChange={e => setStatus(e.target.value as StatusFilter)}>
-            <option value="">전체</option>
-            <option value="대기">대기</option>
-            <option value="완료">완료</option>
-          </select>
-          <button className="btn" onClick={load}>검색</button>
-        </div>
-        <div className="btn-group">
-          <button className="btn primary" onClick={() => setCreating(true)}>신규</button>
-          <button className="btn" onClick={() => gridRef.current?.download('xlsx', `${title}.xlsx`, { sheetName: title })}>
-            엑셀
-          </button>
+          <button className="btn r8-primary" onClick={load}>검색</button>
         </div>
       </div>
-      <div className="screen-grid">
+      <div className="screen-grid r8-real">
         <DataGrid<DocListRow>
           rowNumbers
           columns={columns}
@@ -153,6 +167,13 @@ function DocChainListScreen({ kind }: { kind: Kind }) {
           onRowDblClick={r => setEditId(r.id)}
           gridRef={t => { gridRef.current = t; }}
         />
+      </div>
+      <div className="r8-report-bottom">
+        <button className="btn r8-primary r8-split" onClick={() => setCreating(true)}>신규</button>
+        <button className="btn r8-split-caret">▲</button>
+        <button className="btn r8-ghost" onClick={() => gridRef.current?.download('xlsx', `${title}.xlsx`, { sheetName: title })}>
+          Excel
+        </button>
       </div>
       {help && (
         <CodeHelp title="거래처" endpoint="/api/partners" onClose={() => setHelp(false)}

@@ -72,15 +72,15 @@ export function ProdInScreen() {
           <span>~</span>
           <input className="input w-140" type="date" value={to} onChange={e => setTo(e.target.value)} />
         </div>
-        <div className="stmt-presets">
-          <button className="btn primary" onClick={() => load()}>검색(F8)</button>
-          <button className="btn" onClick={() => preset('금일')}>금일</button>
-          <button className="btn" onClick={() => preset('전일')}>전일</button>
-          <button className="btn" onClick={() => preset('금주')}>금주(~오늘)</button>
-          <button className="btn" onClick={() => preset('전주')}>전주</button>
-          <button className="btn" onClick={() => preset('금월')}>금월(~오늘)</button>
-          <button className="btn" onClick={() => preset('전월')}>전월</button>
-          <button className="btn" onClick={() => { setFrom(monthStartISO()); setTo(todayISO()); load(monthStartISO(), todayISO()); }}>다시 작성</button>
+        <div className="r9-preset-bar">
+          <button className="btn r8-primary" onClick={() => load()}>검색(F8)</button>
+          <button className="btn r8-ghost" onClick={() => preset('금일')}>금일</button>
+          <button className="btn r8-ghost" onClick={() => preset('전일')}>전일</button>
+          <button className="btn r8-ghost" onClick={() => preset('금주')}>금주(~오늘)</button>
+          <button className="btn r8-ghost" onClick={() => preset('전주')}>전주</button>
+          <button className="btn r8-ghost" onClick={() => preset('금월')}>금월(~오늘)</button>
+          <button className="btn r8-ghost" onClick={() => preset('전월')}>전월</button>
+          <button className="btn r8-ghost" onClick={() => { setFrom(monthStartISO()); setTo(todayISO()); load(monthStartISO(), todayISO()); }}>다시 작성</button>
         </div>
         <div className="btn-group" style={{ marginTop: 8 }}>
           <button className="btn" onClick={() => gridRef.current?.download('xlsx', '생산입고조회.xlsx', { sheetName: '생산입고' })}>
@@ -88,7 +88,7 @@ export function ProdInScreen() {
           </button>
         </div>
       </div>
-      <div className="screen-grid" style={{ marginTop: 10 }}>
+      <div className="screen-grid r8-real" style={{ marginTop: 10 }}>
         <DataGrid<RoastDocRow> columns={columns} data={rows} rowNumbers
           onRowDblClick={r => setEditId(r.id)} gridRef={t => { gridRef.current = t; }} />
       </div>

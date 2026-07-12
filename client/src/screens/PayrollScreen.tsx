@@ -217,7 +217,7 @@ export function PayrollScreen() {
                 <button className="btn danger" onClick={() => removePayroll(editing.payroll_id!)} style={{ marginRight: 'auto' }}>삭제</button>
               )}
               <button className="btn" onClick={() => setEditing(null)}>취소</button>
-              <button className="btn primary" onClick={save}>저장</button>
+              <button className="btn r8-primary" onClick={save}>저장</button>
             </>
           }>
           <div className="form-grid">
@@ -277,7 +277,7 @@ export function PayrollScreen() {
           footer={
             <>
               <button className="btn" onClick={() => setRateEditing(null)}>취소</button>
-              <button className="btn primary" onClick={saveRates}>저장</button>
+              <button className="btn r8-primary" onClick={saveRates}>저장</button>
             </>
           }>
           <div className="form-grid">
@@ -315,7 +315,7 @@ export function PayrollScreen() {
         <Modal title="급여명세서" width={640} onClose={() => setPayslip(null)}
           footer={
             <>
-              <button className="btn primary" onClick={() => window.print()}>인쇄</button>
+              <button className="btn r8-primary" onClick={() => window.print()}>인쇄</button>
               <button className="btn" onClick={() => setPayslip(null)}>닫기</button>
             </>
           }>

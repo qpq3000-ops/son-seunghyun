@@ -144,11 +144,11 @@ export function FixedAssetScreen() {
           <button className="btn" onClick={() => loadAssets()}>검색(F3)</button>
         </div>
         <div className="btn-group">
-          <button className="btn primary" onClick={() => setEditing(emptyAsset())}>신규(F2)</button>
+          <button className="btn r8-primary" onClick={() => setEditing(emptyAsset())}>신규(F2)</button>
         </div>
       </div>
 
-      <div className="screen-grid" style={{ minHeight: 220 }}>
+      <div className="screen-grid r8-real" style={{ minHeight: 220 }}>
         <DataGrid<FixedAsset> columns={columns} data={gridData} rowNumbers
           onRowClick={r => selectAsset(r)} onRowDblClick={r => setEditing({ ...r })} />
       </div>
@@ -241,7 +241,7 @@ export function FixedAssetScreen() {
           footer={
             <>
               <button className="btn" onClick={() => setEditing(null)}>취소</button>
-              <button className="btn primary" onClick={save}>저장</button>
+              <button className="btn r8-primary" onClick={save}>저장</button>
             </>
           }>
           <div className="form-grid">

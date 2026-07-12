@@ -66,7 +66,7 @@ export function BudgetScreen() {
           <button className="btn" onClick={() => load()}>조회(F3)</button>
         </div>
         <div className="btn-group">
-          <button className="btn primary" disabled={saving} onClick={save}>{saving ? '저장 중...' : '저장'}</button>
+          <button className="btn r8-primary" disabled={saving} onClick={save}>{saving ? '저장 중...' : '저장'}</button>
         </div>
       </div>
       <p className="hint">편성액(입력 칸)과 실적(회색, 분개장 자동집계)을 대비합니다. 집행률 100% 초과 시 빨간색으로 강조됩니다.</p>

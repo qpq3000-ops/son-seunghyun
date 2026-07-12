@@ -82,7 +82,7 @@ export function MigrateScreen() {
       <div className="io-wizard-step">
         <span className="io-step-no">1</span>
         <input ref={fileRef} className="input" type="file" accept=".xlsx,.xls" onChange={onFileChange} />
-        <button className="btn primary" disabled={!base64 || busy} onClick={doPreview}>미리보기(dry-run)</button>
+        <button className="btn r8-primary" disabled={!base64 || busy} onClick={doPreview}>미리보기(dry-run)</button>
       </div>
 
       {preview && (
@@ -125,7 +125,7 @@ export function MigrateScreen() {
           <div className="io-wizard-step">
             <span className="io-step-no">3</span>
             {preview.stats.planned > 0 ? (
-              <button className="btn primary" disabled={busy} onClick={() => setConfirmApply(true)}>승인·실행</button>
+              <button className="btn r8-primary" disabled={busy} onClick={() => setConfirmApply(true)}>승인·실행</button>
             ) : (
               <p className="hint" style={{ margin: 0 }}>생성할 전표가 없습니다(전부 이미 존재/매칭 실패).</p>
             )}

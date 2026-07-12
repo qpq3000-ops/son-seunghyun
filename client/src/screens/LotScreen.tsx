@@ -62,7 +62,7 @@ export function LotScreen() {
           {itemName && (
             <button className="icon-btn" title="품목 선택 해제" onClick={() => { setItemId(null); setItemName(''); }}>✕</button>
           )}
-          <button className="btn" onClick={load}>검색(F3)</button>
+          <button className="btn r8-primary" onClick={load}>검색(F3)</button>
         </div>
         <div className="btn-group">
           <button className="btn" onClick={() => gridRef.current?.download('xlsx', '로트조회.xlsx', { sheetName: '로트조회' })}>
@@ -73,7 +73,7 @@ export function LotScreen() {
       <p className="hint roast-yield">
         로트 <b>{rows.length}</b>건 &nbsp;/&nbsp; 총 투입 <b>{fmtQty(totalInput)}</b>kg &nbsp;/&nbsp; 총 산출 <b>{fmtQty(totalOutput)}</b>kg
       </p>
-      <div className="screen-grid">
+      <div className="screen-grid r8-real">
         <DataGrid<RoastDocRow> columns={columns} data={rows} rowNumbers onRowClick={r => setSel(r)} gridRef={t => { gridRef.current = t; }} />
       </div>
 

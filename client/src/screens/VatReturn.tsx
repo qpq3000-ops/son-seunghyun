@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api';
 import { fmtWon, monthStartISO, todayISO } from '../format';
 import { useToast } from '../components/Toast';
+import { ReportFooter } from '../components/ReportScreen';
 import type { VatReturnData, Settings } from '../types';
 
 // 부가가치세신고서(서식형+인쇄) — 설계-R4-세무회계2.md §4.1.
@@ -40,12 +41,14 @@ export function VatReturn() {
   const [to, setTo] = useState(todayISO());
   const [data, setData] = useState<VatReturnData | null>(null);
   const [settings, setSettings] = useState<Settings>({});
+  const [queriedAt, setQueriedAt] = useState<Date>(() => new Date());
 
   useEffect(() => { api.get<Settings>('/api/settings').then(setSettings).catch(() => {}); }, []);
 
   const search = useCallback(async (f = from, t = to) => {
     try {
       setData(await api.get<VatReturnData>(`/api/vat-return?from=${f}&to=${t}`));
+      setQueriedAt(new Date());
     } catch (e) { toast.show((e as Error).message, 'error'); }
   }, [from, to, toast]);
 
@@ -87,7 +90,7 @@ export function VatReturn() {
           <input className="input w-140" type="date" value={from} onChange={e => { setFrom(e.target.value); setKind('직접입력'); }} />
           <span>~</span>
           <input className="input w-140" type="date" value={to} onChange={e => { setTo(e.target.value); setKind('직접입력'); }} />
-          <button className="btn primary" style={{ marginLeft: 14 }} onClick={() => search()}>조회(F8)</button>
+          <button className="btn r8-primary" style={{ marginLeft: 14 }} onClick={() => search()}>조회(F8)</button>
           <button className="btn" onClick={() => window.print()} disabled={!data}>인쇄</button>
           <button className="btn stub-btn" disabled title="국세청 연동 예정입니다">국세청 전송</button>
         </div>
@@ -96,6 +99,7 @@ export function VatReturn() {
       {data && (
         <>
           <VatSheet data={data} companyName={companyName} companyBizNo={companyBizNo} companyCeo={companyCeo} />
+          <ReportFooter at={queriedAt} />
           {/* 인쇄 전용 사본 (StatementPrint의 인쇄 패턴 재사용) */}
           <div className="print-only">
             <div className="print-sheet">
@@ -115,8 +119,8 @@ function VatSheet({ data, companyName, companyBizNo, companyCeo }: {
   const isRefund = data.payable < 0;
   return (
     <div className="vat-sheet">
-      <div className="vat-title">부 가 가 치 세 신 고 서</div>
-      <div className="vat-meta">
+      <div className="vat-title r8-report-title">부 가 가 치 세 신 고 서</div>
+      <div className="vat-meta r8-report-meta">
         <span>상호 : {companyName || '(환경설정에서 상호 입력)'}</span>
         <span>사업자등록번호 : {companyBizNo || '-'}</span>
         <span>성명 : {companyCeo || '-'}</span>

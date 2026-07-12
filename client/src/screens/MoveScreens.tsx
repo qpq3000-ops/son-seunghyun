@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DataGrid, ColumnDefinition } from '../components/DataGrid';
 import { CodeHelp } from '../components/CodeHelp';
 import { Confirm } from '../components/Modal';
@@ -96,6 +96,7 @@ export function StockMove() {
   const [history, setHistory] = useState<MoveListRow[]>([]);
   const [from, setFrom] = useState(monthStartISO());
   const [to, setTo] = useState(todayISO());
+  const historyRef = useRef<HTMLDivElement>(null);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -204,11 +205,17 @@ export function StockMove() {
         onPick={i => setHelp(i)}
       />
 
-      <div className="voucher-actions">
-        <button className="btn primary" disabled={saving} onClick={save}>{saving ? '저장 중...' : '저장'}</button>
+      {/* 실물 하단 저장 바(RoastInput과 동일 아키타입) — 파랑 스플릿 저장 + 보조 다시 작성/리스트 */}
+      <div className="r8-report-bottom">
+        <span>
+          <button className="btn r8-primary r8-split" disabled={saving} onClick={save}>{saving ? '저장 중...' : '저장'}</button>
+          <button className="btn r8-split-caret">▲</button>
+        </span>
+        <button className="btn r8-ghost" onClick={clearForEntry}>다시 작성</button>
+        <button className="btn r8-ghost" onClick={() => historyRef.current?.scrollIntoView({ behavior: 'smooth' })}>리스트</button>
       </div>
 
-      <div className="roast-history">
+      <div className="roast-history r8-real" ref={historyRef}>
         <div className="vh-title-row">
           <div className="vh-title">최근 이력</div>
           <HistoryBar from={from} to={to} setFrom={setFrom} setTo={setTo} onSearch={loadHistory} />
@@ -251,6 +258,7 @@ export function SelfUse() {
   const [history, setHistory] = useState<MoveListRow[]>([]);
   const [from, setFrom] = useState(monthStartISO());
   const [to, setTo] = useState(todayISO());
+  const historyRef = useRef<HTMLDivElement>(null);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -352,11 +360,17 @@ export function SelfUse() {
         onPick={i => setHelp(i)}
       />
 
-      <div className="voucher-actions">
-        <button className="btn primary" disabled={saving} onClick={save}>{saving ? '저장 중...' : '저장'}</button>
+      {/* 실물 하단 저장 바(RoastInput과 동일 아키타입) — 파랑 스플릿 저장 + 보조 다시 작성/리스트 */}
+      <div className="r8-report-bottom">
+        <span>
+          <button className="btn r8-primary r8-split" disabled={saving} onClick={save}>{saving ? '저장 중...' : '저장'}</button>
+          <button className="btn r8-split-caret">▲</button>
+        </span>
+        <button className="btn r8-ghost" onClick={clearForEntry}>다시 작성</button>
+        <button className="btn r8-ghost" onClick={() => historyRef.current?.scrollIntoView({ behavior: 'smooth' })}>리스트</button>
       </div>
 
-      <div className="roast-history">
+      <div className="roast-history r8-real" ref={historyRef}>
         <div className="vh-title-row">
           <div className="vh-title">최근 이력</div>
           <HistoryBar from={from} to={to} setFrom={setFrom} setTo={setTo} onSearch={loadHistory} />
@@ -395,6 +409,7 @@ export function Defect() {
   const [history, setHistory] = useState<MoveListRow[]>([]);
   const [from, setFrom] = useState(monthStartISO());
   const [to, setTo] = useState(todayISO());
+  const historyRef = useRef<HTMLDivElement>(null);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -502,11 +517,17 @@ export function Defect() {
         onPick={i => setHelp(i)}
       />
 
-      <div className="voucher-actions">
-        <button className="btn primary" disabled={saving} onClick={save}>{saving ? '저장 중...' : '저장'}</button>
+      {/* 실물 하단 저장 바(RoastInput과 동일 아키타입) — 파랑 스플릿 저장 + 보조 다시 작성/리스트 */}
+      <div className="r8-report-bottom">
+        <span>
+          <button className="btn r8-primary r8-split" disabled={saving} onClick={save}>{saving ? '저장 중...' : '저장'}</button>
+          <button className="btn r8-split-caret">▲</button>
+        </span>
+        <button className="btn r8-ghost" onClick={clearForEntry}>다시 작성</button>
+        <button className="btn r8-ghost" onClick={() => historyRef.current?.scrollIntoView({ behavior: 'smooth' })}>리스트</button>
       </div>
 
-      <div className="roast-history">
+      <div className="roast-history r8-real" ref={historyRef}>
         <div className="vh-title-row">
           <div className="vh-title">최근 이력</div>
           <HistoryBar from={from} to={to} setFrom={setFrom} setTo={setTo} onSearch={loadHistory} />
@@ -559,6 +580,7 @@ export function StockAdjust() {
   const [history, setHistory] = useState<MoveListRow[]>([]);
   const [from, setFrom] = useState(monthStartISO());
   const [to, setTo] = useState(todayISO());
+  const historyRef = useRef<HTMLDivElement>(null);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -726,11 +748,17 @@ export function StockAdjust() {
         </tbody>
       </table>
 
-      <div className="voucher-actions">
-        <button className="btn primary" disabled={saving} onClick={save}>{saving ? '저장 중...' : '저장'}</button>
+      {/* 실물 하단 저장 바(RoastInput과 동일 아키타입) — 파랑 스플릿 저장 + 보조 다시 작성/리스트 */}
+      <div className="r8-report-bottom">
+        <span>
+          <button className="btn r8-primary r8-split" disabled={saving} onClick={save}>{saving ? '저장 중...' : '저장'}</button>
+          <button className="btn r8-split-caret">▲</button>
+        </span>
+        <button className="btn r8-ghost" onClick={clearForEntry}>다시 작성</button>
+        <button className="btn r8-ghost" onClick={() => historyRef.current?.scrollIntoView({ behavior: 'smooth' })}>리스트</button>
       </div>
 
-      <div className="roast-history">
+      <div className="roast-history r8-real" ref={historyRef}>
         <div className="vh-title-row">
           <div className="vh-title">최근 이력</div>
           <HistoryBar from={from} to={to} setFrom={setFrom} setTo={setTo} onSearch={loadHistory} />

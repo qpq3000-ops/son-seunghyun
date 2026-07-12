@@ -64,7 +64,7 @@ export function TodoScreen() {
       <div className="screen-bar">
         <div className="search-group">
           {(['all', 'open', 'done'] as Filter[]).map(f => (
-            <button key={f} className={`btn small ${filter === f ? 'primary' : ''}`} onClick={() => setFilter(f)}>
+            <button key={f} className={`r8-pill ${filter === f ? 'on' : ''}`} onClick={() => setFilter(f)}>
               {f === 'all' ? '전체' : f === 'open' ? '미완료' : '완료'}
             </button>
           ))}
@@ -74,7 +74,7 @@ export function TodoScreen() {
             value={content} onChange={e => setContent(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') add(); }} />
           <input className="input" type="date" style={{ width: 150 }} value={dueDate} onChange={e => setDueDate(e.target.value)} />
-          <button className="btn primary" onClick={add}>추가</button>
+          <button className="btn r8-primary" onClick={add}>추가</button>
         </div>
       </div>
 

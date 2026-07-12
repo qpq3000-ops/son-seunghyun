@@ -74,7 +74,7 @@ export function BeanPriceScreen() {
           <input className="input" type="date" style={{ width: 140 }} value={from} onChange={e => setFrom(e.target.value)} />
           <span>~</span>
           <input className="input" type="date" style={{ width: 140 }} value={to} onChange={e => setTo(e.target.value)} />
-          <button className="btn" onClick={load}>검색(F3)</button>
+          <button className="btn r8-primary" onClick={load}>검색(F3)</button>
           <span className="field-hint">기간을 비우면 전체 기간을 조회합니다</span>
         </div>
         <div className="btn-group">
@@ -84,8 +84,10 @@ export function BeanPriceScreen() {
         </div>
       </div>
 
-      <DataGrid<BeanPriceRow> columns={columns} data={data?.rows ?? []} height={260} rowNumbers
-        onRowClick={openHistory} gridRef={t => { gridRef.current = t; }} />
+      <div className="r8-real">
+        <DataGrid<BeanPriceRow> columns={columns} data={data?.rows ?? []} height={260} rowNumbers
+          onRowClick={openHistory} gridRef={t => { gridRef.current = t; }} />
+      </div>
 
       {sel && (
         <div className="detail-panel">

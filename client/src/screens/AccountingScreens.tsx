@@ -98,6 +98,16 @@ export function JournalScreen() {
 
   return (
     <div className="screen">
+      <div className="r8-titlebar">
+        <span className="r8-star">★</span>
+        <h3>분개장</h3>
+        <div className="r8-titlebar-right">
+          <input className="r8-enter-input" placeholder="입력 후 Enter" readOnly title="검색조건은 아래 필터를 사용하세요" />
+          <button className="btn r8-primary" onClick={load}>Search(F3)</button>
+          <button className="btn r8-ghost" disabled title="옵션 설정은 연동 예정입니다">Option</button>
+          <button className="btn r8-ghost" disabled title="도움말은 연동 예정입니다">도움말</button>
+        </div>
+      </div>
       <div className="screen-bar">
         <div className="search-group">
           <span>기간</span>
@@ -117,16 +127,15 @@ export function JournalScreen() {
           {partnerName && (
             <button className="icon-btn" title="거래처 선택 해제" onClick={() => { setPartnerId(null); setPartnerName(''); }}>✕</button>
           )}
-          <button className="btn" onClick={load}>검색(F3)</button>
-        </div>
-        <div className="btn-group">
-          <button className="btn" onClick={() => gridRef.current?.download('xlsx', '분개장.xlsx', { sheetName: '분개장' })}>
-            엑셀
-          </button>
         </div>
       </div>
-      <div className="screen-grid">
+      <div className="screen-grid r8-real">
         <DataGrid<JournalRow> columns={columns} data={rows} rowNumbers gridRef={t => { gridRef.current = t; }} />
+      </div>
+      <div className="r8-report-bottom">
+        <button className="btn r8-ghost" onClick={() => gridRef.current?.download('xlsx', '분개장.xlsx', { sheetName: '분개장' })}>
+          Excel
+        </button>
       </div>
       {help === 'account' && (
         <CodeHelp title="계정과목" endpoint="/api/accounts" onClose={() => setHelp(null)}
@@ -193,6 +202,16 @@ export function PartnerLedger() {
 
   return (
     <div className="screen">
+      <div className="r8-titlebar">
+        <span className="r8-star">★</span>
+        <h3>거래처거래내역조회</h3>
+        <div className="r8-titlebar-right">
+          <input className="r8-enter-input" placeholder="입력 후 Enter" readOnly title="검색조건은 아래 필터를 사용하세요" />
+          <button className="btn r8-primary" onClick={load}>Search(F3)</button>
+          <button className="btn r8-ghost" disabled title="옵션 설정은 연동 예정입니다">Option</button>
+          <button className="btn r8-ghost" disabled title="도움말은 연동 예정입니다">도움말</button>
+        </div>
+      </div>
       <div className="screen-bar">
         <div className="search-group">
           <input className="input lookup" style={{ width: 160 }} readOnly value={partnerName}
@@ -206,12 +225,6 @@ export function PartnerLedger() {
             <option value="매출">매출(채권)</option>
             <option value="매입">매입(채무)</option>
           </select>
-          <button className="btn" onClick={load}>검색(F3)</button>
-        </div>
-        <div className="btn-group">
-          <button className="btn" onClick={() => gridRef.current?.download('xlsx', '거래처원장.xlsx', { sheetName: '거래처원장' })}>
-            엑셀
-          </button>
         </div>
       </div>
       {report && (
@@ -222,8 +235,13 @@ export function PartnerLedger() {
           {' '}잔액 <b>{fmtWon(report.closing)}</b>
         </p>
       )}
-      <div className="screen-grid">
+      <div className="screen-grid r8-real">
         <DataGrid<PartnerLedgerRow> columns={columns} data={report?.rows ?? []} rowNumbers gridRef={t => { gridRef.current = t; }} />
+      </div>
+      <div className="r8-report-bottom">
+        <button className="btn r8-ghost" onClick={() => gridRef.current?.download('xlsx', '거래처원장.xlsx', { sheetName: '거래처원장' })}>
+          Excel
+        </button>
       </div>
       {help && (
         <CodeHelp title="거래처" endpoint="/api/partners" onClose={() => setHelp(false)}
@@ -285,24 +303,33 @@ export function MonthlyPL() {
 
   return (
     <div className="screen">
+      <div className="r8-titlebar">
+        <span className="r8-star">★</span>
+        <h3>월별손익분석</h3>
+        <div className="r8-titlebar-right">
+          <input className="r8-enter-input" placeholder="입력 후 Enter" readOnly title="검색조건은 아래 필터를 사용하세요" />
+          <button className="btn r8-primary" onClick={load}>Search(F3)</button>
+          <button className="btn r8-ghost" disabled title="옵션 설정은 연동 예정입니다">Option</button>
+          <button className="btn r8-ghost" disabled title="도움말은 연동 예정입니다">도움말</button>
+        </div>
+      </div>
       <div className="screen-bar">
         <div className="search-group">
           <span>연도</span>
           <select className="input" style={{ width: 100 }} value={year} onChange={e => setYear(Number(e.target.value))}>
             {years.map(y => <option key={y} value={y}>{y}년</option>)}
           </select>
-          <button className="btn" onClick={load}>조회(F3)</button>
-        </div>
-        <div className="btn-group">
-          <button className="btn" onClick={() => gridRef.current?.download('xlsx', '월별손익.xlsx', { sheetName: '월별손익' })}>
-            엑셀
-          </button>
         </div>
       </div>
-      <div className="screen-grid">
+      <div className="screen-grid r8-real">
         <DataGrid key={data?.year ?? 'none'}
           columns={columns} data={gridData} rowNumbers gridRef={t => { gridRef.current = t; }}
           options={{ layout: 'fitDataFill' }} />
+      </div>
+      <div className="r8-report-bottom">
+        <button className="btn r8-ghost" onClick={() => gridRef.current?.download('xlsx', '월별손익.xlsx', { sheetName: '월별손익' })}>
+          Excel
+        </button>
       </div>
     </div>
   );
@@ -357,6 +384,16 @@ export function VatBook() {
 
   return (
     <div className="screen">
+      <div className="r8-titlebar">
+        <span className="r8-star">★</span>
+        <h3>매입/매출장</h3>
+        <div className="r8-titlebar-right">
+          <input className="r8-enter-input" placeholder="입력 후 Enter" readOnly title="검색조건은 아래 필터를 사용하세요" />
+          <button className="btn r8-primary" onClick={load}>Search(F3)</button>
+          <button className="btn r8-ghost" disabled title="옵션 설정은 연동 예정입니다">Option</button>
+          <button className="btn r8-ghost" disabled title="도움말은 연동 예정입니다">도움말</button>
+        </div>
+      </div>
       <div className="screen-bar">
         <div className="search-group">
           <span>기간</span>
@@ -366,12 +403,6 @@ export function VatBook() {
           <select className="input" style={{ width: 90 }} value={kind} onChange={e => setKind(e.target.value as VatKind)}>
             <option>전체</option><option>매출</option><option>매입</option>
           </select>
-          <button className="btn" onClick={load}>검색(F3)</button>
-        </div>
-        <div className="btn-group">
-          <button className="btn" onClick={() => gridRef.current?.download('xlsx', '매입매출장.xlsx', { sheetName: '매입매출장' })}>
-            엑셀
-          </button>
         </div>
       </div>
       {data && (
@@ -383,8 +414,13 @@ export function VatBook() {
           {' '}면세 <b>{fmtWon(data.summary.매입.면세공급)}</b> · 합계 <b>{fmtWon(data.summary.매입.합계)}</b>
         </p>
       )}
-      <div className="screen-grid">
+      <div className="screen-grid r8-real">
         <DataGrid<VatBookRow> columns={columns} data={data?.rows ?? []} rowNumbers gridRef={t => { gridRef.current = t; }} />
+      </div>
+      <div className="r8-report-bottom">
+        <button className="btn r8-ghost" onClick={() => gridRef.current?.download('xlsx', '매입매출장.xlsx', { sheetName: '매입매출장' })}>
+          Excel
+        </button>
       </div>
     </div>
   );

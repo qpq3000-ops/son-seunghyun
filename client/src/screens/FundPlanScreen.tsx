@@ -88,7 +88,7 @@ export function FundPlanScreen() {
         </div>
         <div className="btn-group">
           {PERIOD_PRESETS.map(p => <button key={p} className="btn small" onClick={() => preset(p)}>{p}</button>)}
-          <button className="btn primary" onClick={() => setEditing(emptyPlan())}>신규(F2)</button>
+          <button className="btn r8-primary" onClick={() => setEditing(emptyPlan())}>신규(F2)</button>
         </div>
       </div>
 
@@ -132,7 +132,7 @@ export function FundPlanScreen() {
           footer={
             <>
               <button className="btn" onClick={() => setEditing(null)}>취소</button>
-              <button className="btn primary" onClick={save}>저장</button>
+              <button className="btn r8-primary" onClick={save}>저장</button>
             </>
           }>
           <div className="form-grid">

@@ -2,6 +2,7 @@ import { Fragment, useCallback, useEffect, useState } from 'react';
 import { api } from '../api';
 import { fmtWon, monthStartISO, periodPreset, todayISO, PERIOD_PRESETS } from '../format';
 import { useToast } from '../components/Toast';
+import { ReportFooter } from '../components/ReportScreen';
 import type { IncomeStatement, Settings } from '../types';
 
 // 손익계산서(서식형) — 설계-R1-보고서엔진.md §4.
@@ -13,12 +14,14 @@ export function PnlStatement() {
   const [to, setTo] = useState(todayISO());
   const [data, setData] = useState<IncomeStatement | null>(null);
   const [settings, setSettings] = useState<Settings>({});
+  const [queriedAt, setQueriedAt] = useState<Date>(() => new Date());
 
   useEffect(() => { api.get<Settings>('/api/settings').then(setSettings).catch(() => {}); }, []);
 
   const search = useCallback(async (f = from, t = to) => {
     try {
       setData(await api.get<IncomeStatement>(`/api/income-statement?from=${f}&to=${t}`));
+      setQueriedAt(new Date());
     } catch (e) { toast.show((e as Error).message, 'error'); }
   }, [from, to, toast]);
 
@@ -48,7 +51,7 @@ export function PnlStatement() {
           <input className="input w-140" type="date" value={from} onChange={e => setFrom(e.target.value)} />
           <span>~</span>
           <input className="input w-140" type="date" value={to} onChange={e => setTo(e.target.value)} />
-          <button className="btn primary" style={{ marginLeft: 14 }} onClick={() => search()}>조회(F8)</button>
+          <button className="btn r8-primary" style={{ marginLeft: 14 }} onClick={() => search()}>조회(F8)</button>
           <button className="btn" onClick={() => window.print()} disabled={!data}>인쇄</button>
         </div>
         <div className="stmt-presets">
@@ -59,6 +62,7 @@ export function PnlStatement() {
       {data && (
         <>
           <PnlSheet data={data} companyName={companyName} />
+          <ReportFooter at={queriedAt} />
           {/* 인쇄 전용 사본 (StatementPrint의 인쇄 패턴 재사용) */}
           <div className="print-only">
             <div className="print-sheet">
@@ -75,8 +79,8 @@ function PnlSheet({ data, companyName }: { data: IncomeStatement; companyName: s
   const dot = (s: string) => s.split('-').join('/');
   return (
     <div className="pnl-sheet">
-      <div className="pnl-title">손 익 계 산 서</div>
-      <div className="pnl-meta">
+      <div className="pnl-title r8-report-title">손 익 계 산 서</div>
+      <div className="pnl-meta r8-report-meta">
         <span>회사명 : {companyName || '(환경설정에서 상호 입력)'}</span>
         <span>기간 : {dot(data.from)} ~ {dot(data.to)}</span>
       </div>

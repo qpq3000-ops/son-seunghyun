@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api';
 import { fmtWon, monthStartISO, periodPreset, todayISO, PERIOD_PRESETS } from '../format';
 import { useToast } from '../components/Toast';
+import { ReportFooter } from '../components/ReportScreen';
 import type { TaxInvoiceReportData, TaxInvoiceSide, Settings } from '../types';
 
 // 세금계산서합계표(서식형+인쇄) — 설계-R4-세무회계2.md §4.2.
@@ -15,12 +16,14 @@ export function TaxInvoiceReport() {
   const [to, setTo] = useState(todayISO());
   const [data, setData] = useState<TaxInvoiceReportData | null>(null);
   const [settings, setSettings] = useState<Settings>({});
+  const [queriedAt, setQueriedAt] = useState<Date>(() => new Date());
 
   useEffect(() => { api.get<Settings>('/api/settings').then(setSettings).catch(() => {}); }, []);
 
   const search = useCallback(async (f = from, t = to) => {
     try {
       setData(await api.get<TaxInvoiceReportData>(`/api/tax-invoice-report?from=${f}&to=${t}`));
+      setQueriedAt(new Date());
     } catch (e) { toast.show((e as Error).message, 'error'); }
   }, [from, to, toast]);
 
@@ -49,7 +52,7 @@ export function TaxInvoiceReport() {
           <input className="input w-140" type="date" value={from} onChange={e => setFrom(e.target.value)} />
           <span>~</span>
           <input className="input w-140" type="date" value={to} onChange={e => setTo(e.target.value)} />
-          <button className="btn primary" style={{ marginLeft: 14 }} onClick={() => search()}>조회(F8)</button>
+          <button className="btn r8-primary" style={{ marginLeft: 14 }} onClick={() => search()}>조회(F8)</button>
           <button className="btn" onClick={() => window.print()} disabled={!data}>인쇄</button>
         </div>
         <div className="stmt-presets">
@@ -60,6 +63,7 @@ export function TaxInvoiceReport() {
       {data && (
         <>
           <TaxSumSheet data={data} companyName={companyName} companyBizNo={companyBizNo} />
+          <ReportFooter at={queriedAt} />
           <div className="print-only">
             <div className="print-sheet">
               <TaxSumSheet data={data} companyName={companyName} companyBizNo={companyBizNo} />
@@ -91,8 +95,8 @@ function TaxSumBlock({ title, side, companyName, companyBizNo, from, to, dot }: 
 }) {
   return (
     <div className="tax-sum-block">
-      <div className="tax-sum-title">{title}</div>
-      <div className="tax-sum-meta">
+      <div className="tax-sum-title r8-report-title">{title}</div>
+      <div className="tax-sum-meta r8-report-meta">
         <span>상호 : {companyName || '(환경설정에서 상호 입력)'}</span>
         <span>사업자등록번호 : {companyBizNo || '-'}</span>
         <span>과세기간 : {dot(from)} ~ {dot(to)}</span>

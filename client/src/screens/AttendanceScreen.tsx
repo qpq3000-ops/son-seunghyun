@@ -93,7 +93,7 @@ export function AttendanceScreen() {
           <button className="btn" onClick={() => load()}>조회(F3)</button>
         </div>
         <div className="btn-group">
-          <button className="btn primary" onClick={() => openEdit()}>신규</button>
+          <button className="btn r8-primary" onClick={() => openEdit()}>신규</button>
         </div>
       </div>
 
@@ -150,7 +150,7 @@ export function AttendanceScreen() {
           footer={
             <>
               <button className="btn" onClick={() => setEditing(null)}>취소</button>
-              <button className="btn primary" onClick={save}>저장</button>
+              <button className="btn r8-primary" onClick={save}>저장</button>
             </>
           }>
           <div className="form-grid">

@@ -60,7 +60,7 @@ export function MrpScreen() {
     <div className="screen">
       <div className="screen-bar">
         <div className="search-group">
-          <button className="btn" onClick={load}>조회(F3)</button>
+          <button className="btn r8-primary" onClick={load}>조회(F3)</button>
           <span className="hint" style={{ margin: 0 }}>대기 상태 주문서 기준으로 계산합니다</span>
         </div>
         <div className="btn-group">
@@ -75,7 +75,7 @@ export function MrpScreen() {
           발주 필요 생두 <b className={beanShortCount ? 'danger-text' : ''}>{beanShortCount}</b>종
         </p>
       )}
-      <div className="screen-grid">
+      <div className="screen-grid r8-real">
         {rows.length > 0 || !loaded ? (
           <DataGrid<MrpRow> columns={columns} data={rows} rowNumbers gridRef={t => { gridRef.current = t; }} />
         ) : (

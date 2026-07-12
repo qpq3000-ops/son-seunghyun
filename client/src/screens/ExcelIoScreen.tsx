@@ -98,7 +98,7 @@ export function ExcelIoScreen() {
             <option value="partners">거래처</option>
           </select>
           <input ref={fileRef} className="input" type="file" accept=".xlsx,.xls" onChange={onFileChange} />
-          <button className="btn primary" disabled={!base64 || busy} onClick={doPreview}>미리보기</button>
+          <button className="btn r8-primary" disabled={!base64 || busy} onClick={doPreview}>미리보기</button>
         </div>
 
         {preview && (
@@ -147,7 +147,7 @@ export function ExcelIoScreen() {
 
             <div className="io-wizard-step">
               <span className="io-step-no">3</span>
-              <button className="btn primary" disabled={!canApply || busy} onClick={doApply}>반영</button>
+              <button className="btn r8-primary" disabled={!canApply || busy} onClick={doApply}>반영</button>
             </div>
           </>
         )}

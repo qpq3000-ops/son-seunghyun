@@ -78,11 +78,11 @@ export function PriceSpecialScreen() {
         <p className="hint" style={{ margin: 0 }}>
           거래처별 예외단가. 전표 입력 시 [특별단가 → 품목 기본단가] 순서로 자동 적용됩니다. (Phase 1에서 적용)
         </p>
-        <button className="btn primary" onClick={() => setEditing({ partner_id: null, partner_name: '', item_id: null, item_name: '', price: 0, memo: '' })}>
+        <button className="btn r8-primary" onClick={() => setEditing({ partner_id: null, partner_name: '', item_id: null, item_name: '', price: 0, memo: '' })}>
           신규
         </button>
       </div>
-      <div className="screen-grid">
+      <div className="screen-grid r8-real">
         <DataGrid<PriceSpecial>
           rowNumbers
           columns={columns}
@@ -103,7 +103,7 @@ export function PriceSpecialScreen() {
           footer={
             <>
               <button className="btn" onClick={() => setEditing(null)}>취소</button>
-              <button className="btn primary" onClick={save}>저장</button>
+              <button className="btn r8-primary" onClick={save}>저장</button>
             </>
           }>
           <div className="form-grid">
