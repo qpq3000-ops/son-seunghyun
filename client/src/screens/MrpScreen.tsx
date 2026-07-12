@@ -77,7 +77,7 @@ export function MrpScreen() {
       )}
       <div className="screen-grid">
         {rows.length > 0 || !loaded ? (
-          <DataGrid<MrpRow> columns={columns} data={rows} gridRef={t => { gridRef.current = t; }} />
+          <DataGrid<MrpRow> columns={columns} data={rows} rowNumbers gridRef={t => { gridRef.current = t; }} />
         ) : (
           <p className="hint" style={{ textAlign: 'center', marginTop: 40 }}>대기 중인 주문이 없습니다</p>
         )}

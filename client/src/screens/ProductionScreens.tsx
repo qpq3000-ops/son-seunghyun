@@ -87,7 +87,7 @@ export function BomScreen() {
         로스팅입력에서 산출 원두 선택 시 이 생두가 투입 라인으로 자동 제안됩니다.
       </p>
       <div className="screen-grid">
-        <DataGrid<BomRow> columns={columns} data={rows} onRowDblClick={openEdit} gridRef={t => { gridRef.current = t; }} />
+        <DataGrid<BomRow> columns={columns} data={rows} rowNumbers onRowDblClick={openEdit} gridRef={t => { gridRef.current = t; }} />
       </div>
 
       {editing && (
@@ -203,9 +203,9 @@ export function ProductionStatus() {
         </p>
       )}
       <div className="vh-title">산출품목별</div>
-      <DataGrid<ProdItemRow> columns={itemColumns} data={data?.by_item ?? []} height={220} gridRef={t => { itemGridRef.current = t; }} />
+      <DataGrid<ProdItemRow> columns={itemColumns} data={data?.by_item ?? []} height={220} rowNumbers gridRef={t => { itemGridRef.current = t; }} />
       <div className="vh-title" style={{ marginTop: 12 }}>월별 추이</div>
-      <DataGrid<ProdMonthRow> columns={monthColumns} data={data?.by_month ?? []} height={220} gridRef={t => { monthGridRef.current = t; }} />
+      <DataGrid<ProdMonthRow> columns={monthColumns} data={data?.by_month ?? []} height={220} rowNumbers gridRef={t => { monthGridRef.current = t; }} />
     </div>
   );
 }

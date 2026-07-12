@@ -89,7 +89,7 @@ export function ProdInScreen() {
         </div>
       </div>
       <div className="screen-grid" style={{ marginTop: 10 }}>
-        <DataGrid<RoastDocRow> columns={columns} data={rows}
+        <DataGrid<RoastDocRow> columns={columns} data={rows} rowNumbers
           onRowDblClick={r => setEditId(r.id)} gridRef={t => { gridRef.current = t; }} />
       </div>
 

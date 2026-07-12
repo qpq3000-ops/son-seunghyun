@@ -66,7 +66,7 @@ export function StockByWarehouse() {
         </div>
       </div>
       <div className="screen-grid">
-        <DataGrid key={whKey} columns={columns} data={gridData} gridRef={t => { gridRef.current = t; }} />
+        <DataGrid key={whKey} columns={columns} data={gridData} rowNumbers gridRef={t => { gridRef.current = t; }} />
       </div>
     </div>
   );

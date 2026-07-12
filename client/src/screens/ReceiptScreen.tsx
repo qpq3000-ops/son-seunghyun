@@ -69,7 +69,7 @@ export function ReceivablesGrid({ asOf, reloadToken, onReceipt, gridRef }: Recei
 
   return (
     <div className="screen-grid">
-      <DataGrid<Receivable> columns={columns} data={rows} gridRef={gridRef} />
+      <DataGrid<Receivable> columns={columns} data={rows} rowNumbers gridRef={gridRef} />
     </div>
   );
 }

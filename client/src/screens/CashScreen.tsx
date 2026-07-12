@@ -79,7 +79,7 @@ export function CashScreen() {
       )}
 
       <div className="screen-grid">
-        <DataGrid<CashListRow> columns={columns} data={data?.list ?? []} gridRef={t => { gridRef.current = t; }} />
+        <DataGrid<CashListRow> columns={columns} data={data?.list ?? []} rowNumbers gridRef={t => { gridRef.current = t; }} />
       </div>
     </div>
   );

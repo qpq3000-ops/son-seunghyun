@@ -69,7 +69,7 @@ function PayablesGrid({ asOf, reloadToken, onPay, gridRef }: PayablesGridProps) 
 
   return (
     <div className="screen-grid">
-      <DataGrid<Payable> columns={columns} data={rows} gridRef={gridRef} />
+      <DataGrid<Payable> columns={columns} data={rows} rowNumbers gridRef={gridRef} />
     </div>
   );
 }

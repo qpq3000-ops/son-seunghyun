@@ -74,7 +74,7 @@ export function LotScreen() {
         로트 <b>{rows.length}</b>건 &nbsp;/&nbsp; 총 투입 <b>{fmtQty(totalInput)}</b>kg &nbsp;/&nbsp; 총 산출 <b>{fmtQty(totalOutput)}</b>kg
       </p>
       <div className="screen-grid">
-        <DataGrid<RoastDocRow> columns={columns} data={rows} onRowClick={r => setSel(r)} gridRef={t => { gridRef.current = t; }} />
+        <DataGrid<RoastDocRow> columns={columns} data={rows} rowNumbers onRowClick={r => setSel(r)} gridRef={t => { gridRef.current = t; }} />
       </div>
 
       {sel && (

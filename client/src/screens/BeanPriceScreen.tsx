@@ -84,18 +84,18 @@ export function BeanPriceScreen() {
         </div>
       </div>
 
-      <DataGrid<BeanPriceRow> columns={columns} data={data?.rows ?? []} height={260}
+      <DataGrid<BeanPriceRow> columns={columns} data={data?.rows ?? []} height={260} rowNumbers
         onRowClick={openHistory} gridRef={t => { gridRef.current = t; }} />
 
       {sel && (
         <div className="detail-panel">
           <div className="dp-title">구매 이력 — {sel.item_name}</div>
-          <DataGrid<BeanHistoryRow> columns={historyColumns} data={history} height={200} />
+          <DataGrid<BeanHistoryRow> columns={historyColumns} data={history} height={200} rowNumbers />
         </div>
       )}
 
       <div className="vh-title" style={{ marginTop: 14 }}>월별 구매 합계</div>
-      <DataGrid<BeanMonthRow> columns={monthColumns} data={data?.monthly ?? []} height={200} />
+      <DataGrid<BeanMonthRow> columns={monthColumns} data={data?.monthly ?? []} height={200} rowNumbers />
     </div>
   );
 }

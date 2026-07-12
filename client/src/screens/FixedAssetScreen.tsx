@@ -149,7 +149,7 @@ export function FixedAssetScreen() {
       </div>
 
       <div className="screen-grid" style={{ minHeight: 220 }}>
-        <DataGrid<FixedAsset> columns={columns} data={gridData}
+        <DataGrid<FixedAsset> columns={columns} data={gridData} rowNumbers
           onRowClick={r => selectAsset(r)} onRowDblClick={r => setEditing({ ...r })} />
       </div>
 

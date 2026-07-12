@@ -126,7 +126,7 @@ export function JournalScreen() {
         </div>
       </div>
       <div className="screen-grid">
-        <DataGrid<JournalRow> columns={columns} data={rows} gridRef={t => { gridRef.current = t; }} />
+        <DataGrid<JournalRow> columns={columns} data={rows} rowNumbers gridRef={t => { gridRef.current = t; }} />
       </div>
       {help === 'account' && (
         <CodeHelp title="계정과목" endpoint="/api/accounts" onClose={() => setHelp(null)}
@@ -223,7 +223,7 @@ export function PartnerLedger() {
         </p>
       )}
       <div className="screen-grid">
-        <DataGrid<PartnerLedgerRow> columns={columns} data={report?.rows ?? []} gridRef={t => { gridRef.current = t; }} />
+        <DataGrid<PartnerLedgerRow> columns={columns} data={report?.rows ?? []} rowNumbers gridRef={t => { gridRef.current = t; }} />
       </div>
       {help && (
         <CodeHelp title="거래처" endpoint="/api/partners" onClose={() => setHelp(false)}
@@ -301,7 +301,7 @@ export function MonthlyPL() {
       </div>
       <div className="screen-grid">
         <DataGrid key={data?.year ?? 'none'}
-          columns={columns} data={gridData} gridRef={t => { gridRef.current = t; }}
+          columns={columns} data={gridData} rowNumbers gridRef={t => { gridRef.current = t; }}
           options={{ layout: 'fitDataFill' }} />
       </div>
     </div>
@@ -384,7 +384,7 @@ export function VatBook() {
         </p>
       )}
       <div className="screen-grid">
-        <DataGrid<VatBookRow> columns={columns} data={data?.rows ?? []} gridRef={t => { gridRef.current = t; }} />
+        <DataGrid<VatBookRow> columns={columns} data={data?.rows ?? []} rowNumbers gridRef={t => { gridRef.current = t; }} />
       </div>
     </div>
   );

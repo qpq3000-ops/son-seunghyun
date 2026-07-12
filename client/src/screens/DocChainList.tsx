@@ -147,6 +147,7 @@ function DocChainListScreen({ kind }: { kind: Kind }) {
       </div>
       <div className="screen-grid">
         <DataGrid<DocListRow>
+          rowNumbers
           columns={columns}
           data={rows}
           onRowDblClick={r => setEditId(r.id)}

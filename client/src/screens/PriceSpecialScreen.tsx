@@ -84,6 +84,7 @@ export function PriceSpecialScreen() {
       </div>
       <div className="screen-grid">
         <DataGrid<PriceSpecial>
+          rowNumbers
           columns={columns}
           data={rows}
           onRowDblClick={r => setEditing({

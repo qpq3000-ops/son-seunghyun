@@ -213,7 +213,7 @@ export function StockMove() {
           <div className="vh-title">최근 이력</div>
           <HistoryBar from={from} to={to} setFrom={setFrom} setTo={setTo} onSearch={loadHistory} />
         </div>
-        <DataGrid<MoveListRow> columns={historyColumns} data={history} height={240} onRowDblClick={r => loadForEdit(r.id)} />
+        <DataGrid<MoveListRow> columns={historyColumns} data={history} height={240} rowNumbers onRowDblClick={r => loadForEdit(r.id)} />
       </div>
 
       {help === 'from' && (
@@ -361,7 +361,7 @@ export function SelfUse() {
           <div className="vh-title">최근 이력</div>
           <HistoryBar from={from} to={to} setFrom={setFrom} setTo={setTo} onSearch={loadHistory} />
         </div>
-        <DataGrid<MoveListRow> columns={historyColumns} data={history} height={240} onRowDblClick={r => loadForEdit(r.id)} />
+        <DataGrid<MoveListRow> columns={historyColumns} data={history} height={240} rowNumbers onRowDblClick={r => loadForEdit(r.id)} />
       </div>
 
       {help === 'warehouse' && (
@@ -511,7 +511,7 @@ export function Defect() {
           <div className="vh-title">최근 이력</div>
           <HistoryBar from={from} to={to} setFrom={setFrom} setTo={setTo} onSearch={loadHistory} />
         </div>
-        <DataGrid<MoveListRow> columns={historyColumns} data={history} height={240} onRowDblClick={r => loadForEdit(r.id)} />
+        <DataGrid<MoveListRow> columns={historyColumns} data={history} height={240} rowNumbers onRowDblClick={r => loadForEdit(r.id)} />
       </div>
 
       {help === 'warehouse' && (
@@ -735,7 +735,7 @@ export function StockAdjust() {
           <div className="vh-title">최근 이력</div>
           <HistoryBar from={from} to={to} setFrom={setFrom} setTo={setTo} onSearch={loadHistory} />
         </div>
-        <DataGrid<MoveListRow> columns={historyColumns} data={history} height={240} onRowDblClick={r => loadForEdit(r.id)} />
+        <DataGrid<MoveListRow> columns={historyColumns} data={history} height={240} rowNumbers onRowDblClick={r => loadForEdit(r.id)} />
       </div>
 
       {help && (

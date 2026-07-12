@@ -286,6 +286,7 @@ export function RoastInput({ initialEditId }: { initialEditId?: number } = {}) {
       <div className="roast-history">
         <div className="vh-title">최근 로스팅 이력 (최근 1개월)</div>
         <DataGrid<RoastListRow>
+          rowNumbers
           columns={historyColumns}
           data={history}
           height={240}

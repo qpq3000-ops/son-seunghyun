@@ -225,7 +225,7 @@ export function GlEntryScreen() {
             </button>
           </div>
         </div>
-        <DataGrid<GlEntry> columns={columns} data={entries} height={260}
+        <DataGrid<GlEntry> columns={columns} data={entries} height={260} rowNumbers
           onRowClick={r => setSel(r)} gridRef={t => { gridRef.current = t; }} />
       </div>
 
