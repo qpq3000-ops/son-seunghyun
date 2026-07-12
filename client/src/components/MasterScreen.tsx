@@ -127,6 +127,7 @@ export function MasterScreen<T extends { id: number }>({ title, endpoint, column
         <DataGrid<T>
           columns={gridColumns}
           data={rows}
+          rowNumbers
           onRowDblClick={r => setEditing({ ...r })}
           gridRef={t => { gridRef.current = t; }}
         />

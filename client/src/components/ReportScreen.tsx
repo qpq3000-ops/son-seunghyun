@@ -326,7 +326,7 @@ export function ReportScreen({ def }: ReportScreenProps) {
       {env && def.summaryLine && <p className="hint ledger-summary">{def.summaryLine(env)}</p>}
 
       <div className="screen-grid">
-        <DataGrid key={def.id} columns={columns} data={rows} gridRef={t => { gridRef.current = t; }} />
+        <DataGrid key={def.id} columns={columns} data={rows} rowNumbers gridRef={t => { gridRef.current = t; }} />
       </div>
 
       {helpFilter && (

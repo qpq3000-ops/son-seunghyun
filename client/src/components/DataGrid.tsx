@@ -16,9 +16,17 @@ interface Props<T> {
   options?: Partial<Options>;
   /** 그리드 인스턴스 노출 (엑셀 다운로드 버튼 등에서 사용) */
   gridRef?: (t: Tabulator | null) => void;
+  /** 좌측 순번(No) 열 표시 — 이카운트 리스트 화면의 행 번호 열 재현 */
+  rowNumbers?: boolean;
 }
 
-export function DataGrid<T>({ columns, data, height = '100%', onRowDblClick, onRowClick, options, gridRef }: Props<T>) {
+// 이카운트식 순번 열(모든 리스트 좌측). 정렬해도 화면 순번을 유지하도록 frozen.
+const ROWNUM_COL: ColumnDefinition = {
+  title: 'No', formatter: 'rownum', hozAlign: 'center', width: 46,
+  headerSort: false, frozen: true, resizable: false,
+};
+
+export function DataGrid<T>({ columns, data, height = '100%', onRowDblClick, onRowClick, options, gridRef, rowNumbers }: Props<T>) {
   const elRef = useRef<HTMLDivElement>(null);
   const tabRef = useRef<Tabulator | null>(null);
   const builtRef = useRef(false);
@@ -30,7 +38,7 @@ export function DataGrid<T>({ columns, data, height = '100%', onRowDblClick, onR
     builtRef.current = false;
     const t = new Tabulator(elRef.current, {
       data: dataRef.current as object[],
-      columns,
+      columns: rowNumbers ? [ROWNUM_COL, ...columns] : columns,
       layout: 'fitDataFill',
       height,
       placeholder: '자료가 없습니다',

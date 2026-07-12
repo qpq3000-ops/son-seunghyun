@@ -68,7 +68,7 @@ export function StockStatus() {
       </div>
       <p className="hint">붉은색 수량은 안전재고 미달 품목입니다.</p>
       <div className="screen-grid">
-        <DataGrid<StockRow> columns={columns} data={rows} gridRef={t => { gridRef.current = t; }} />
+        <DataGrid<StockRow> columns={columns} data={rows} rowNumbers gridRef={t => { gridRef.current = t; }} />
       </div>
       {help && (
         <CodeHelp title="창고" endpoint="/api/warehouses" onClose={() => setHelp(false)}
@@ -149,7 +149,7 @@ export function StockLedger() {
         </p>
       )}
       <div className="screen-grid">
-        <DataGrid<LedgerRow> columns={columns} data={report?.rows ?? []} gridRef={t => { gridRef.current = t; }} />
+        <DataGrid<LedgerRow> columns={columns} data={report?.rows ?? []} rowNumbers gridRef={t => { gridRef.current = t; }} />
       </div>
       {help === 'item' && (
         <CodeHelp title="품목" endpoint="/api/items" onClose={() => setHelp(null)}
