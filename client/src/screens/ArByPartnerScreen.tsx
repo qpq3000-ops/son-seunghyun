@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { TabulatorFull as Tabulator } from 'tabulator-tables';
+import type { TabulatorFull as Tabulator, CellComponent } from 'tabulator-tables';
 import { DataGrid, ColumnDefinition } from '../components/DataGrid';
 import { CodeHelp } from '../components/CodeHelp';
+import { ReportFooter } from '../components/ReportScreen';
 import { useToast } from '../components/Toast';
 import { api } from '../api';
 import { fmtWon, periodPreset, todayISO } from '../format';
-import type { Receivable } from '../types';
+import type { ArByPartnerRow } from '../types';
 
-// 거래처별채권 — 설계-R9-실물매칭.md §7(F). 결과는 실측 미채집이라 검색폼을 실물화하고
-// 결과는 기존 /api/receivables?as_of= 재사용(거래처별). 담당자별은 표시만(연동 예정) stub.
-// ReceiptScreen의 ReceivablesGrid(export)는 파일 격리를 위해 재사용하지 않고 이 화면에서 직접 DataGrid를 렌더한다.
+// 거래처별채권 — 설계-R9-실물매칭.md §7(F) 검색폼 + 설계-R12-시각100.md §4.3(결과 실물화).
+// 검색폼은 R9 그대로 유지, 결과는 신규 GET /api/ar-by-partner?from=&to=(기간 집계 7열)로 교체.
+// 담당자별은 표시만(연동 예정) stub.
 
 type GroupBy = '거래처별' | '담당자별';
 type SumBasis = '거래처관계기준' | '개별거래처기준';
@@ -25,17 +26,24 @@ export function ArByPartnerScreen() {
   const [partnerHelp, setPartnerHelp] = useState(false);
   const [sumBasis, setSumBasis] = useState<SumBasis>('거래처관계기준');
   const [includeInactive, setIncludeInactive] = useState(true);
-  const [rows, setRows] = useState<Receivable[]>([]);
+  const [rows, setRows] = useState<ArByPartnerRow[]>([]);
+  const [companyName, setCompanyName] = useState('');
+  const [queriedAt, setQueriedAt] = useState<Date>(() => new Date());
   const gridRef = useRef<Tabulator | null>(null);
 
-  const load = useCallback(async (t = to) => {
+  useEffect(() => {
+    api.get<Record<string, string>>('/api/settings')
+      .then(s => setCompanyName(s.company_name ?? ''))
+      .catch(() => setCompanyName(''));
+  }, []);
+
+  const load = useCallback(async (f = from, t = to) => {
     try {
-      const all = await api.get<Receivable[]>(`/api/receivables?as_of=${t}`);
+      const all = await api.get<ArByPartnerRow[]>(`/api/ar-by-partner?from=${f}&to=${t}`);
       setRows(partnerId ? all.filter(r => r.partner_id === partnerId) : all);
-    } catch (e) {
-      toast.show((e as Error).message, 'error');
-    }
-  }, [to, partnerId, toast]);
+      setQueriedAt(new Date());
+    } catch (e) { toast.show((e as Error).message, 'error'); }
+  }, [from, to, partnerId, toast]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -49,7 +57,7 @@ export function ArByPartnerScreen() {
   const preset = (label: string, kind: string) => {
     const { from: f, to: t } = periodPreset(kind);
     setFrom(f); setTo(t); setPresetLabel(label);
-    load(t);
+    load(f, t);
   };
 
   // 전월+금월 = 전월 1일 ~ 오늘(로컬 계산, 설계 §7 "미지원 중 전월+금월만 활성")
@@ -57,40 +65,29 @@ export function ArByPartnerScreen() {
     const f = periodPreset('전월').from;
     const t = todayISO();
     setFrom(f); setTo(t); setPresetLabel('전월+금월');
-    load(t);
+    load(f, t);
   };
 
   const reset = () => {
     const f = periodPreset('전월').from, t = todayISO();
     setFrom(f); setTo(t); setPresetLabel('전월+금월');
     setPartnerId(null); setPartnerName('');
-    load(t);
+    load(f, t);
   };
 
+  // 실물 7열(설계-R12-시각100.md §4.3) — 전부 우측정렬·콤마, 음수 그대로 검정(danger-text 미사용).
+  // 하단 소계행은 Tabulator bottomCalc로 굵은 '합계' 행.
+  const won = (c: CellComponent) => fmtWon(Number(c.getValue() ?? 0));
+  const wonBold = (c: CellComponent) => `<b>${fmtWon(Number(c.getValue() ?? 0))}</b>`;
   const columns: ColumnDefinition[] = [
-    { title: '거래처코드', field: 'partner_code', width: 90 },
-    {
-      title: '거래처명', field: 'partner_name', minWidth: 150,
-      formatter: c => { c.getElement().classList.add('r8-code'); return String(c.getValue() ?? ''); },
-    },
-    {
-      title: '매출합계', field: 'sales_total', width: 120, hozAlign: 'right',
-      formatter: c => fmtWon(Number(c.getValue() ?? 0)),
-      bottomCalc: 'sum', bottomCalcFormatter: c => fmtWon(Number(c.getValue() ?? 0)),
-    },
-    {
-      title: '수금합계', field: 'receipt_total', width: 120, hozAlign: 'right',
-      formatter: c => fmtWon(Number(c.getValue() ?? 0)),
-      bottomCalc: 'sum', bottomCalcFormatter: c => fmtWon(Number(c.getValue() ?? 0)),
-    },
-    {
-      title: '미수잔액', field: 'balance', width: 120, hozAlign: 'right',
-      formatter: c => {
-        const v = Number(c.getValue() ?? 0);
-        return v > 0 ? `<b class="danger-text">${fmtWon(v)}</b>` : fmtWon(v);
-      },
-      bottomCalc: 'sum', bottomCalcFormatter: c => fmtWon(Number(c.getValue() ?? 0)),
-    },
+    { title: '거래처명', field: 'partner_name', minWidth: 160, hozAlign: 'left',
+      bottomCalc: () => '합계', bottomCalcFormatter: c => `<b>${c.getValue() ?? ''}</b>` },
+    { title: '기초채권', field: 'opening',       width: 120, hozAlign: 'right', formatter: won, bottomCalc: 'sum', bottomCalcFormatter: wonBold },
+    { title: '재고매출', field: 'stock_sales',   width: 120, hozAlign: 'right', formatter: won, bottomCalc: 'sum', bottomCalcFormatter: wonBold },
+    { title: '회계매출', field: 'acct_sales',    width: 120, hozAlign: 'right', formatter: won, bottomCalc: 'sum', bottomCalcFormatter: wonBold },
+    { title: '수금합계', field: 'receipt_total', width: 120, hozAlign: 'right', formatter: won, bottomCalc: 'sum', bottomCalcFormatter: wonBold },
+    { title: '기타할인등차액', field: 'etc_diff', width: 130, hozAlign: 'right', formatter: won, bottomCalc: 'sum', bottomCalcFormatter: wonBold },
+    { title: '잔액', field: 'balance', width: 130, hozAlign: 'right', formatter: c => `<b>${fmtWon(Number(c.getValue() ?? 0))}</b>`, bottomCalc: 'sum', bottomCalcFormatter: wonBold },
   ];
 
   return (
@@ -196,13 +193,24 @@ export function ArByPartnerScreen() {
         <button className="btn r8-ghost" onClick={reset}>다시작성</button>
       </div>
 
-      <div className="screen-grid r8-real">
-        <DataGrid<Receivable>
-          columns={columns}
-          data={rows}
-          gridRef={t => { gridRef.current = t; }}
-          options={{ pagination: true, paginationSize: 15 }}
-        />
+      <div className="r8-real">
+        <div className="r8-report-title">거래처별채권</div>
+        <div className="r8-report-meta">
+          <span>회사명 : {companyName}</span>
+          <span>{from.split('-').join('/')} ~ {to.split('-').join('/')}</span>
+        </div>
+        <div className="screen-grid">
+          <DataGrid<ArByPartnerRow> columns={columns} data={rows}
+            gridRef={t => { gridRef.current = t; }} />
+        </div>
+        <ReportFooter at={queriedAt} />
+        <div className="r8-report-bottom">
+          <button className="btn r8-primary r8-split" onClick={() => window.print()}>인쇄</button>
+          <button className="btn r8-split-caret">▲</button>
+          <button className="btn r8-ghost"
+            onClick={() => gridRef.current?.download('xlsx', '거래처별채권.xlsx', { sheetName: '거래처별채권' })}>Excel</button>
+          <button className="btn r8-ghost" disabled title="자동알림은 연동 예정입니다">자동알림</button>
+        </div>
       </div>
 
       {partnerHelp && (

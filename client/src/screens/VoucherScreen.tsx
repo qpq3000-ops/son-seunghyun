@@ -59,11 +59,12 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
   const [stockPickOpen, setStockPickOpen] = useState(false);
   const [profitOpen, setProfitOpen] = useState(false);
   const [printData, setPrintData] = useState<{ company: PrintCompany; doc: Doc } | null>(null);
+  const [companyTab, setCompanyTab] = useState('');   // 조건 저장탭 파랑 pill 라벨(설계-R12-시각100.md §4.4)
 
   // 서버와 동일한 부가세 반올림 규칙을 미리보기에도 적용(설계 0장: 클라 계산식은 서버와 비트단위 일치)
   useEffect(() => {
     api.get<Record<string, string>>('/api/settings')
-      .then(s => setVatRound(s.vat_round === 'round' ? 'round' : 'floor'))
+      .then(s => { setVatRound(s.vat_round === 'round' ? 'round' : 'floor'); setCompanyTab(s.company_name ?? ''); })
       .catch(() => {});
   }, []);
 
@@ -215,6 +216,9 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
     toast.show(`거래별 부가세 — 공급가액 ${sup.toLocaleString('ko-KR')} · 부가세 ${vat.toLocaleString('ko-KR')} · 합계 ${(sup + vat).toLocaleString('ko-KR')}원`);
   };
 
+  // 다시작성(설계-R12-시각100.md §4.4) — UI 전용 라인 초기화. 저장·전잔/후잔·자동분개 미개입.
+  const resetLines = () => { setLines([emptyLine(), emptyLine(), emptyLine()]); setSourceDocId(null); };
+
   // 주문서/발주서 끌어오기(설계 4.4) — target은 저장하려는 전표 종류와 동일한 값('sale'|'purchase')
   const applyPulled = async (id: number) => {
     try {
@@ -314,6 +318,12 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
 
   return (
     <div className="screen">
+      {kind === 'sale' && mode === 'create' && (
+        <div className="r12-savetabs">
+          <button className="r12-savetab on" title="저장된 검색조건 탭">{companyTab || '기본'} ▼</button>
+          <button className="r12-savetab-add" disabled title="조건 저장 탭 추가는 연동 예정입니다">+</button>
+        </div>
+      )}
       <VoucherForm
         title={mode === 'edit' ? `${title} 수정${loadedNo ? ` (전표 ${loadedNo})` : ''}` : title}
         header={header}
@@ -329,27 +339,46 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
         prevBalance={prevBalance}
         headerActions={
           kind === 'sale' ? (
-            <>
+            <div className="r11a-toolbar">
               <button className="btn small" onClick={() => setFindOpen(true)}>찾기(F3)</button>
               <button className="btn small" onClick={sortLines}>정렬</button>
-              <button className="btn small" onClick={copyRecent}>거래내역보기</button>
+              <button className="btn small" onClick={copyRecent}>거래내역보기(판매)▼</button>
+              <button className="btn small" disabled title="연동 예정입니다">My품목▼</button>
+              <button className="btn small" disabled title="연동 예정입니다">소요</button>
+              <button className="btn small" disabled title="연동 예정입니다">주문</button>
+              <button className="btn small" disabled title="연동 예정입니다">구매</button>
+              <button className="btn small" disabled title="연동 예정입니다">보류</button>
+              <button className="btn small" disabled title="연동 예정입니다">할인</button>
               <button className="btn small" onClick={() => setStockPickOpen(true)}>재고불러오기</button>
+              <button className="btn small" disabled title="연동 예정입니다">바코드</button>
+              <button className="btn small" disabled title="연동 예정입니다">전표바코드</button>
               <button className="btn small" onClick={verify}>검증</button>
               <button className="btn small" onClick={() => setProfitOpen(true)}>이익계산</button>
               <button className="btn small" onClick={() => setPullOpen(true)}>전표불러오기</button>
               <button className="btn small" onClick={vatSummary}>거래별부가세계산</button>
-            </>
+            </div>
           ) : (
             <button className="btn small" onClick={() => setPullOpen(true)}>발주서 불러오기</button>
           )
         }
-        footerActions={mode === 'edit' ? (
-          <>
-            <button className="btn" onClick={onCancel}>목록으로</button>
-            {kind === 'sale' && <button className="btn" onClick={doPrint}>인쇄</button>}
-            <button className="btn danger" onClick={() => setConfirmDel(true)}>삭제</button>
-          </>
-        ) : undefined}
+        footerActions={
+          mode === 'edit' ? (
+            <>
+              <button className="btn" onClick={onCancel}>목록으로</button>
+              {kind === 'sale' && <button className="btn" onClick={doPrint}>인쇄</button>}
+              <button className="btn danger" onClick={() => setConfirmDel(true)}>삭제</button>
+            </>
+          ) : kind === 'sale' ? (
+            <>
+              <button className="btn small" disabled title="연동 예정입니다">저장/전표(F7)</button>
+              <button className="btn small" disabled title="회계전표연결은 연동 예정입니다">회계전표연결</button>
+              <button className="btn small" onClick={resetLines}>다시작성</button>
+              <button className="btn small" disabled title="현금수금은 연동 예정입니다">현금수금▲</button>
+              <button className="btn small" disabled title="연동 예정입니다">리스트</button>
+              <button className="btn small" disabled title="연동 예정입니다">웹자료올리기</button>
+            </>
+          ) : undefined
+        }
       />
       {confirmDel && (
         <Confirm text="이 전표를 삭제할까요?" onNo={() => setConfirmDel(false)} onYes={doDelete} />

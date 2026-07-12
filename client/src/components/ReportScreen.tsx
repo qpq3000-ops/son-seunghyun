@@ -41,6 +41,26 @@ export interface ReportRealOpt {
   asOfLine?: boolean;          // 우측 기준일 표기(= vals.as_of 또는 오늘)
   negativeField?: string;      // 이 숫자 컬럼이 음수면 셀 배경 #F2DEDE(.r8-neg)
   bottomButtons?: { label: string; primary?: boolean; split?: boolean; stub?: string }[];
+  footer?: boolean;            // 보고서 공통 푸터([P:1]+조회시각). 기본 true — false면 미표기(설계-R12-시각100.md §4.1)
+}
+
+// 조회시각 표기 — "2026/07/12 오후 11:12:49"(참고 §13.1). 로컬 24→12시제 + 오전/오후.
+function fmtQueryStamp(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  let h = d.getHours();
+  const ampm = h < 12 ? '오전' : '오후';
+  h = h % 12 || 12;
+  return `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())} ${ampm} ${h}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+// 결과형 화면 공통 푸터(좌 [P:n] + 우 조회시각). 재고현황·거래처별채권·ReportScreen real 이 공유(설계-R12-시각100.md §4.1).
+export function ReportFooter({ page = 1, at }: { page?: number; at?: Date }) {
+  return (
+    <div className="r12-report-footer">
+      <span className="r12-pagemark">[P:{page}]</span>
+      <span className="r12-querystamp">{fmtQueryStamp(at ?? new Date())}</span>
+    </div>
+  );
 }
 
 export interface ReportDef {
@@ -175,6 +195,7 @@ export function ReportScreen({ def }: ReportScreenProps) {
   const [savedTabs, setSavedTabs] = useState<SavedTab[]>(() => loadTabs(def.id));
   const [activeTab, setActiveTab] = useState(0);
   const [companyName, setCompanyName] = useState('');
+  const [queriedAt, setQueriedAt] = useState<Date>(() => new Date());
 
   const columns = useMemo(() => buildColumns(def.columns, def.real?.negativeField), [def]);
   const hasDateRange = useMemo(() => def.filters.some(f => f.kind === 'date-range'), [def]);
@@ -198,6 +219,7 @@ export function ReportScreen({ def }: ReportScreenProps) {
       const qs = buildQuery(def, v);
       const data = await api.get<unknown>(`${def.endpoint}${qs ? `?${qs}` : ''}`);
       setEnv(data);
+      setQueriedAt(new Date());
       if (activeTab > 0 && activeTab - 1 < savedTabs.length) {
         const next = savedTabs.map((t, i) => (i === activeTab - 1 ? { ...t, cond: snapshotCond(v, labels) } : t));
         setSavedTabs(next);
@@ -363,6 +385,8 @@ export function ReportScreen({ def }: ReportScreenProps) {
       <div className="screen-grid">
         <DataGrid key={def.id} columns={columns} data={rows} rowNumbers gridRef={t => { gridRef.current = t; }} />
       </div>
+
+      {real && real.footer !== false && <ReportFooter at={queriedAt} />}
 
       {real?.bottomButtons && (
         <div className="r8-report-bottom">

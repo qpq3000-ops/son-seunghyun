@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MENUS, MENU_GROUPS, SUBGROUP_ORDER, findMenu, MenuDef } from './menus';
 import { ToastProvider } from './components/Toast';
+import { HeaderIcons } from './components/HeaderIcons';
 
 // AppShell — 이카운트 실화면(2026) 레이아웃 재현:
 // [최상단 즐겨찾기 바: 메뉴검색 + 사이트맵 + 고정 메뉴 링크] → [로고/대메뉴 바] → [서브탭 스트립] → [좌측 메뉴트리(서브그룹 섹션) + 콘텐츠]
@@ -123,8 +124,7 @@ export default function App() {
             })}
           </nav>
           <div className="logobar-right">
-            <button className="icon-btn" title="환경설정" onClick={() => open('settings')}>⚙️</button>
-            <div className="profile-dot" title="단일 사용자">☺</div>
+            <HeaderIcons onProfile={() => open('settings')} />
           </div>
         </header>
 

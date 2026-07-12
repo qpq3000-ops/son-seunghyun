@@ -155,3 +155,30 @@ receipts.get('/payables', (c) => {
       .sort((a, b) => b.balance - a.balance)
   );
 });
+
+// ── 거래처별채권 (기간 집계) ─────────────────────────────── (설계-R12-시각100 §2)
+// 기초채권 = 기간前 잔액, 재고매출 = 기간내 sale 합, 수금합계 = 기간내 수금 합,
+// 회계매출·기타할인등차액 = 0, 잔액 = 기초+매출-수금. 활동없는 거래처 제외 → 없으면 [].
+receipts.get('/ar-by-partner', (c) => {
+  const from = isValidDate(c.req.query('from')) ? c.req.query('from') : todayISO();
+  const to   = isValidDate(c.req.query('to'))   ? c.req.query('to')   : todayISO();
+  const rows = db.prepare(`
+    SELECT p.id AS partner_id, p.code AS partner_code, p.name AS partner_name,
+      COALESCE((SELECT SUM(d.total_amount) FROM doc d
+                WHERE d.doc_type='sale' AND d.partner_id=p.id AND d.io_date < ?), 0)
+      - COALESCE((SELECT SUM(r.amount) FROM receipt r
+                WHERE r.kind='수금' AND r.partner_id=p.id AND r.io_date < ?), 0) AS opening,
+      COALESCE((SELECT SUM(d.total_amount) FROM doc d
+                WHERE d.doc_type='sale' AND d.partner_id=p.id AND d.io_date >= ? AND d.io_date <= ?), 0) AS stock_sales,
+      COALESCE((SELECT SUM(r.amount) FROM receipt r
+                WHERE r.kind='수금' AND r.partner_id=p.id AND r.io_date >= ? AND r.io_date <= ?), 0) AS receipt_total
+    FROM partner p
+  `).all(from, from, from, to, from, to);
+  return c.json(
+    rows
+      .map(r => ({ ...r, acct_sales: 0, etc_diff: 0,
+                   balance: r.opening + r.stock_sales - r.receipt_total }))
+      .filter(r => r.opening !== 0 || r.stock_sales !== 0 || r.receipt_total !== 0)
+      .sort((a, b) => a.partner_name.localeCompare(b.partner_name, 'ko'))
+  );
+});

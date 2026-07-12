@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { DataGrid, ColumnDefinition } from '../components/DataGrid';
 import { CodeHelp } from '../components/CodeHelp';
+import { ReportFooter } from '../components/ReportScreen';
 import { useToast } from '../components/Toast';
 import { api } from '../api';
 import { fmtQty, todayISO, monthStartISO } from '../format';
@@ -24,6 +25,7 @@ export function StockStatus() {
   const [help, setHelp] = useState<'warehouse' | 'item' | null>(null);
   const [rows, setRows] = useState<StockRow[]>([]);
   const [companyName, setCompanyName] = useState('');   // 실물 헤더 "회사명 : {상호}"(설계-R8-실물매칭.md §4.2)
+  const [queriedAt, setQueriedAt] = useState<Date>(() => new Date());  // 조회시각(설계-R12-시각100.md §4.2)
   const gridRef = useRef<Tabulator | null>(null);
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export function StockStatus() {
       const qs = new URLSearchParams({ as_of: asOf });
       if (warehouseId) qs.set('warehouse_id', String(warehouseId));
       setRows(await api.get<StockRow[]>(`/api/stock/status?${qs.toString()}`));
+      setQueriedAt(new Date());
     } catch (e) {
       toast.show((e as Error).message, 'error');
     }
@@ -157,6 +160,7 @@ export function StockStatus() {
         <div className="screen-grid">
           <DataGrid<StockRow> columns={columns} data={view} rowNumbers gridRef={t => { gridRef.current = t; }} />
         </div>
+        <ReportFooter at={queriedAt} />
         <div className="r8-report-bottom">
           <button className="btn r8-primary r8-split" onClick={() => window.print()}>인쇄</button>
           <button className="btn r8-split-caret">▲</button>

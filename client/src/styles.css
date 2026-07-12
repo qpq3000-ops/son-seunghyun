@@ -911,3 +911,49 @@ body { background: #f7f8f9; }
 /* ══ R11-B 회계 입력 실물화 (append-only) ══ */
 .r11b-form { max-width: 760px; }                      /* §12.5 단순 폼 폭 제한(매출처로부터·매입처로) */
 .r11b-actions { display:flex; gap:8px; padding-top:8px; flex-wrap:wrap; }
+
+/* ══ R12-A 시각100 — 상단 헤더 아이콘줄 + MyPage 위젯 아이콘 (append-only) ══ */
+
+/* §13.5 상단 아이콘줄 — 로고바 우측, ~28px 히트영역 + 6px gap ≒ 34px 피치 */
+.hdr-icons { display: flex; align-items: center; gap: 6px; }
+.hdr-icon {
+  width: 28px; height: 28px; padding: 0; border: 0; background: none; cursor: default;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 17px; line-height: 1; border-radius: 6px; color: #4b5563; font-family: inherit;
+}
+.hdr-icon:hover { background: #f0f2f5; }
+.hdr-icon svg { width: 18px; height: 18px; display: block; }
+/* 최우측 프로필 원형(회색 테두리) */
+.hdr-profile {
+  width: 28px; height: 28px; margin-left: 4px; padding: 0; cursor: pointer;
+  border: 1.5px solid #c4cad3; border-radius: 50%; background: #eef0f3; color: #7a8291;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 15px;
+}
+.hdr-profile:hover { border-color: #9aa4b1; }
+
+/* §13.4 MyPage 위젯 헤더 아이콘 ↗ ⟳ ✎ ⋮ — 회색 유지 + hover 진해짐 */
+.widgets.mp6 .widget-icons { gap: 7px; }
+.widgets.mp6 .widget-icons span { cursor: default; transition: color .1s; }
+.widgets.mp6 .widget-icons span:hover { color: #495057; }
+
+/* ══ R12-B 시각100 — 보고서 공통 푸터 + 거래처별채권 결과 + 판매입력 저장탭 (append-only) ══ */
+
+/* §13.1 보고서 공통 푸터 — 좌 [P:1] + 우 조회시각 */
+.r12-report-footer { display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; color: #495057; padding: 6px 2px 2px; }
+.r12-pagemark { color: #495057; }
+.r12-querystamp { color: #6b7280; font-variant-numeric: tabular-nums; }
+
+/* §13.1 결과 그리드 머리글 정렬화살표 ▼ 상시 표기(모든 r8-real 그리드 공통) */
+.r8-real .tabulator .tabulator-col .tabulator-col-sorter { display: none; }
+.r8-real .tabulator .tabulator-col.tabulator-sortable .tabulator-col-title { padding-right: 12px; }
+.r8-real .tabulator .tabulator-col.tabulator-sortable .tabulator-col-title::after {
+  content: '▼'; font-size: 9px; color: #b6bdc9; margin-left: 3px; }
+
+/* §13.2 판매입력 조건 저장탭 — 첫 탭 파랑 pill(사용자 저장탭) + (+) */
+.r12-savetabs { display: flex; align-items: center; gap: 4px; margin: 0 0 8px; }
+.r12-savetab { border: 0.667px solid var(--r8-border); background: #fff; color: #495057;
+  border-radius: 13px; padding: 4px 12px; font-size: 12px; cursor: default; font-family: inherit; }
+.r12-savetab.on { background: var(--r8-primary); border-color: var(--r8-primary); color: #fff; font-weight: 700; }
+.r12-savetab-add { border: 0.667px solid var(--r8-border); background: #fff; color: var(--sub);
+  border-radius: 13px; padding: 4px 11px; font-size: 12px; cursor: not-allowed; font-family: inherit; }

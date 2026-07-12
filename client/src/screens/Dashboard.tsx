@@ -19,8 +19,11 @@ export function Dashboard() {
   }, []);
 
   const icons = (
-    <span className="widget-icons" title="위젯 도구 (Phase 4)">
-      <span>⟳</span><span>⋯</span>
+    <span className="widget-icons">
+      <span title="새 창으로 열기 (기능 예정)">↗</span>
+      <span title="새로고침 (기능 예정)">⟳</span>
+      <span title="편집 (기능 예정)">✎</span>
+      <span title="위젯 옵션 (기능 예정)">⋮</span>
     </span>
   );
 

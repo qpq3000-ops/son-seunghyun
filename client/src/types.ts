@@ -899,6 +899,17 @@ export interface BackupRestoreResult { ok: boolean; needs_restart: boolean; pre_
 
 // ───────────────────────── R9: 실물 매칭 — 전표조회(회계거래조회) ─────────────────────────
 
+// 거래처별채권 1행 (GET /api/ar-by-partner) — 설계-R12-시각100.md §2
+export interface ArByPartnerRow {
+  partner_id: number; partner_code: string; partner_name: string;
+  opening: number;        // 기초채권
+  stock_sales: number;    // 재고매출
+  acct_sales: number;     // 회계매출(=0)
+  receipt_total: number;  // 수금합계
+  etc_diff: number;       // 기타할인등차액(=0)
+  balance: number;        // 잔액
+}
+
 // 전표조회(회계거래조회) 1행 — GET /api/gl-vouchers (설계-R9-실물매칭.md §1.2)
 export interface GlVoucherRow {
   journal_id: number;
