@@ -703,3 +703,15 @@ code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
   display: inline-block; margin-top: 10px; border: 1px solid var(--line); border-radius: 12px;
   padding: 3px 12px; font-size: 11.5px; color: var(--sub); background: #f6f8fa;
 }
+
+/* ── R6: 이카운트 판매입력 실화면 매칭 (연/월/일 셀렉트 · 전잔/후잔) ── */
+/* 이카운트 판매입력 일자 필드의 [2026 v]/[07 v]/[11 v] 3분할 셀렉트 재현. label의 1fr 컬럼 안에 inline 배치. */
+.date-parts { display: flex; align-items: center; gap: 4px; }
+.date-parts .input { padding: 5px 6px; }
+.date-parts select.input:nth-of-type(1) { width: 74px; }   /* 연 */
+.date-parts select.input:nth-of-type(2),
+.date-parts select.input:nth-of-type(3) { width: 58px; }   /* 월·일 */
+.dp-sep { color: var(--sub); font-size: 12px; }
+/* 전잔/후잔 — 읽기전용 우측정렬(이카운트 헤더 우하단). 후잔은 전잔+전표합계로 실시간 갱신. */
+.vh-fields .input.num.ro { text-align: right; background: #f4f6fa; color: var(--txt); cursor: default; font-weight: 600; }
+.vh-fields .input:disabled { background: #f1f3f6; color: var(--sub); cursor: not-allowed; }

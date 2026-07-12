@@ -77,6 +77,17 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
     return () => { alive = false; };
   }, [header.partner_id]);
 
+  // 전잔(이카운트 판매입력 헤더) — 거래처 선택 시 미수 잔액 조회. 후잔은 VoucherForm이 전잔+합계로 계산.
+  const [prevBalance, setPrevBalance] = useState<number | null>(null);
+  useEffect(() => {
+    if (kind !== 'sale' || !header.partner_id) { setPrevBalance(kind === 'sale' ? 0 : null); return; }
+    let alive = true;
+    api.get<{ partner_id: number; balance: number }[]>('/api/receivables')
+      .then(rows => { if (alive) setPrevBalance(rows.find(r => r.partner_id === header.partner_id)?.balance ?? 0); })
+      .catch(() => { if (alive) setPrevBalance(0); });
+    return () => { alive = false; };
+  }, [kind, header.partner_id]);
+
   const priceResolver = useCallback(
     (itemId: number, priceOut: number) => priceMap.get(itemId) ?? priceOut ?? 0,
     [priceMap],
@@ -294,6 +305,7 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
         warehouseLabel={kind === 'purchase' ? '입고창고' : '창고'}
         saveLabel={mode === 'edit' ? '저장(F8)' : '저장(F8)'}
         showEmp={kind === 'sale'}
+        prevBalance={prevBalance}
         headerActions={
           kind === 'sale' ? (
             <>

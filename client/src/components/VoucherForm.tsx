@@ -55,11 +55,40 @@ interface Props {
   saveLabel?: string;                 // 기본 '저장 (연속입력)'
   footerActions?: ReactNode;          // 저장 버튼 옆 슬롯 (수정모드의 삭제/목록으로 버튼 등)
   showEmp?: boolean;                  // 담당자(사원) 필드 노출 여부(R3, 판매입력에서 true)
+  prevBalance?: number | null;        // 전잔(거래처 선택 시 미수 잔액) — 이카운트 판매입력 헤더의 전잔/후잔 재현.
+                                      // null/undefined면 필드 미노출. 후잔 = 전잔 + 이번 전표 합계(라인 변경 시 실시간).
+}
+
+// 이카운트식 연/월/일 분리 날짜 셀렉트 — 실화면(판매입력)의 [2026 v]/[07 v]/[11] 배치 재현
+function DateParts({ value, onChange }: { value: string; onChange: (iso: string) => void }) {
+  const iso = /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : todayISO();
+  const [y, m, d] = iso.split('-').map(Number);
+  const thisYear = new Date().getFullYear();
+  const lastDay = new Date(y, m, 0).getDate();
+  const set = (ny: number, nm: number, nd: number) => {
+    const max = new Date(ny, nm, 0).getDate();
+    onChange(`${ny}-${String(nm).padStart(2, '0')}-${String(Math.min(nd, max)).padStart(2, '0')}`);
+  };
+  return (
+    <span className="date-parts">
+      <select className="input" value={y} onChange={e => set(Number(e.target.value), m, d)}>
+        {Array.from({ length: 7 }, (_, i) => thisYear - 5 + i).map(yy => <option key={yy}>{yy}</option>)}
+      </select>
+      <span className="dp-sep">/</span>
+      <select className="input" value={m} onChange={e => set(y, Number(e.target.value), d)}>
+        {Array.from({ length: 12 }, (_, i) => i + 1).map(mm => <option key={mm} value={mm}>{String(mm).padStart(2, '0')}</option>)}
+      </select>
+      <span className="dp-sep">/</span>
+      <select className="input" value={d} onChange={e => set(y, m, Number(e.target.value))}>
+        {Array.from({ length: lastDay }, (_, i) => i + 1).map(dd => <option key={dd} value={dd}>{String(dd).padStart(2, '0')}</option>)}
+      </select>
+    </span>
+  );
 }
 
 export function VoucherForm({
   title, header, lines, vatRound = 'floor', onChange, onSave, saving,
-  headerActions, headerExtra, priceResolver, warehouseLabel, saveLabel, footerActions, showEmp,
+  headerActions, headerExtra, priceResolver, warehouseLabel, saveLabel, footerActions, showEmp, prevBalance,
 }: Props) {
   const [help, setHelp] = useState<{ kind: 'partner' | 'warehouse' | 'item' | 'emp'; lineIdx?: number } | null>(null);
 
@@ -96,14 +125,20 @@ export function VoucherForm({
           <div className="vh-title">{title}</div>
         </div>
         <div className="vh-fields">
+          {/* 이카운트 판매입력 2열 배치: [일자|거래처] [담당자|출하창고] [거래유형|통화] [전잔|후잔] */}
           <label>일자
-            <input className="input" type="date" value={header.date || todayISO()}
-              onChange={e => setHeader({ date: e.target.value })} />
+            <DateParts value={header.date || todayISO()} onChange={date => setHeader({ date })} />
           </label>
           <label>거래처
             <input className="input lookup" readOnly value={header.partner_name}
               placeholder="클릭하여 선택" onClick={() => setHelp({ kind: 'partner' })} />
           </label>
+          {showEmp && (
+            <label>담당자
+              <input className="input lookup" readOnly value={header.emp_name}
+                placeholder="담당자" onClick={() => setHelp({ kind: 'emp' })} />
+            </label>
+          )}
           <label>{warehouseLabel ?? '창고'}
             <input className="input lookup" readOnly value={header.warehouse_name}
               placeholder="클릭하여 선택" onClick={() => setHelp({ kind: 'warehouse' })} />
@@ -111,14 +146,24 @@ export function VoucherForm({
           <label>거래유형
             <select className="input" value={header.tax_mode}
               onChange={e => setHeader({ tax_mode: e.target.value as '과세' | '면세' })}>
-              <option>과세</option><option>면세</option>
+              <option value="과세">부가세율 적용</option><option value="면세">면세</option>
             </select>
           </label>
           {showEmp && (
-            <label>담당자
-              <input className="input lookup" readOnly value={header.emp_name}
-                placeholder="선택(선택사항)" onClick={() => setHelp({ kind: 'emp' })} />
+            <label>통화
+              <select className="input" disabled title="외화는 연동 예정입니다"><option>내자</option></select>
             </label>
+          )}
+          {prevBalance !== null && prevBalance !== undefined && (
+            <>
+              <label>전잔
+                <input className="input num ro" readOnly value={fmtWon(prevBalance)} />
+              </label>
+              <label>후잔
+                <input className="input num ro" readOnly
+                  value={fmtWon(prevBalance + totals.supply + totals.vat)} />
+              </label>
+            </>
           )}
           {headerExtra}
           <label className="grow">적요

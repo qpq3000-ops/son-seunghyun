@@ -102,11 +102,11 @@ export const MENUS: MenuDef[] = [
   m('bean-price', '재고Ⅰ', '생두 단가비교', 4, BeanPriceScreen, '구매관리'),
 
   // ── 재고Ⅰ — 생산·외주 ──
-  m('bom', '재고Ⅰ', 'BOM등록', 2, BomScreen, '생산·외주'),
-  m('roast-sheet', '재고Ⅰ', '로스팅 입력', 1, RoastInput, '생산·외주'),
-  m('prod-in', '재고Ⅰ', '생산입고', 2, ProdInScreen, '생산·외주'),
-  m('prod-status', '재고Ⅰ', '생산현황/수율분석', 2, ProductionStatus, '생산·외주'),
-  m('mrp', '재고Ⅰ', '소요량계산', 2, MrpScreen, '생산·외주'),
+  m('bom', '재고Ⅰ', 'BOM등록', 2, BomScreen, '생산/외주'),
+  m('roast-sheet', '재고Ⅰ', '로스팅 입력', 1, RoastInput, '생산/외주'),
+  m('prod-in', '재고Ⅰ', '생산입고', 2, ProdInScreen, '생산/외주'),
+  m('prod-status', '재고Ⅰ', '생산현황/수율분석', 2, ProductionStatus, '생산/외주'),
+  m('mrp', '재고Ⅰ', '소요량계산', 2, MrpScreen, '생산/외주'),
 
   // ── 재고Ⅰ — 기타이동 ──
   m('move', '재고Ⅰ', '창고이동', 1, StockMove, '기타이동'),
@@ -176,18 +176,18 @@ export const MENUS: MenuDef[] = [
   m('bank-link', '회계Ⅰ', '계좌/카드 연동', 7, stub('계좌/카드 연동', '은행 계좌·카드 매입내역 자동 수집은 연동 예정입니다. 수기 입출금은 [회계Ⅱ > 자금현황]에서 관리하세요.')),
   m('wms', '재고Ⅱ', 'WMS(창고관리)', 7, stub('WMS(창고관리)', '위치(Location)·랙 단위 창고관리시스템은 연동 예정입니다. 현재 재고는 [재고Ⅰ > 출력물 > 창고별재고현황]에서 확인하세요.')),
   m('pos', '재고Ⅰ', 'POS판매', 7, stub('POS판매', '카드단말기(VAN) 연동 POS 판매는 연동 예정입니다. 판매는 [재고Ⅰ > 영업관리 > 판매입력]을 사용하세요.'), '영업관리'),
-  m('shopping-mall', '재고Ⅰ', '쇼핑몰관리', 7, stub('쇼핑몰관리', '오픈마켓 주문 자동수집(쇼핑몰통합관리)은 연동 예정입니다.'), '영업관리'),
+  m('shopping-mall', '재고Ⅰ', '쇼핑몰관리', 7, stub('쇼핑몰관리', '오픈마켓 주문 자동수집(쇼핑몰통합관리)은 연동 예정입니다.'), '쇼핑몰관리'),
   m('forex', '회계Ⅱ', '외화관리', 7, stub('외화관리', '외화 거래·환율·외화환산손익 자동계산은 연동 예정입니다.')),
 ];
 
 // 대메뉴(9) 순서 — R5 종료 시 9개 전부 소속 메뉴 ≥1(관리 그룹도 payroll·attendance로 채워짐 → reserved 0개, §1.3/§1.5)
 export const MENU_GROUPS = [
-  'MyPage', '재고Ⅰ', '재고Ⅱ', '회계Ⅰ', '회계Ⅱ', '관리', '세무', '그룹웨어', 'Self-Customizing',
+  'MyPage', 'Self-Customizing', '재고Ⅰ', '재고Ⅱ', '회계Ⅰ', '회계Ⅱ', '관리', '세무', '그룹웨어',
 ];
 
 // 서브그룹을 갖는 대메뉴는 현재 재고Ⅰ 하나. 순서는 이카운트 실화면 그대로.
 export const SUBGROUP_ORDER: Record<string, string[]> = {
-  '재고Ⅰ': ['기초등록', '영업관리', '구매관리', '생산·외주', '기타이동', '출력물'],
+  '재고Ⅰ': ['기초등록', '영업관리', '구매관리', '생산/외주', '기타이동', '쇼핑몰관리', '출력물'],
 };
 
 export const findMenu = (id: string): MenuDef | undefined => MENUS.find(x => x.id === id);
