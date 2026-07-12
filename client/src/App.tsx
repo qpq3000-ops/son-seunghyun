@@ -9,13 +9,25 @@ import { HeaderIcons } from './components/HeaderIcons';
 // R3: 대메뉴 재편성(설계-R3-IA재편성.md §2) — activeId + subOverride를 단일 진실원으로 서브탭/사이드바를 파생시킨다.
 
 const FAV_KEY = 'erp_favorites';
+const FAV_SEEDED = 'erp_favorites_seeded';   // 기본 시드 1회 표식(참고-실물실측-20260712.md §13.6-3)
+const FAV_SEED = [
+  'stock-status', 'partner-acct', 'prod-in', 'sale-status', 'statement-print',
+  'ar-by-partner', 'sale-bulk-acct', 'e-tax-invoice', 'bank-link', 'gl-voucher',
+];
 
 export default function App() {
   const [activeId, setActiveId] = useState('dashboard');
   const [sitemap, setSitemap] = useState(false);
   const [q, setQ] = useState('');
   const [favs, setFavs] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch { return []; }
+    try {
+      const stored = JSON.parse(localStorage.getItem(FAV_KEY) || '[]') as string[];
+      if (!localStorage.getItem(FAV_SEEDED)) {          // 최초 1회
+        localStorage.setItem(FAV_SEEDED, '1');
+        if (!stored.length) return FAV_SEED;            // 비어 있으면 실물 10종 시드
+      }
+      return stored;                                    // 이후엔 저장값 그대로(사용자 변경 유지)
+    } catch { return []; }
   });
 
   useEffect(() => { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); }, [favs]);
@@ -74,7 +86,11 @@ export default function App() {
         {/* ── 최상단 즐겨찾기 바 ── */}
         <div className="favbar">
           <div className="menusearch">
-            <span className="ms-icon">🔍</span>
+            <span className="ms-icon">
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="#8a94a6" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+                <circle cx="7" cy="7" r="4.3" /><path d="M13.2 13.2 10 10" />
+              </svg>
+            </span>
             <input
               placeholder="메뉴검색"
               value={q}
@@ -101,13 +117,26 @@ export default function App() {
             })}
             {!favs.length && <span className="favhint">메뉴 옆 ★를 눌러 자주 쓰는 메뉴를 여기에 고정하세요</span>}
           </nav>
-          <span className="favbar-pin" title="즐겨찾기 바">📌</span>
+          <span className="favbar-pin" title="즐겨찾기 바">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="#8a94a6" aria-hidden="true">
+              <path d="M9 2.2h6a1 1 0 0 1 0 2h-.5l.7 5.1 2.1 1.9a1.2 1.2 0 0 1 .4.9v.4a.6.6 0 0 1-.6.6H13v5.2a1 1 0 0 1-2 0V13.6H6.4a.6.6 0 0 1-.6-.6v-.4a1.2 1.2 0 0 1 .4-.9l2.1-1.9.7-5.1H9a1 1 0 0 1 0-2z" />
+            </svg>
+          </span>
         </div>
 
         {/* ── 로고 / 대메뉴 바 ── */}
         <header className="logobar">
-          <button className="logo" onClick={() => open('dashboard')}>
-            <span className="logo-mark">☕</span><b>로스팅</b>ERP
+          <button className="logo" onClick={() => open('dashboard')} aria-label="ECOUNT 홈">
+            <svg className="brandmark" viewBox="0 0 132 30" role="img" aria-label="ECOUNT">
+              {/* 빨강 스트라이프 E 심볼 */}
+              <rect x="2"   y="3"    width="5.5" height="24"  rx="1.4" fill="#e5231b" />
+              <rect x="2"   y="3"    width="20"  height="5.2" rx="1.4" fill="#e5231b" />
+              <rect x="2"   y="12.4" width="15.5" height="5.2" rx="1.4" fill="#e5231b" />
+              <rect x="2"   y="21.8" width="20"  height="5.2" rx="1.4" fill="#e5231b" />
+              {/* COUNT 회색 볼드 */}
+              <text x="29.5" y="22.6" fontFamily="'Malgun Gothic',Arial,sans-serif"
+                    fontSize="22" fontWeight="800" letterSpacing="0.4" fill="#333">COUNT</text>
+            </svg>
           </button>
           <nav className="groupmenu">
             {MENU_GROUPS.map(g => {

@@ -957,3 +957,40 @@ body { background: #f7f8f9; }
 .r12-savetab.on { background: var(--r8-primary); border-color: var(--r8-primary); color: #fff; font-weight: 700; }
 .r12-savetab-add { border: 0.667px solid var(--r8-border); background: #fff; color: var(--sub);
   border-radius: 13px; padding: 4px 11px; font-size: 12px; cursor: not-allowed; font-family: inherit; }
+
+/* ══════════════════════════ R13 첫화면100 (append-only) ══════════════════════════ */
+
+/* A. 로고 워드마크 */
+.logo .brandmark { height: 26px; width: auto; display: block; }
+
+/* B. 헤더 아이콘 크기 보정 + 프로필 실루엣 클립 */
+.hdr-icon svg    { width: 20px; height: 20px; display: block; }
+.hdr-profile     { overflow: hidden; }
+.hdr-profile svg { width: 24px; height: 24px; display: block; }
+
+/* C. ★ → 노란 SVG 별 (텍스트 글리프 숨김 + 마스크) */
+:root { --star-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z'/></svg>"); }
+.star, .r8-star { font-size: 0 !important; line-height: 0; }
+.star::before, .r8-star::before {
+  content: ""; display: inline-block; width: 14px; height: 14px; vertical-align: -2px;
+  background-color: #ccd3dd;
+  -webkit-mask: var(--star-mask) center / contain no-repeat;
+          mask: var(--star-mask) center / contain no-repeat;
+}
+.star.on::before  { background-color: var(--gold); }
+.star.big::before { width: 16px; height: 16px; }
+.r8-star::before  { background-color: var(--gold); width: 15px; height: 15px; }
+
+/* D. MyPage §13.6 배치 override + 위젯/헤더 아이콘 */
+.widgets.mp6 {
+  grid-template-columns: 36fr 45fr 19fr;
+  grid-template-areas:
+    "stock    sales   todo"
+    "note     sales   todo"
+    "vatbook  taxinv  todo";
+}
+.widget-icons svg         { width: 13px; height: 13px; display: block; }
+.mp-head-icons            { margin-left: auto; display: flex; align-items: center; gap: 9px; color: #b6bdc9; }
+.mp-head-icons span       { cursor: default; transition: color .1s; }
+.mp-head-icons span:hover { color: #495057; }
+.mp-head-icons svg        { width: 15px; height: 15px; display: block; }

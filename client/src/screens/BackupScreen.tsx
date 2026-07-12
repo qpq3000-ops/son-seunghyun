@@ -59,7 +59,11 @@ export function BackupScreen() {
     return (
       <div className="screen backup-screen">
         <div className="backup-restarted">
-          <div className="stub-icon">🔄</div>
+          <div className="stub-icon">
+            <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#1f9d55" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M20 11a8 8 0 1 0-1.9 6.4" /><path d="M20 5v6h-6" />
+            </svg>
+          </div>
           <h3>복원이 적용되었습니다</h3>
           <p>{restarted.message}</p>
           <p className="hint">복원 전 자동 백업: {restarted.pre_backup}</p>

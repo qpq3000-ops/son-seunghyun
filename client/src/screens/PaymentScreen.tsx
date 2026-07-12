@@ -249,7 +249,7 @@ export function ToPurchasePartnerInput() {
       <p className="hint">수수료가 있으면 적요에 자동으로 덧붙여 기록됩니다. 별도 분개가 필요하면 지출결의서를 이용하세요.</p>
 
       <div className="r11b-actions">
-        <button className="btn" disabled title="연동 예정입니다">✈</button>
+        <button className="btn" disabled title="연동 예정입니다"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="전송"><path d="M22 2 11 13" /><path d="M22 2 15 22l-4-9-9-4z" /></svg></button>
         <button className="btn primary" disabled={saving} onClick={save}>{saving ? '저장 중...' : '저장(F8)'}</button>
         <button className="btn" disabled title="연동 예정입니다">저장/전표(F7)</button>
         <button className="btn" onClick={resetForm}>다시작성</button>

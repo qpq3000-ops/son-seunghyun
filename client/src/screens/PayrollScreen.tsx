@@ -7,7 +7,7 @@ import { useToast } from '../components/Toast';
 import type { Employee, PayrollList, PayrollRates, PayrollRow, PayslipData } from '../types';
 
 // 급여대장 + 급여명세서 — 설계-R5-관리그룹웨어유틸.md §4.1.
-// ⚠ 간이 계산·참고용: 4대보험·소득세는 요율(settings) 기반 근사치이며 실제 원천징수와 다를 수 있다(§3.2).
+// 주의(간이 계산·참고용): 4대보험·소득세는 요율(settings) 기반 근사치이며 실제 원천징수와 다를 수 있다(§3.2).
 // 급여 CRUD·요율 계산은 hr.mjs 내부에 격리 복제되어 있다(masters.mjs 무수정).
 
 const DEDUCTION_FIELDS = ['national_pension', 'health_ins', 'longterm_care', 'employment_ins', 'income_tax', 'local_income_tax', 'other_deduction'] as const;

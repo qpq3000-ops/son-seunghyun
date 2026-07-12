@@ -190,7 +190,14 @@ function StatementSheet({ detail, settings, from, to }: {
           <div className="stmt-recv">
             <b>{partner.name} 貴中</b>
             {partner.address && <div>{partner.address}</div>}
-            {partner.phone && <div>☎ {partner.phone}</div>}
+            {partner.phone && (
+              <div>
+                <svg viewBox="0 0 16 16" width="11" height="11" fill="#333" aria-hidden="true" style={{ verticalAlign: '-1px', marginRight: 3 }}>
+                  <path d="M4.2 2.2 6 2l1.1 2.6-1.3 1a8 8 0 0 0 3.6 3.6l1-1.3L13 9l-.2 1.8a1 1 0 0 1-1.1.85A9.5 9.5 0 0 1 3.35 3.3 1 1 0 0 1 4.2 2.2z" />
+                </svg>
+                {partner.phone}
+              </div>
+            )}
             <div className="sub">기간: {from.split('-').join('/')} ~ {to.split('-').join('/')}</div>
           </div>
         </div>

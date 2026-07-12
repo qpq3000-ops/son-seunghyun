@@ -323,7 +323,7 @@ function DocChainScreen({ kind, mode = 'create', docId, onSaved, onDeleted, onCa
             </>
           ) : (kind === 'quote' || kind === 'order') ? (
             <>
-              <button className="btn" disabled title="연동 예정입니다">✈</button>
+              <button className="btn" disabled title="연동 예정입니다"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="전송"><path d="M22 2 11 13" /><path d="M22 2 15 22l-4-9-9-4z" /></svg></button>
               <button className="btn" disabled title="연동 예정입니다">저장/전표(F7)</button>
               <button className="btn" onClick={resetForm}>다시작성</button>
               <button className="btn" onClick={onCancel}>리스트</button>

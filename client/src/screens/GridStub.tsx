@@ -1,7 +1,7 @@
 import { DataGrid } from '../components/DataGrid';
 
 // R10-B: 실물 메뉴 뼈대 컴포넌트 — 설계-R10-커버리지.md §B-0.
-// StubScreen(🔌 "연동 예정")·Placeholder(🚧 "Phase N")와 달리, 이 컴포넌트는
+// StubScreen("연동 예정")·Placeholder("Phase N")와 달리, 이 컴포넌트는
 // "과업이 준비 중"이라는 뜻이 아니다 — 실물 메뉴명 그대로 + 실물형 타이틀바 + 빈 그리드(자료 없음)로
 // 화면의 뼈대만 우선 갖춰두고, 데이터·검색 연결은 이후 라운드에서 진행한다는 안내만 옅게 덧붙인다.
 interface GridStubProps {

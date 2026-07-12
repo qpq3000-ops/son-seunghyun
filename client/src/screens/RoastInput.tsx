@@ -411,7 +411,7 @@ export function RoastInput({ initialEditId }: { initialEditId?: number } = {}) {
 
       {/* 실물 하단 버튼바(설계 §2.5) — 저장(F8)이 기존 save() 그대로 호출 */}
       <div className="r8-report-bottom">
-        <button className="btn r8-ghost" disabled title="연동 예정입니다">✈</button>
+        <button className="btn r8-ghost" disabled title="연동 예정입니다"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="전송"><path d="M22 2 11 13" /><path d="M22 2 15 22l-4-9-9-4z" /></svg></button>
         <span>
           <button className="btn r8-primary r8-split" disabled={saving} onClick={save}>
             {saving ? '저장 중...' : '저장(F8)'}

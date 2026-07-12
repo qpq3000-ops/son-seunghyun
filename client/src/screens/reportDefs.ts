@@ -44,7 +44,7 @@ export const REPORT_DEFS: Record<string, ReportDef> = {
       { title: '대변', field: 'cr', width: 120, align: 'right', fmt: 'won', sum: true },
       { title: '잔액', field: 'balance', width: 130, align: 'right', fmt: 'won', bold: true },
     ],
-    summaryLine: e => `차변합계 ${fmtWon(e.summary.sum_dr)} / 대변합계 ${fmtWon(e.summary.sum_cr)} ${e.summary.sum_dr === e.summary.sum_cr ? '✓ 일치' : '⚠ 불일치'}`,
+    summaryLine: e => `차변합계 ${fmtWon(e.summary.sum_dr)} / 대변합계 ${fmtWon(e.summary.sum_cr)} ${e.summary.sum_dr === e.summary.sum_cr ? '(일치)' : '※ 불일치'}`,
   },
 
   // 3. 현금출납장 — 원장형, 현금(101)/보통예금(103) 특화(select→코드 매핑)
@@ -85,7 +85,7 @@ export const REPORT_DEFS: Record<string, ReportDef> = {
       { title: '차변잔액', field: 'bal_dr', width: 120, align: 'right', fmt: 'won', sum: true },
       { title: '대변잔액', field: 'bal_cr', width: 120, align: 'right', fmt: 'won', sum: true },
     ],
-    summaryLine: e => `합계 차 ${fmtWon(e.totals.sum_dr)} = 대 ${fmtWon(e.totals.sum_cr)} · 잔액 차 ${fmtWon(e.totals.bal_dr)} = 대 ${fmtWon(e.totals.bal_cr)} ${e.totals.balanced ? '✓ 대차평균' : '⚠ 불일치'}`,
+    summaryLine: e => `합계 차 ${fmtWon(e.totals.sum_dr)} = 대 ${fmtWon(e.totals.sum_cr)} · 잔액 차 ${fmtWon(e.totals.bal_dr)} = 대 ${fmtWon(e.totals.bal_cr)} ${e.totals.balanced ? '(대차평균)' : '※ 불일치'}`,
   },
 
   // 6. 수금현황 — 집계형(rows/summary.by_method)

@@ -88,7 +88,13 @@ export function BoardScreen() {
         <tbody>
           {rows.map(r => (
             <tr key={r.id} onClick={() => setDetail(r)} className={r.pinned ? 'board-pin' : ''}>
-              <td className="ctr">{r.pinned ? '📌' : ''}</td>
+              <td className="ctr">
+                {r.pinned ? (
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="#8a94a6" aria-hidden="true">
+                    <path d="M9 2.2h6a1 1 0 0 1 0 2h-.5l.7 5.1 2.1 1.9a1.2 1.2 0 0 1 .4.9v.4a.6.6 0 0 1-.6.6H13v5.2a1 1 0 0 1-2 0V13.6H6.4a.6.6 0 0 1-.6-.6v-.4a1.2 1.2 0 0 1 .4-.9l2.1-1.9.7-5.1H9a1 1 0 0 1 0-2z" />
+                  </svg>
+                ) : ''}
+              </td>
               <td>{r.title}</td>
               <td>{r.created_at.slice(0, 10)}</td>
             </tr>

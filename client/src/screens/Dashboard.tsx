@@ -11,6 +11,14 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 // 참고서 §2: 실물엔 없는 위젯이라 기본 화면에서 제외. 코드는 보존(추후 위젯 설정 기능용).
 const SHOW_LEGACY_WIDGETS = false;
 
+// 얇은 회색 위젯 아이콘(§13.6). currentColor로 기존 .widget-icons/.mp-head-icons 색 상속.
+const WI = {
+  open:    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4.2h5.8V10" /><path d="M11.4 4.6 4.3 11.7" /></svg>,
+  refresh: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12.5 8a4.5 4.5 0 1 1-1.3-3.2" /><path d="M12.8 3v2.3h-2.3" /></svg>,
+  edit:    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M10.8 2.6 13.4 5.2" /><path d="M11 2.4 13.6 5 6 12.6l-3.1.7.7-3.1z" /></svg>,
+  more:    <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.15" /><circle cx="8" cy="8" r="1.15" /><circle cx="8" cy="12.6" r="1.15" /></svg>,
+};
+
 export function Dashboard() {
   const [data, setData] = useState<MyPageData | null>(null);
 
@@ -20,10 +28,18 @@ export function Dashboard() {
 
   const icons = (
     <span className="widget-icons">
-      <span title="새 창으로 열기 (기능 예정)">↗</span>
-      <span title="새로고침 (기능 예정)">⟳</span>
-      <span title="편집 (기능 예정)">✎</span>
-      <span title="위젯 옵션 (기능 예정)">⋮</span>
+      <span title="새 창으로 열기 (기능 예정)">{WI.open}</span>
+      <span title="새로고침 (기능 예정)">{WI.refresh}</span>
+      <span title="편집 (기능 예정)">{WI.edit}</span>
+      <span title="위젯 옵션 (기능 예정)">{WI.more}</span>
+    </span>
+  );
+
+  const headIcons = (
+    <span className="mp-head-icons">
+      <span title="새 창으로 열기 (기능 예정)">{WI.open}</span>
+      <span title="편집 (기능 예정)">{WI.edit}</span>
+      <span title="옵션 (기능 예정)">{WI.more}</span>
     </span>
   );
 
@@ -53,6 +69,7 @@ export function Dashboard() {
         <b>{ym}</b>
         <span className="mp-nav">&gt;</span>
         <span className="mp-title">일정관리</span>
+        {headIcons}
       </div>
 
       <div className="widgets mp6">
@@ -96,7 +113,7 @@ export function Dashboard() {
               <thead>
                 <tr>
                   <th>일자-No.</th><th>품목명[규격]</th><th className="num">수량</th><th className="num">단가</th>
-                  <th className="num">공급가액</th><th className="num">부가세</th><th className="num">합계</th><th>거래처</th>
+                  <th className="num">공급가액</th><th className="num">부가세</th><th className="num">합계</th><th>거래처명</th>
                 </tr>
               </thead>
               <tbody>
