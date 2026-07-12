@@ -332,4 +332,57 @@ export const REPORT_DEFS: Record<string, ReportDef> = {
     ],
     summaryLine: e => `${e.summary.count}개 품목`,
   },
+
+  // ── R10-B: 회계Ⅰ 출력물 신규 def 2종 (설계-R10-커버리지.md §B-3①) ──
+  // sales-summary(판매구매 집계표)를 tx 고정 + group 기본값만 바꿔 복제한 실물 메뉴.
+
+  // 16. 월별매출집계표 — tx='판매'(sale) 고정, group 기본 '월별'
+  'ar-monthly-summary': {
+    id: 'ar-monthly-summary', title: '월별매출집계표', endpoint: '/api/sales-purchase-summary',
+    filters: [
+      { key: 'range', kind: 'date-range' },
+      {
+        key: 'tx', kind: 'select', label: '구분', options: ['판매'], default: '판매',
+        mapValue: { '판매': 'sale' },
+      },
+      {
+        key: 'group', kind: 'select', label: '기준', options: ['월별', '일별', '거래처별', '품목별'], default: '월별',
+        mapValue: { '월별': 'month', '일별': 'day', '거래처별': 'partner', '품목별': 'item' },
+      },
+    ],
+    columns: [
+      { title: '코드', field: 'code', width: 110, align: 'center' },
+      { title: '기준', field: 'label', minWidth: 200 },
+      { title: '수량', field: 'qty', width: 90, align: 'right', fmt: 'qty', sum: true },
+      { title: '공급가액', field: 'supply', width: 120, align: 'right', fmt: 'won', sum: true },
+      { title: '부가세', field: 'vat', width: 110, align: 'right', fmt: 'won', sum: true },
+      { title: '합계', field: 'total', width: 130, align: 'right', fmt: 'won', bold: true, sum: true },
+    ],
+    summaryLine: e => `${e.summary.count}건 · 수량 ${fmtQty(e.summary.qty)} · 공급 ${fmtWon(e.summary.supply)} · 부가세 ${fmtWon(e.summary.vat)} · 합계 ${fmtWon(e.summary.total)}`,
+  },
+
+  // 17. 월별매입집계표 — tx='구매'(purchase) 고정, group 기본 '월별'
+  'ap-monthly-summary': {
+    id: 'ap-monthly-summary', title: '월별매입집계표', endpoint: '/api/sales-purchase-summary',
+    filters: [
+      { key: 'range', kind: 'date-range' },
+      {
+        key: 'tx', kind: 'select', label: '구분', options: ['구매'], default: '구매',
+        mapValue: { '구매': 'purchase' },
+      },
+      {
+        key: 'group', kind: 'select', label: '기준', options: ['월별', '일별', '거래처별', '품목별'], default: '월별',
+        mapValue: { '월별': 'month', '일별': 'day', '거래처별': 'partner', '품목별': 'item' },
+      },
+    ],
+    columns: [
+      { title: '코드', field: 'code', width: 110, align: 'center' },
+      { title: '기준', field: 'label', minWidth: 200 },
+      { title: '수량', field: 'qty', width: 90, align: 'right', fmt: 'qty', sum: true },
+      { title: '공급가액', field: 'supply', width: 120, align: 'right', fmt: 'won', sum: true },
+      { title: '부가세', field: 'vat', width: 110, align: 'right', fmt: 'won', sum: true },
+      { title: '합계', field: 'total', width: 130, align: 'right', fmt: 'won', bold: true, sum: true },
+    ],
+    summaryLine: e => `${e.summary.count}건 · 수량 ${fmtQty(e.summary.qty)} · 공급 ${fmtWon(e.summary.supply)} · 부가세 ${fmtWon(e.summary.vat)} · 합계 ${fmtWon(e.summary.total)}`,
+  },
 };

@@ -61,10 +61,12 @@ vouchers.get('/docs', (c) => {
     SELECT d.id, d.doc_no, d.doc_type, d.io_date, d.partner_id, p.name AS partner_name,
            d.warehouse_id, w.name AS warehouse_name,
            d.total_qty, d.total_supply, d.total_vat, d.total_amount, d.memo,
-           d.status, d.time_date
+           d.status, d.time_date,
+           d.source_doc_id, src.doc_no AS source_doc_no
     FROM doc d
     LEFT JOIN partner p ON p.id = d.partner_id
     JOIN warehouse w ON w.id = d.warehouse_id
+    LEFT JOIN doc src ON src.id = d.source_doc_id
     WHERE d.doc_type = ?
   `;
   const params = [type];

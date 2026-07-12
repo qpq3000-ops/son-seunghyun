@@ -874,3 +874,33 @@ body { background: #f7f8f9; }
 /* 전표조회(GlVoucherScreen) — 매출전표Ⅰ 행 연분홍(§6) */
 .tabulator-row.r9-glv-sale,
 .tabulator-row.tabulator-row-even.r9-glv-sale { background: var(--r8-neg-bg); }
+
+/* ══ R10-A 실물매칭 (판매조회 완성 + 기능설정 실물화, append-only) ══ */
+/* 기능설정(SettingsScreen) — 카테고리 탭 스트립(§A-2). r8-pill 재사용(탭 pill 자체는 신규 CSS 없음) */
+.r10a-cat-tabs { display: flex; align-items: center; gap: 4px; margin-bottom: 14px; flex-wrap: wrap; }
+
+/* 설정 카드 — 흰 배경/보더/라운드, 제목 13px 700, 설명 12px sub(§A-2) */
+.r10a-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+.r10a-setting-card {
+  background: #fff; border: 0.667px solid var(--r8-border); border-radius: 8px;
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+}
+.r10a-setting-card h4 { margin: 0; font-size: 13px; font-weight: 700; }
+.r10a-setting-card .r10a-card-desc { margin: -4px 0 0; font-size: 12px; color: var(--sub); }
+.r10a-setting-card select.input,
+.r10a-setting-card input.input { max-width: 260px; }
+.r10a-card-wide { grid-column: span 2; }
+.r10a-card-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* 판매조회/구매조회(VoucherList) — 하단 버튼바 10종은 기존 .r8-report-bottom 재사용(신규 CSS 없음).
+   '조회'/'불러온전표' 링크도 기존 .link·.r8-code 재사용(신규 CSS 없음). */
+/* R10-B */
+/* 메뉴 라벨 실물화 + 커버리지 확장(설계-R10-커버리지.md §2) — GridStub(실물 메뉴 뼈대) 전용 보강.
+   타이틀바·리스트바·그리드 본체는 r8-titlebar/r8-listbar/r8-pager/r8-period/r8-real 등 R8 클래스를 그대로 재사용(신규 CSS 없음). */
+.r10b-stub .r8-titlebar { padding-bottom: 12px; }
+.r10b-stub-note { margin: 8px 2px 0; font-size: 12px; color: var(--sub); }
+
+/* 서브탭이 늘어난 대메뉴(회계Ⅰ·회계Ⅱ·재고Ⅱ·관리·세무·그룹웨어·데이터센터·Self-Customizing)의 오버플로 대비.
+   .subtabs 자체 규칙은 기존 그대로(수정 금지) — 스크롤바 모양만 신규 셀렉터로 보강. */
+.subtabs::-webkit-scrollbar { height: 4px; }
+.subtabs::-webkit-scrollbar-thumb { background: var(--r8-border); border-radius: 4px; }
