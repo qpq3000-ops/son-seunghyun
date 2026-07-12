@@ -68,6 +68,11 @@ export function StatementPrint() {
 
   return (
     <div className="screen stmt-screen">
+      {/* 검색조건 저장 탭 (이카운트 거래명세서인쇄: 기본 / 전체 + 추가) */}
+      <div className="cond-tabs">
+        <button className="cond-tab on">기본</button>
+        <button className="cond-tab add" title="검색조건 추가(Phase 4)">+</button>
+      </div>
       {/* 검색조건 (이카운트: 기준일자 + 거래처 + 프리셋 버튼 바) */}
       <div className="stmt-search">
         <div className="stmt-cond">
