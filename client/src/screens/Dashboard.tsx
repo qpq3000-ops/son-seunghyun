@@ -111,7 +111,7 @@ export function Dashboard() {
                 ))}
               </tbody>
             </table>
-          ) : <p className="widget-empty">이번달 판매 내역이 없습니다. [재고Ⅰ &gt; 영업관리 &gt; 판매입력]에서 시작하세요.</p>}
+          ) : <p className="widget-empty">등록된 데이터가 없습니다.</p>}
         </div>
 
         <div className="widget w-note">

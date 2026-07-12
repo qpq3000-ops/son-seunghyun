@@ -99,14 +99,18 @@ export function MasterScreen<T extends { id: number }>({
     }
   };
 
-  const gridColumns = useMemo<ColumnDefinition[]>(() => [
-    ...columns,
-    {
-      title: '삭제', width: 60, hozAlign: 'center', headerSort: false,
-      formatter: () => '<span class="link danger">삭제</span>',
-      cellClick: (_e, cell) => setConfirmDel(cell.getRow().getData() as T),
-    },
-  ], [columns]);
+  // R9-A(설계-R9-실물매칭.md §8.1): realList(현재 PartnerMaster 전용)는 말미 '삭제' 컬럼을 붙이지 않는다
+  // (편집 모달의 삭제 버튼으로 대체). 비-realList 6종은 현행 그대로 삭제 컬럼 유지.
+  const gridColumns = useMemo<ColumnDefinition[]>(() => (
+    realList ? columns : [
+      ...columns,
+      {
+        title: '삭제', width: 60, hozAlign: 'center', headerSort: false,
+        formatter: () => '<span class="link danger">삭제</span>',
+        cellClick: (_e, cell) => setConfirmDel(cell.getRow().getData() as T),
+      },
+    ]
+  ), [columns, realList]);
 
   return (
     <div className={`screen${realList ? ' r8-real' : ''}`}>
@@ -119,7 +123,14 @@ export function MasterScreen<T extends { id: number }>({
             <input type="checkbox" disabled title="사용중단 포함 조회는 연동 예정입니다" /> 사용중단포함
           </label>
           <div className="r8-titlebar-right">
-            <input className="r8-enter-input" placeholder="입력 후 Enter" readOnly title="검색은 아래 검색창을 사용하세요" />
+            {/* R9-A(설계-R9-실물매칭.md §8.2): [입력 후 Enter] 기능화 — 상단 보조 검색바를 대체 */}
+            <input
+              className="r8-enter-input"
+              placeholder="입력 후 Enter"
+              value={q}
+              onChange={e => setQ(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); load(); } }}
+            />
             <button className="btn r8-ghost" disabled title="Fn 기능은 연동 예정입니다">Fn</button>
             <button className="btn r8-primary" onClick={load}>Search(F3)</button>
             <button className="btn r8-ghost" disabled title="옵션 설정은 연동 예정입니다">Option</button>
@@ -127,24 +138,27 @@ export function MasterScreen<T extends { id: number }>({
           </div>
         </div>
       )}
-      <div className="screen-bar">
-        <div className="search-group">
-          <input
-            className="input"
-            style={{ width: 260 }}
-            placeholder="코드/이름 검색"
-            value={q}
-            onChange={e => setQ(e.target.value)}
-          />
-          <button className="btn" onClick={load}>검색(F3)</button>
+      {/* R9-A(설계-R9-실물매칭.md §8.2): realList는 상단 보조 검색바(엑셀/신규(F2)와 하단 버튼바 중복)를 렌더 제외 */}
+      {!realList && (
+        <div className="screen-bar">
+          <div className="search-group">
+            <input
+              className="input"
+              style={{ width: 260 }}
+              placeholder="코드/이름 검색"
+              value={q}
+              onChange={e => setQ(e.target.value)}
+            />
+            <button className="btn" onClick={load}>검색(F3)</button>
+          </div>
+          <div className="btn-group">
+            <button className="btn" onClick={() => gridRef.current?.download('xlsx', `${title}.xlsx`, { sheetName: title })}>
+              엑셀
+            </button>
+            <button className="btn primary" onClick={() => setEditing({ ...defaults })}>신규(F2)</button>
+          </div>
         </div>
-        <div className="btn-group">
-          <button className="btn" onClick={() => gridRef.current?.download('xlsx', `${title}.xlsx`, { sheetName: title })}>
-            엑셀
-          </button>
-          <button className="btn primary" onClick={() => setEditing({ ...defaults })}>신규(F2)</button>
-        </div>
-      </div>
+      )}
       {helpText && <p className="hint">{helpText}</p>}
       <div className="screen-grid">
         <DataGrid<T>
@@ -187,6 +201,10 @@ export function MasterScreen<T extends { id: number }>({
           footer={
             <>
               <button className="btn" onClick={() => setEditing(null)}>취소</button>
+              {/* R9-A(설계-R9-실물매칭.md §8.1): realList는 삭제 컬럼 대신 편집 모달에 삭제 버튼 */}
+              {realList && editing.id ? (
+                <button className="btn danger" onClick={() => setConfirmDel(editing as unknown as T)}>삭제</button>
+              ) : null}
               <button className="btn primary" onClick={save}>저장</button>
             </>
           }>

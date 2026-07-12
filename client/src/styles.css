@@ -816,3 +816,61 @@ body { background: #f7f8f9; }
 .widget { border-color: var(--r8-border); } /* 위젯 카드 보더 #DEE2E6 */
 .favbar { background: #e9ecef; }            /* 즐겨찾기 바 실측 배경 */
 .favlink { color: #495057; }                /* 즐겨찾기 링크 실측 색 */
+
+/* ══ R9-A 실물매칭 ══ */
+/* 로스팅 입력(RoastInput) — 그리드 툴바(stub 버튼줄, §2.3) */
+.r9-prod-toolbar { display: flex; gap: 5px; margin: 4px 0 10px; flex-wrap: wrap; }
+
+/* (세금)계산서진행단계(EtaxInvoiceScreen) — 상태 요약 보드 14박스 + 5단계 인디케이터(§4) */
+.r9-etax-board { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 12px; }
+.r9-etax-group { font-size: 11.5px; font-weight: 700; color: var(--sub); min-width: 62px; }
+.r9-etax-box {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  border: 0.667px solid var(--r8-border); background: #fff; border-radius: 6px;
+  padding: 4px 10px; min-width: 64px; font-size: 11px; cursor: pointer; color: #495057;
+}
+.r9-etax-box b { font-size: 14px; font-variant-numeric: tabular-nums; }
+.r9-etax-box.on { border-color: var(--r8-primary); background: var(--accent-soft); color: var(--r8-primary); }
+.r9-etax-box.on b { color: var(--r8-primary); }
+.r9-etax-box.err b { color: var(--danger); }
+.r9-etax-box:disabled { color: #b6bdc9; cursor: not-allowed; }
+.r9-etax-box:disabled b { color: #b6bdc9; }
+.r9-etax-steps { display: inline-flex; gap: 2px; align-items: center; }
+.r9-etax-dot { width: 7px; height: 7px; border-radius: 50%; background: #dfe3ea; display: inline-block; }
+.r9-etax-dot.fill { background: var(--r8-primary); }
+
+/* 입/출금계좌 조회(CashScreen) — 출금행 연분홍(§5) */
+.tabulator-row.r9-cash-out,
+.tabulator-row.tabulator-row-even.r9-cash-out { background: var(--r8-neg-bg); }
+
+/* ══ R9-B 실물매칭 ══ */
+/* 판매일괄회계반영·거래처별채권 — 구분 라디오 줄(§3/§7) */
+.r9-radio-row { display: inline-flex; align-items: center; gap: 14px; font-size: 12.5px; color: #444; }
+.r9-radio-row label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+
+/* 기준일자 프리셋 배지(파랑 pill, [직접입력]/[전월+금월] 등, §3/§7) */
+.r9-preset-badge {
+  display: inline-flex; align-items: center; border-radius: 12px; padding: 3px 10px;
+  font-size: 11.5px; font-weight: 700; background: #f0f2f5; color: var(--sub); flex-shrink: 0;
+}
+.r9-preset-badge.on { background: var(--r8-primary); color: #fff; }
+
+/* 거래처별채권 — 잔액 배지 줄(§7) */
+.r9-balance-badge {
+  display: inline-flex; align-items: center; border-radius: 12px; padding: 3px 10px;
+  font-size: 11.5px; font-weight: 700; background: var(--accent-soft); color: var(--r8-primary); flex-shrink: 0;
+}
+
+/* 거래처별채권 — 양식 섹션 박스(§7) */
+.r9-form-sec {
+  border: 1px solid var(--r8-border); border-radius: 6px; background: #fbfcfe;
+  padding: 8px 12px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;
+}
+.r9-form-sec .sf-row { grid-template-columns: 96px 1fr; }
+
+/* 하단 프리셋 버튼 바(검색(F8) + 기간 프리셋들, §3/§7) */
+.r9-preset-bar { display: flex; align-items: center; gap: 6px; padding: 10px 0 2px; flex-wrap: wrap; }
+
+/* 전표조회(GlVoucherScreen) — 매출전표Ⅰ 행 연분홍(§6) */
+.tabulator-row.r9-glv-sale,
+.tabulator-row.tabulator-row-even.r9-glv-sale { background: var(--r8-neg-bg); }

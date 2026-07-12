@@ -259,6 +259,46 @@ accounting.get('/journal', (c) => {
 });
 
 // ══════════════════════════════════════════════════════════════
+// 전표조회(회계거래조회) — GET /api/gl-vouchers (읽기 전용, 전표 단위 1행)
+// ══════════════════════════════════════════════════════════════
+// entry_type → 입력메뉴 근사 매핑(실물 화면 표기용, 신규 테이블 없이 서버에서 계산)
+const GL_SOURCE_MENU = {
+  매출: '매출전표Ⅰ',
+  매입: '매입전표',
+  수금: '입금보고서',
+  지불: '지출결의서',
+  일반: '지출결의서',
+};
+
+accounting.get('/gl-vouchers', (c) => {
+  const fromQ = c.req.query('from');
+  const toQ = c.req.query('to');
+  const from = isValidDate(fromQ) ? fromQ : monthStartISO();
+  const to = isValidDate(toQ) ? toQ : todayISO();
+
+  const rows = db.prepare(`
+    SELECT j.id AS journal_id, j.io_date, j.doc_no, j.entry_type, j.summary,
+           p.name AS partner_name,
+           (SELECT COALESCE(SUM(jl.dr),0) FROM journal_line jl WHERE jl.journal_id=j.id) AS amount
+    FROM journal j
+    LEFT JOIN partner p ON p.id = j.partner_id
+    WHERE j.io_date >= ? AND j.io_date <= ?
+    ORDER BY j.io_date DESC, j.id DESC
+  `).all(from, to);
+
+  return c.json(rows.map((r) => ({
+    journal_id: r.journal_id,
+    io_date: r.io_date,
+    doc_no: r.doc_no,
+    entry_type: r.entry_type,
+    source_menu: GL_SOURCE_MENU[r.entry_type] ?? r.entry_type,
+    amount: r.amount,
+    partner_name: r.partner_name ?? null,
+    summary: r.summary,
+  })));
+});
+
+// ══════════════════════════════════════════════════════════════
 // 거래처원장 — GET /api/partner-ledger
 // ══════════════════════════════════════════════════════════════
 accounting.get('/partner-ledger', (c) => {

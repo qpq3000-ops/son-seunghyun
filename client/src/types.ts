@@ -894,3 +894,17 @@ export interface BackupFile { name: string; size: number; mtime: string; }
 export interface BackupList { dir: string; files: BackupFile[]; }
 export interface BackupNowResult { ok: boolean; file: { name: string; size: number }; }
 export interface BackupRestoreResult { ok: boolean; needs_restart: boolean; pre_backup: string; message: string; }
+
+// ───────────────────────── R9: 실물 매칭 — 전표조회(회계거래조회) ─────────────────────────
+
+// 전표조회(회계거래조회) 1행 — GET /api/gl-vouchers (설계-R9-실물매칭.md §1.2)
+export interface GlVoucherRow {
+  journal_id: number;
+  io_date: string;
+  doc_no: string;
+  entry_type: '매출' | '매입' | '수금' | '지불' | '일반';
+  source_menu: string;      // 입력메뉴(서버계산)
+  amount: number;
+  partner_name: string | null;
+  summary: string;
+}

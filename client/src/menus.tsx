@@ -42,6 +42,9 @@ import { ExcelIoScreen } from './screens/ExcelIoScreen';
 import { BackupScreen } from './screens/BackupScreen';
 import { MigrateScreen } from './screens/MigrateScreen';
 import { StubScreen } from './screens/StubScreen';
+import { SaleBulkPostScreen } from './screens/SaleBulkPostScreen';
+import { GlVoucherScreen } from './screens/GlVoucherScreen';
+import { ArByPartnerScreen } from './screens/ArByPartnerScreen';
 
 // 전체 메뉴 트리 (docs/설계-R3-IA재편성.md §1 — 이카운트식 대메뉴 재편성) — 미구현 메뉴는 Placeholder로 Phase 표시
 export interface MenuDef {
@@ -91,6 +94,8 @@ export const MENUS: MenuDef[] = [
   m('receipt', '재고Ⅰ', '수금입력', 1, ReceiptScreen, '영업관리'),
   m('receivable', '재고Ⅰ', '미수금현황', 1, ReceivableScreen, '영업관리'),
   m('statement-print', '재고Ⅰ', '거래명세서인쇄', 1, StatementPrint, '영업관리'),
+  m('sale-bulk-acct', '재고Ⅰ', '판매일괄회계반영', 1, SaleBulkPostScreen, '영업관리'),
+  m('ar-by-partner', '재고Ⅰ', '거래처별채권', 1, ArByPartnerScreen, '영업관리'),
   m('message', '재고Ⅰ', '거래처 메시지', 4, MessageScreen, '영업관리'),
 
   // ── 재고Ⅰ — 구매관리 ──
@@ -140,6 +145,7 @@ export const MENUS: MenuDef[] = [
   m('general-ledger', '회계Ⅰ', '총계정원장', 5, R('general-ledger')),
   m('cashbook', '회계Ⅰ', '현금출납장', 5, R('cashbook')),
   m('partner-ledger', '회계Ⅰ', '거래처원장', 3, PartnerLedger),
+  m('gl-voucher', '회계Ⅰ', '전표조회', 3, GlVoucherScreen),
   m('trial-balance', '회계Ⅰ', '합계잔액시산표', 5, R('trial-balance')),
   m('income-statement', '회계Ⅰ', '손익계산서', 5, PnlStatement),
   m('monthly-pl', '회계Ⅰ', '월별손익', 3, MonthlyPL),
