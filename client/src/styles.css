@@ -1,0 +1,996 @@
+/* 로스팅 ERP — 자체 제작 테마 (이카운트의 밀도 높은 업무 화면 '느낌'만 재현, 자산 복제 없음) */
+:root {
+  --accent: #1f48d4;       /* 주 파랑 — 이카운트 F12 실측 rgb(31,72,212) */
+  --accent-soft: #eef2fd;  /* 활성 메뉴 연파랑 배경 */
+  --brand: #d6423a;        /* 자체 로고 색 */
+  --bg: #f3f4f6;           /* 콘텐츠 회색 배경 */
+  --card: #ffffff;
+  --line: #e5e8ee;
+  --txt: #26282c;
+  --sub: #73798a;
+  --danger: #d33;
+  --ok: #1f9d55;
+  --gold: #f5a623;
+}
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  font-family: 'Malgun Gothic', Arial, 'Apple SD Gothic Neo', Gulim, system-ui, sans-serif; /* 이카운트 F12 실측 */
+  font-size: 12.5px; color: var(--txt); background: var(--bg);
+}
+button { font-family: inherit; }
+code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
+
+/* ── 전역 레이아웃 (이카운트 실화면 구조) ── */
+.shell { display: flex; flex-direction: column; height: 100%; }
+
+/* 최상단 즐겨찾기 바 */
+.favbar {
+  display: flex; align-items: center; gap: 8px;
+  background: #f7f8fa; border-bottom: 1px solid var(--line);
+  padding: 4px 12px; min-height: 32px; font-size: 12px;
+}
+.menusearch { position: relative; display: flex; align-items: center; }
+.menusearch .ms-icon { position: absolute; left: 8px; font-size: 11px; opacity: .55; }
+.menusearch input {
+  width: 150px; border: 1px solid var(--line); border-radius: 14px;
+  padding: 4px 10px 4px 26px; font-size: 12px; background: #fff; font-family: inherit;
+}
+.menusearch input:focus { outline: none; border-color: var(--accent); }
+.menusearch-drop {
+  position: absolute; top: 110%; left: 0; z-index: 200; min-width: 240px;
+  background: #fff; border: 1px solid var(--line); border-radius: 6px;
+  box-shadow: 0 8px 22px rgba(20,30,60,.14); padding: 4px 0;
+}
+.menusearch-drop button {
+  display: block; width: 100%; text-align: left; background: none; border: 0;
+  padding: 6px 12px; font-size: 12.5px; cursor: pointer;
+}
+.menusearch-drop button:hover { background: var(--accent-soft); color: var(--accent); }
+.ms-group { color: var(--sub); font-size: 11px; margin-right: 4px; }
+.sitemap-btn {
+  background: #8a94a6; color: #fff; border: 0; border-radius: 13px;
+  padding: 4px 12px; font-size: 11.5px; cursor: pointer;
+}
+.sitemap-btn:hover { background: #6f7a8e; }
+.favlinks { display: flex; gap: 2px; overflow-x: auto; flex: 1; }
+.favlink {
+  background: none; border: 0; color: #3d4350; font-size: 12px; cursor: pointer;
+  padding: 4px 9px; white-space: nowrap; border-radius: 4px;
+}
+.favlink:hover { color: var(--accent); background: #eef1f6; }
+.favhint { color: #a2a9b6; font-size: 11.5px; padding: 4px 6px; }
+.favbar-pin { opacity: .45; font-size: 12px; }
+
+/* 로고 / 대메뉴 바 */
+.logobar {
+  display: flex; align-items: center; gap: 18px;
+  background: #fff; border-bottom: 1px solid var(--line);
+  padding: 0 16px; min-height: 52px;
+}
+.logo {
+  background: none; border: 0; cursor: pointer; font-size: 21px; letter-spacing: -0.5px;
+  color: var(--brand); font-family: inherit; display: flex; align-items: center; gap: 5px;
+}
+.logo b { font-weight: 900; }
+.logo-mark { font-size: 19px; }
+.groupmenu { display: flex; gap: 2px; }
+.groupmenu button {
+  background: none; border: 2px solid transparent; border-radius: 8px;
+  color: #33363d; font-size: 14.5px; font-weight: 600; cursor: pointer;
+  padding: 7px 13px; font-family: inherit;
+}
+.groupmenu button:hover { color: var(--accent); }
+.groupmenu button.on { border-color: var(--accent); color: var(--accent); }
+.logobar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.logobar-right .icon-btn { font-size: 16px; }
+.profile-dot {
+  width: 30px; height: 30px; border-radius: 50%; background: #eceff4;
+  display: flex; align-items: center; justify-content: center; color: var(--sub); font-size: 15px;
+}
+
+/* 본문: 좌측 메뉴트리 + 콘텐츠 */
+.body { flex: 1; min-height: 0; display: flex; }
+.sidebar {
+  width: 228px; flex: none; background: #fff; border-right: 1px solid var(--line);
+  overflow-y: auto; padding: 10px 8px;
+}
+.side-item { display: flex; align-items: center; border-radius: 8px; }
+.side-item.on { background: var(--accent-soft); }
+.side-item.on .side-link { color: var(--accent); font-weight: 700; }
+.side-link {
+  flex: 1; text-align: left; background: none; border: 0; cursor: pointer;
+  padding: 8px 6px 8px 14px; font-size: 13px; color: #3a3f4a; font-family: inherit;
+  display: flex; align-items: center; gap: 6px;
+}
+.side-link:hover { color: var(--accent); }
+.side-link.dim { color: #a4abb8; }
+.side-dot { font-size: 7px; color: var(--accent); }
+.side-item .star { visibility: hidden; }
+.side-item:hover .star, .side-item .star.on { visibility: visible; }
+.phase-tag {
+  font-size: 10px; color: #9aa4b1;
+  border: 1px solid #dde2e9; border-radius: 4px; padding: 0 4px; margin-left: 4px;
+}
+.star {
+  background: none; border: 0; cursor: pointer; color: #ccd3dd;
+  font-size: 13px; padding: 0 8px 0 2px;
+}
+.star.on { color: var(--gold); }
+.star.big { font-size: 17px; padding: 0 2px; }
+
+.content { flex: 1; min-width: 0; background: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
+.titlebar {
+  display: flex; align-items: center; gap: 7px; padding: 12px 18px 8px;
+}
+.titlebar h2 { margin: 0; font-size: 16px; font-weight: 800; }
+.titlebar-right { margin-left: auto; display: flex; gap: 6px; }
+.screen-card {
+  flex: 1; min-height: 0; margin: 0 14px 14px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.tab-pane { flex: 1; min-width: 0; flex-direction: column; }
+
+/* 사이트맵 오버레이 */
+.sitemap-overlay {
+  position: fixed; inset: 0; z-index: 400; background: rgba(25,32,48,.35);
+  display: flex; align-items: flex-start; justify-content: center; padding: 60px 20px;
+}
+.sitemap {
+  background: #fff; border-radius: 10px; box-shadow: 0 20px 60px rgba(15,25,45,.3);
+  padding: 20px 24px; display: grid; grid-template-columns: repeat(3, 240px);
+  gap: 16px 22px; max-height: 80vh; overflow: auto;
+}
+.sitemap-group h3 {
+  margin: 0 0 6px; font-size: 13.5px; border-bottom: 2px solid #2f3542; padding-bottom: 6px;
+}
+.sitemap-group button {
+  display: block; width: 100%; text-align: left; background: none; border: 0;
+  padding: 5px 2px; font-size: 12.5px; color: #3a3f4a; cursor: pointer; font-family: inherit;
+}
+.sitemap-group button:hover { color: var(--accent); text-decoration: underline; }
+.sitemap-group button.dim { color: #a4abb8; }
+
+/* 화면 공통 */
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 12px 14px; }
+.screen-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 8px; flex-wrap: wrap;
+}
+.search-group, .btn-group { display: flex; gap: 6px; align-items: center; }
+.screen-grid { flex: 1; min-height: 0; }
+.datagrid { height: 100%; border: 1px solid var(--line); }
+.hint { color: var(--sub); font-size: 12.5px; margin: 2px 0 8px; }
+
+/* ── 버튼/입력 ── */
+.btn {
+  border: 1px solid var(--line); background: #fff; color: var(--txt);
+  border-radius: 5px; padding: 5px 12px; font-size: 12.5px; cursor: pointer; font-weight: 600;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.primary { background: var(--accent); border: 0.667px solid var(--accent); color: #fff; }
+.btn.primary:hover { background: #1a3db6; color: #fff; }
+.btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+.btn.small { padding: 4px 10px; font-size: 12px; }
+.btn:disabled { opacity: .55; cursor: default; }
+.input {
+  border: 1px solid var(--line); border-radius: 3px; padding: 5px 8px;
+  font-size: 12.5px; font-family: inherit; width: 100%; background: #fff;
+}
+.input:focus { outline: none; border-color: var(--accent); }
+.input.lookup { background: #f8fafd; cursor: pointer; }
+.icon-btn { background: none; border: 0; cursor: pointer; color: var(--sub); font-size: 13px; }
+.icon-btn:hover { color: var(--danger); }
+.link { color: var(--accent); cursor: pointer; text-decoration: underline; font-size: 12.5px; }
+.link.danger { color: var(--danger); }
+.check { width: 17px; height: 17px; }
+
+/* ── 모달 ── */
+.modal-back {
+  position: fixed; inset: 0; background: rgba(25, 34, 50, .45);
+  display: flex; align-items: center; justify-content: center; z-index: 300;
+}
+.modal {
+  background: #fff; border-radius: 4px; max-width: 94vw; max-height: 88vh;
+  display: flex; flex-direction: column; box-shadow: 0 18px 50px rgba(15, 25, 45, .3);
+}
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 13.5px;
+}
+.modal-body { padding: 14px 16px; overflow: auto; }
+.modal-foot {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 11px 16px; border-top: 1px solid var(--line);
+}
+
+/* ── 폼 ── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+.form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
+.form-grid .span2 { grid-column: span 2; }
+.form-label { color: var(--sub); font-weight: 600; }
+.req { color: var(--danger); font-style: normal; margin-left: 3px; }
+.field-hint { color: #97a1af; font-size: 11.5px; }
+
+/* ── 코드도움 ── */
+.codehelp-list { margin-top: 10px; max-height: 360px; overflow: auto; border: 1px solid var(--line); }
+.mini-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mini-table th {
+  background: #f3f5f9; color: var(--sub); font-size: 12px; text-align: left;
+  padding: 5px 8px; border-bottom: 1px solid var(--line); position: sticky; top: 0;
+}
+.mini-table td { padding: 5px 8px; border-bottom: 1px solid #edf0f4; cursor: pointer; }
+.mini-table tr.sel td { background: #e8f1fd; }
+.mini-table td.num { text-align: right; }
+.mini-table td.empty { text-align: center; color: var(--sub); padding: 22px; cursor: default; }
+
+/* ── 전표 폼 (VoucherForm) ── */
+.voucher { display: flex; flex-direction: column; gap: 10px; height: 100%; }
+.voucher-head { border: 1px solid var(--line); border-radius: 3px; padding: 8px 10px; background: #f8fafc; }
+.vh-title { font-weight: 800; font-size: 14.5px; margin-bottom: 8px; }
+.vh-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.vh-title-row .vh-title { margin-bottom: 0; }
+.vh-actions { display: flex; gap: 8px; }
+.vh-fields { display: grid; grid-template-columns: repeat(2, minmax(300px, 470px)); gap: 8px 40px; }
+.vh-fields label { display: grid; grid-template-columns: 76px 1fr; align-items: center; font-size: 12.5px; color: #444; }
+.vh-fields label.grow { grid-column: 1 / -1; }
+.line-toolbar { display: flex; gap: 5px; margin: 0 0 2px; flex-wrap: wrap; }
+.voucher-lines { width: 100%; border-collapse: collapse; font-size: 13px; }
+.voucher-lines th {
+  background: #f3f5f9; border: 1px solid var(--line); padding: 6px 6px;
+  font-size: 12px; color: var(--sub);
+}
+.voucher-lines td { border: 1px solid #e4e8ee; padding: 2px 4px; }
+.voucher-lines td.num { text-align: right; padding-right: 8px; }
+.voucher-lines td.ro { background: #f8fafc; }
+.voucher-lines tfoot td { background: #eef2f8; padding: 7px 8px; }
+.cell { width: 100%; border: 0; background: transparent; font-size: 13px; font-family: inherit; padding: 5px 4px; }
+.cell:focus { outline: 2px solid var(--accent); border-radius: 3px; background: #fff; }
+.cell.num { text-align: right; }
+.cell.lookup { cursor: pointer; color: var(--accent); }
+.voucher-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ── 로스팅입력 (RoastInput 전용 보조 스타일 — 기타이동 4종도 동일 레이아웃 재사용) ── */
+.roast-screen { overflow-y: auto; }
+.roast-yield { font-size: 14px; font-weight: 600; padding: 9px 12px; background: #f3f5f9; border: 1px solid var(--line); border-radius: 8px; }
+.roast-yield b { color: var(--accent); }
+.roast-history { margin-top: 14px; }
+
+/* ── 기타이동/재고조정 보조 스타일 (MoveScreens 전용) ── */
+.ok-text { color: var(--ok); }
+.adjust-hide-zero { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--sub); margin: 4px 0; }
+
+/* ── 재고수불부 요약 바 ── */
+.ledger-summary b { color: var(--txt); }
+
+/* ── 강조 텍스트 (미수잔액 초과·안전재고 미달 등) ── */
+.danger-text { color: var(--danger); }
+
+/* ── 대시보드 ── */
+.dashboard { overflow: auto; }
+.portlets { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 12px; }
+.portlet {
+  background: #fff; border: 1px solid var(--line); border-radius: 3px;
+  padding: 12px 14px; min-height: 84px; position: relative;
+}
+.portlet.off { background: #f6f8fa; color: var(--sub); }
+.portlet-title { font-weight: 700; margin-bottom: 8px; }
+.portlet-body { font-size: 13px; }
+.portlet-phase {
+  position: absolute; top: 10px; right: 12px; font-size: 11px;
+  color: #9aa4b1; border: 1px solid #dde2e9; border-radius: 4px; padding: 1px 6px;
+}
+
+/* ── 자리표시 화면 ── */
+.placeholder { align-items: center; justify-content: center; }
+.ph-box { text-align: center; color: var(--sub); }
+.ph-icon { font-size: 34px; margin-bottom: 6px; }
+.ph-box h3 { margin: 4px 0 8px; color: var(--txt); }
+
+/* ── 설정 ── */
+.settings { overflow: auto; }
+.settings h3 { margin: 18px 0 10px; font-size: 14.5px; }
+.settings h3:first-child { margin-top: 0; }
+
+/* ── 토스트 ── */
+.toast-wrap {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; gap: 8px; z-index: 500; align-items: center;
+}
+.toast {
+  background: #222c3c; color: #fff; border-radius: 22px; padding: 9px 20px;
+  font-size: 13.5px; box-shadow: 0 6px 18px rgba(10, 20, 40, .25);
+  animation: toast-in .18s ease-out;
+}
+.toast.error { background: #b3261e; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
+
+/* ── 거래명세서/견적서 인쇄 (PrintDoc, 설계 4.7) — 화면에는 숨겨져 있다가 window.print() 시에만 표시 ── */
+@media screen { .print-only { display: none; } }
+@media print {
+  body * { visibility: hidden; }
+  .print-only, .print-only * { visibility: visible; }
+  .print-only { position: absolute; inset: 0; padding: 12mm; }
+  @page { size: A4 portrait; margin: 12mm; }
+  .print-sheet { font-size: 12px; color: #000; }
+  .print-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  .print-title { font-size: 22px; font-weight: 800; letter-spacing: 4px; }
+  .print-meta { font-size: 11px; }
+  .print-parties { display: flex; gap: 8px; margin-bottom: 10px; }
+  .print-party { flex: 1; border: 1px solid #000; padding: 6px 8px; }
+  .print-party-title { font-weight: 700; margin-bottom: 4px; }
+  .print-party-table { width: 100%; border-collapse: collapse; }
+  .print-party-table th { text-align: left; color: #444; font-weight: 600; width: 64px; padding: 1px 4px; }
+  .print-party-table td { padding: 1px 4px; }
+  .print-items { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+  .print-items th, .print-items td { border: 1px solid #000; padding: 4px 6px; }
+  .print-items td.num { text-align: right; }
+  .print-items tr, .print-party { page-break-inside: avoid; }
+  .print-memo { margin: 6px 0; }
+  .print-sign { margin-top: 24px; text-align: right; }
+}
+
+/* ── Tabulator 밀도 조정 ── */
+.tabulator { font-size: 12.5px; border: 0; }
+.tabulator .tabulator-header .tabulator-col {
+  background: #f3f5f9; border-right: 1px solid var(--line);
+}
+.tabulator .tabulator-header .tabulator-col .tabulator-col-title {
+  font-size: 12.5px; color: var(--sub); font-weight: 700;
+}
+.tabulator-row .tabulator-cell { border-right: 1px solid #eef1f5; padding: 4px 7px; }
+.tabulator-row.tabulator-row-even { background: #fbfcfe; }
+.tabulator-row:hover { background: #f0f5fc !important; }
+
+/* ── 달력(CalendarScreen, 설계 4.9) — index.html 달력 UX 계승(로스팅함=빨강, 예정=주황) ── */
+.cal-wrap { display: flex; flex-direction: column; gap: 10px; height: 100%; }
+.cal-nav { display: flex; align-items: center; gap: 12px; }
+.cal-nav b { font-size: 15px; min-width: 120px; text-align: center; }
+.cal-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.cal-table th { background: #f3f5f9; color: var(--sub); font-weight: 700; font-size: 12px; padding: 5px; border: 1px solid var(--line); }
+.cal-table td { height: 76px; vertical-align: top; border: 1px solid var(--line); padding: 4px 5px; cursor: pointer; }
+.cal-table td.empty { background: #fafbfc; cursor: default; }
+.cal-table td.has-done { background: #fde8e8; }    /* 로스팅함(오늘·지난) */
+.cal-table td.has-future { background: #fef3e2; }  /* 예정(앞으로 납기) */
+.cal-table td.today { outline: 2px solid var(--accent); outline-offset: -2px; }
+.cal-table td.sel { box-shadow: inset 0 0 0 2px var(--accent); }
+.cal-dnum { font-weight: 700; font-size: 12.5px; }
+.cal-badge { display: block; margin-top: 3px; font-size: 11px; color: var(--txt); line-height: 1.4; }
+.cal-badge.kg { color: #b3261e; font-weight: 600; }
+.cal-badge.due { color: #c67c00; }
+.cal-legend { display: flex; gap: 16px; font-size: 12px; color: var(--sub); }
+.cal-legdot { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+.cal-detail { border: 1px solid var(--line); border-radius: 3px; padding: 10px 12px; }
+.cal-detail .row-ev { display: flex; gap: 10px; padding: 4px 0; border-bottom: 1px dashed var(--line); font-size: 12.5px; }
+.cal-detail .row-ev .k { color: var(--sub); min-width: 60px; }
+
+/* ── 거래명세서인쇄 (이카운트 실화면 재현) ── */
+.stmt-screen { overflow-y: auto; }
+.stmt-search { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: #fbfcfe; }
+.stmt-cond { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.stmt-cond label { color: var(--sub); font-size: 12.5px; font-weight: 600; }
+.w-140 { width: 140px; } .w-180 { width: 180px; }
+.stmt-presets { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
+.stmt-list { margin-top: 16px; }
+.stmt-list-title { text-align: center; font-size: 21px; font-weight: 800; margin: 6px 0 10px; }
+.stmt-list-meta { display: flex; justify-content: space-between; font-size: 12.5px; color: #333; margin-bottom: 5px; }
+.stmt-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.stmt-table th { background: #f3f5f9; border: 1px solid var(--line); padding: 6px; color: #333; }
+.stmt-table td { border: 1px solid #e4e8ee; padding: 5px 7px; }
+.stmt-table td.num, .stmt-table th.num { text-align: right; }
+.stmt-table td.sub { color: var(--sub); }
+.stmt-table .empty-cell { text-align: center; color: var(--sub); padding: 20px; }
+.stmt-table tfoot td { background: #eef2f8; padding: 6px 7px; }
+/* 명세서 양식 */
+.stmt-sheet { font-size: 12.5px; color: #111; }
+.stmt-head { display: flex; gap: 10px; align-items: stretch; }
+.stmt-left { flex: 1; }
+.stmt-title { font-size: 24px; font-weight: 800; letter-spacing: 6px; margin-bottom: 8px; }
+.stmt-recv { border: 1px solid #333; padding: 8px 10px; line-height: 1.55; }
+.stmt-recv .sub { color: #555; font-size: 11.5px; margin-top: 4px; }
+.stmt-supplier { border-collapse: collapse; font-size: 11.5px; min-width: 380px; }
+.stmt-supplier th, .stmt-supplier td { border: 1px solid #333; padding: 4px 7px; }
+.stmt-supplier th { background: #f2f3f5; font-weight: 600; white-space: nowrap; }
+.stmt-sup-label { width: 22px; text-align: center; }
+.stmt-amount { display: flex; justify-content: space-between; border: 2px solid #111; margin-top: 8px; padding: 7px 12px; font-weight: 800; font-size: 14px; }
+.stmt-lines { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+.stmt-lines th { border: 1px solid #333; background: #f2f3f5; padding: 5px; }
+.stmt-lines td { border: 1px solid #666; padding: 4px 7px; }
+.stmt-lines td.num { text-align: right; } .stmt-lines td.ctr { text-align: center; }
+.stmt-totals { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+.stmt-totals th, .stmt-totals td { border: 1px solid #333; padding: 5px 7px; }
+.stmt-totals th { background: #f2f3f5; white-space: nowrap; }
+.stmt-totals td.num { text-align: right; } .stmt-totals td.ctr, .stmt-totals th.ctr { text-align: center; }
+.stmt-bank { display: flex; border: 1px solid #333; margin-top: 8px; }
+.stmt-bank-label { width: 90px; display: flex; align-items: center; justify-content: center; background: #f2f3f5; border-right: 1px solid #333; font-weight: 700; }
+.stmt-bank-body { padding: 8px 12px; white-space: pre-line; line-height: 1.6; flex: 1; }
+
+/* ── MyPage 대시보드 위젯 (이카운트 실화면 재현) ── */
+.mypage { overflow-y: auto; }
+.mypage-head { display: flex; align-items: center; gap: 8px; font-size: 15px; margin-bottom: 12px; }
+.mypage-head .mp-nav { color: var(--sub); cursor: default; }
+.mypage-head .mp-title { font-weight: 700; }
+.widgets { display: grid; grid-template-columns: 1fr 0.7fr 1.5fr; gap: 14px; align-items: start; }
+.widget { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-height: 70px; }
+.widget.wide { grid-row: span 2; }
+.widget.slim { min-height: 0; }
+.widget-head { display: flex; align-items: center; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+.widget-icons { color: #b6bdc9; font-size: 12px; display: flex; gap: 8px; }
+.widget-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.widget-table th { color: #444; font-weight: 700; padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: left; }
+.widget-table td { padding: 5px 6px; border-bottom: 1px solid #f0f2f5; }
+.widget-table .num { text-align: right; }
+.widget-table .blue { color: var(--accent); }
+
+/* ── 잔여메뉴 7종 ── */
+/* 일반전표 차대변 균형 바 */
+.gl-balance { display:flex; gap:18px; align-items:center; padding:8px 12px; border:1px solid var(--line);
+  border-radius:8px; background:#fbfcfe; font-size:13px; margin:8px 0; }
+.gl-balance b { font-variant-numeric:tabular-nums; }
+.gl-balance.off { border-color:#e6b0b0; background:#fdf4f4; }
+.gl-balance.on  { border-color:#bfe0c4; background:#f4fbf5; }
+/* 자금현황 요약 타일 */
+.cash-tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:10px 0 16px; }
+.cash-tile { border:1px solid var(--line); border-radius:10px; padding:12px 14px; background:#fff; }
+.cash-tile .ct-title { font-size:12.5px; color:var(--sub); font-weight:700; margin-bottom:6px; }
+.cash-tile .ct-net { font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; }
+.cash-tile .ct-io { font-size:12px; color:#444; margin-top:4px; display:flex; justify-content:space-between; }
+.cash-tile.total { background:#f3f7ff; border-color:#cfe0ff; }
+/* 거래처 메시지 카드 */
+.msg-templates { border:1px solid var(--line); border-radius:8px; padding:10px 12px; background:#fbfcfe; margin:10px 0; }
+.msg-tabs { display:flex; gap:8px; margin-bottom:8px; }
+.msg-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:12px; }
+.msg-card { border:1px solid var(--line); border-radius:10px; padding:12px; background:#fff; }
+.msg-card h4 { margin:0 0 8px; font-size:14px; }
+.msg-card textarea { width:100%; min-height:120px; resize:vertical; font-size:12.5px; line-height:1.55; }
+.msg-card .msg-actions { display:flex; justify-content:flex-end; margin-top:8px; }
+/* 로트조회/생두 이력 상세 패널 */
+.detail-panel { border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-top:12px; background:#fbfcfe; }
+.detail-panel .dp-title { font-weight:700; font-size:13px; margin-bottom:8px; }
+.detail-panel .dp-title-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.detail-panel .dp-title-row .dp-title { margin-bottom:0; }
+/* MRP 강조 셀은 기존 .danger-text 재사용 */
+.widget-empty { color: var(--sub); font-size: 12.5px; margin: 6px 0; }
+
+/* ── R1: 보고서 엔진(ReportScreen) 공통 — 기간 프리셋 pill + 검색조건 저장 탭 ── */
+.rpt-presets { display: flex; gap: 5px; margin: 2px 0 8px; flex-wrap: wrap; }
+.report-tabs { display: flex; align-items: flex-end; gap: 3px; margin: 0 0 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.report-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--line); border-bottom: none; background: #eef1f6; color: var(--sub);
+  padding: 5px 12px; font-size: 12.5px; font-weight: 600; border-radius: 5px 5px 0 0;
+  cursor: pointer; position: relative; top: 1px;
+}
+.report-tab.on { background: #fff; color: var(--txt); border-color: var(--accent); }
+.report-tab-x { color: #a4abb8; font-size: 11px; line-height: 1; }
+.report-tab-x:hover { color: var(--danger); }
+.report-tab-add {
+  border: 1px dashed var(--line); background: #fff; color: var(--sub);
+  border-radius: 5px 5px 0 0; padding: 5px 10px; font-size: 13px; cursor: pointer;
+}
+.report-tab-add:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── R1: 손익계산서(PnlStatement) 서식 — StatementPrint 인쇄 패턴(.print-only/.print-sheet) 재사용 ── */
+.pnl-screen { overflow-y: auto; }
+.pnl-sheet { font-size: 12.5px; color: #111; max-width: 640px; margin: 16px auto 0; }
+.pnl-title { text-align: center; font-size: 22px; font-weight: 800; letter-spacing: 6px; margin-bottom: 10px; }
+.pnl-meta { display: flex; justify-content: space-between; font-size: 12.5px; color: #333; margin-bottom: 8px; }
+.pnl-table { width: 100%; border-collapse: collapse; }
+.pnl-table th { background: #f3f5f9; border: 1px solid #333; padding: 7px; }
+.pnl-table th.num, .pnl-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.pnl-table td { border: 1px solid #ccc; padding: 6px 10px; }
+.pnl-emph td { font-weight: 800; border-top: 2px solid #333; background: #fafbfe; }
+.pnl-detail td { color: #666; font-size: 12px; }
+.pnl-detail .pnl-detail-name { padding-left: 24px; }
+.pnl-empty { text-align: center; color: var(--sub); padding: 24px; }
+
+/* ── R3: IA 재편성 — 서브탭 스트립 · 2단 사이드바 · 빈 대메뉴 · 사이트맵 서브그룹(설계-R3-IA재편성.md §2/§4) ── */
+.subtabs {
+  display: flex; gap: 2px; background: #fff; border-bottom: 1px solid var(--line);
+  padding: 0 16px;
+}
+.subtabs button {
+  background: none; border: 0; border-bottom: 2px solid transparent;
+  color: var(--sub); font-size: 12.5px; font-weight: 600; cursor: pointer;
+  padding: 8px 12px; font-family: inherit;
+}
+.subtabs button:hover { color: var(--accent); }
+.subtabs button.on { color: var(--accent); border-bottom-color: var(--accent); }
+
+.side-section {
+  font-size: 11.5px; font-weight: 700; color: var(--sub);
+  padding: 6px 10px 4px; margin-top: 2px;
+}
+
+.groupmenu button.reserved { color: #c3c8d2; cursor: default; }
+.groupmenu button.reserved:hover { color: #c3c8d2; }
+
+.sitemap-sub h4 {
+  margin: 8px 0 4px; font-size: 12px; color: var(--sub); font-weight: 700;
+}
+.sm-reserved { color: #a4abb8; font-size: 12px; }
+
+/* ── R3: MyPage 위젯 — 마이너스 재고 강조 · 미수금 TOP · 달력 미니(설계 §4.3) ── */
+.widget-table .neg { color: var(--danger); font-weight: 700; }
+.mini-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: 11px; }
+.mini-cal .mc-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; border-radius: 4px; color: #555; }
+.mini-cal .mc-day.dow { color: #9aa4b1; font-weight: 700; aspect-ratio: auto; }
+.mini-cal .mc-day.today { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.mini-cal .mc-dot { display: flex; gap: 2px; margin-top: 1px; }
+.mini-cal .mc-dot i { width: 4px; height: 4px; border-radius: 50%; display: inline-block; }
+.mc-dot .d-roast { background: #b5651d; } .mc-dot .d-sale { background: var(--accent); } .mc-dot .d-due { background: var(--gold); }
+
+/* ── R3: 재고불러오기/이익계산/찾기 모달 공용 — mini-table 마이너스 강조(범용, widget-table 밖에서도 사용) ── */
+.mini-table .neg, .voucher-lines .neg { color: var(--danger); font-weight: 700; }
+
+/* ══════════════════════════ R4: 세무 + 회계Ⅱ (설계-R4-세무회계2.md §4.7) ══════════════════════════ */
+
+/* 외부 전송 stub 버튼(국세청/전자발행 전송) — 항상 비활성, 인쇄 시 숨김 */
+.stub-btn { color: #9aa4b1 !important; border-color: var(--line) !important; cursor: not-allowed !important; }
+.stub-btn:hover { color: #9aa4b1 !important; border-color: var(--line) !important; }
+@media print { .stub-btn { display: none; } }
+
+/* ── 부가가치세신고서(VatReturn) — pnl-sheet 톤 재사용 서식 ── */
+.vat-screen { overflow-y: auto; }
+.vat-sheet { font-size: 12.5px; color: #111; max-width: 720px; margin: 16px auto 0; }
+.vat-title { text-align: center; font-size: 22px; font-weight: 800; letter-spacing: 6px; margin-bottom: 10px; }
+.vat-meta { display: flex; justify-content: space-between; font-size: 12.5px; color: #333; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; }
+.vat-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.vat-table th { background: #f3f5f9; border: 1px solid #333; padding: 7px; }
+.vat-table th.num, .vat-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.vat-table td { border: 1px solid #ccc; padding: 6px 10px; }
+.vat-table .vat-sec { text-align: center; font-weight: 700; background: #fafbfe; }
+.vat-table .vat-emph td { font-weight: 700; background: #fafbfe; }
+.vat-table .vat-final td { font-size: 13.5px; border-top: 2px solid #333; }
+.vat-note { margin-top: 8px; }
+
+/* ── 세금계산서합계표(TaxInvoiceReport) — stmt-sheet 톤 재사용, stmt-table 그대로 사용 ── */
+.tax-sum-screen { overflow-y: auto; }
+.tax-sum-sheet { font-size: 12.5px; color: #111; }
+.tax-sum-block { margin-bottom: 22px; }
+.tax-sum-title { text-align: center; font-size: 18px; font-weight: 800; margin: 6px 0 10px; }
+.tax-sum-meta { display: flex; justify-content: space-between; font-size: 12.5px; color: #333; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; }
+
+/* ── 전자세금계산서 진행단계(EtaxInvoiceScreen) — 단계별 배지 행 ── */
+.etax-screen { overflow-y: auto; }
+.etax-badges { display: flex; gap: 8px; margin: 4px 0 10px; flex-wrap: wrap; }
+.etax-badge {
+  border: 1px solid var(--line); background: #fbfcfe; color: var(--txt);
+  border-radius: 14px; padding: 5px 12px; font-size: 12px; cursor: pointer; font-weight: 600;
+}
+.etax-badge b { margin-left: 4px; }
+.etax-badge:hover { border-color: var(--accent); color: var(--accent); }
+.etax-badge.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+/* ── 고정자산등록(FixedAssetScreen) — 감가상각 스케줄/현황 패널 ── */
+.fa-screen { overflow-y: auto; }
+.fa-schedule { margin-top: 14px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: #fbfcfe; }
+.fa-schedule-head { display: flex; gap: 16px; align-items: center; font-size: 13px; margin-bottom: 8px; flex-wrap: wrap; }
+.fa-schedule-head span { color: var(--sub); }
+.fa-schedule-scroll { max-height: 260px; overflow: auto; border: 1px solid var(--line); }
+.fa-dep-section { margin-top: 18px; }
+.dep-summary { margin: 4px 0 8px; }
+.dep-tables { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; align-items: start; }
+.dep-table { font-size: 12px; }
+
+/* ── 예산관리(BudgetScreen) — 계정×12월 겹표(편성 입력/실적 회색) ── */
+.budget-screen { overflow-y: auto; }
+.budget-grid-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 6px; }
+.budget-grid { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+.budget-grid th { background: #f3f5f9; border: 1px solid var(--line); padding: 6px 5px; color: var(--sub); }
+.budget-grid td { border: 1px solid #e4e8ee; padding: 3px 5px; }
+.budget-grid th.budget-acct, .budget-grid td.budget-acct { position: sticky; left: 0; z-index: 1; text-align: left; }
+.budget-grid th.budget-acct { background: #f3f5f9; z-index: 2; }
+.budget-grid td.budget-acct { background: #fff; }
+.budget-cell { padding: 2px 4px; }
+.budget-cell input.cell { width: 64px; text-align: right; }
+.budget-actual { display: block; color: var(--sub); font-size: 10.5px; text-align: right; }
+.budget-grid td.over { color: var(--danger); font-weight: 800; }
+
+/* ── 자금계획(FundPlanScreen) — 예정 수입/지출 요약 바(cash-tile 톤 재사용) ── */
+.fund-screen { overflow-y: auto; }
+.fund-summary {
+  display: flex; gap: 18px; align-items: center; padding: 8px 12px;
+  border: 1px solid var(--line); border-radius: 8px; background: #fbfcfe; font-size: 13px; margin: 8px 0;
+}
+.fund-summary b { font-variant-numeric: tabular-nums; }
+
+/* ══════════════════════════ R5: 관리 + 그룹웨어 + 유틸(설계-R5-관리그룹웨어유틸.md §4.10) ══════════════════════════ */
+
+/* ── 급여대장(PayrollScreen) ── */
+.payroll-screen { overflow-y: auto; }
+.payroll-badge {
+  color: var(--sub); font-size: 11.5px; border: 1px solid var(--line); border-radius: 12px;
+  padding: 3px 10px; background: #fbfcfe;
+}
+.payroll-grid tr.payroll-blank td { color: var(--sub); background: #fbfbfc; }
+.payroll-deduction-head { display: flex; align-items: center; gap: 10px; margin: 14px 0 8px; }
+.payroll-summary {
+  display: flex; gap: 18px; align-items: center; padding: 8px 12px; margin-top: 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: #fbfcfe; font-size: 13px;
+}
+.payroll-summary b { font-variant-numeric: tabular-nums; }
+/* 급여명세서 서식 — pnl-sheet/stmt-sheet 톤 재사용 */
+.payslip-sheet { font-size: 12.5px; color: #111; }
+.payslip-title { text-align: center; font-size: 22px; font-weight: 800; letter-spacing: 6px; margin-bottom: 10px; }
+.payslip-meta { display: flex; justify-content: space-between; font-size: 12.5px; color: #333; margin-bottom: 5px; flex-wrap: wrap; gap: 6px; }
+.payslip-tables { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+.payslip-sub td { background: #eef2f8; font-weight: 700; }
+.payslip-net {
+  display: flex; justify-content: space-between; border: 2px solid #111; margin-top: 10px;
+  padding: 8px 12px; font-weight: 800; font-size: 15px;
+}
+.payslip-korean { text-align: right; margin: 6px 0 10px; font-size: 12.5px; }
+
+/* ── 근태관리(AttendanceScreen) ── */
+.att-screen { overflow-y: auto; }
+.att-summary { margin-bottom: 14px; }
+.att-grid { margin-top: 6px; }
+
+/* ── 게시판(BoardScreen) — `memo` id 재사용, mini-table 재사용 ── */
+.board-screen { overflow-y: auto; }
+.board-list tr.board-pin td { background: #fff8e8; }
+.board-list td { cursor: pointer; }
+
+/* ── To Do(TodoScreen · Dashboard 위젯 공용) ── */
+.todo-screen { overflow-y: auto; }
+.todo-list { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.todo-list li {
+  display: flex; align-items: center; gap: 10px; padding: 7px 8px;
+  border-bottom: 1px solid #f0f2f5; font-size: 12.5px;
+}
+.todo-list li.done .td-content { text-decoration: line-through; color: var(--sub); }
+.todo-list li.overdue .td-due { color: var(--danger); font-weight: 700; }
+.todo-list .td-content { flex: 1; }
+.todo-list .td-due { color: var(--sub); font-size: 11.5px; }
+.todo-empty { text-align: center; color: var(--sub); padding: 22px; list-style: none; }
+/* Dashboard To Do 위젯(§4.8) */
+.todo-widget { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.todo-widget li { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 3px 0; }
+.todo-widget .td-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.todo-widget .td-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.todo-widget .td-due { color: var(--sub); font-size: 11px; }
+.todo-widget li.overdue .td-dot { background: var(--danger); }
+.todo-widget li.overdue .td-due { color: var(--danger); font-weight: 700; }
+
+/* ── 엑셀 업로드/다운로드(ExcelIoScreen) — `io` id 재사용 ── */
+.io-screen { overflow-y: auto; }
+.io-section { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: #fbfcfe; margin-bottom: 16px; }
+.io-section h3 { margin: 0 0 6px; font-size: 14px; }
+.io-wizard-step { display: flex; align-items: center; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
+.io-step-no {
+  display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px;
+  border-radius: 50%; background: var(--accent); color: #fff; font-size: 11.5px; font-weight: 700; flex-shrink: 0;
+}
+.io-stat { font-size: 12.5px; color: var(--sub); }
+.io-stat b { color: var(--txt); font-variant-numeric: tabular-nums; }
+.io-stat.new b { color: var(--ok); }
+.io-stat.update b { color: var(--gold); }
+.io-stat.error b, .io-stat.error { color: var(--danger); }
+.io-preview-scroll { max-height: 320px; overflow: auto; border: 1px solid var(--line); margin-top: 6px; }
+.io-badge { border-radius: 10px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+.io-badge.io-new { background: #e6f6ec; color: var(--ok); }
+.io-badge.io-update { background: #fef3e2; color: #b8790f; }
+.io-errors { border: 1px solid #f0c9c9; background: #fdf4f4; border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 12.5px; }
+.io-errors ul { margin: 6px 0 0; padding-left: 18px; max-height: 140px; overflow: auto; }
+.io-ignore { display: flex; align-items: center; gap: 6px; margin-top: 8px; color: var(--sub); }
+
+/* ── 백업/복원(BackupScreen) — `backup` id 재사용 ── */
+.backup-screen { overflow-y: auto; }
+.backup-list { margin-top: 10px; }
+.backup-restarted {
+  text-align: center; color: var(--sub); margin: 40px auto; max-width: 420px;
+}
+.backup-restarted h3 { color: var(--txt); margin: 6px 0 10px; }
+
+/* ── 기존앱 데이터 이관(MigrateScreen) — `migrate` id 재사용, io-wizard 톤 재사용 ── */
+.migrate-screen { overflow-y: auto; }
+.migrate-map { margin-top: 8px; }
+.migrate-badge { border-radius: 10px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+.migrate-badge.migrate-merge { background: #e6f0fe; color: var(--accent); }
+.migrate-badge.migrate-new { background: #e6f6ec; color: var(--ok); }
+.migrate-badge.migrate-exist { background: #f0f2f5; color: var(--sub); }
+.migrate-badge.migrate-fail { background: #fdeaea; color: var(--danger); }
+
+/* ── 연동 예정 stub(StubScreen) — ph-box 톤 재사용, 5개 메뉴 공용(§4.7) ── */
+.stub-screen { align-items: center; justify-content: center; }
+.stub-box { text-align: center; color: var(--sub); max-width: 420px; }
+.stub-icon { font-size: 34px; margin-bottom: 6px; }
+.stub-box h3 { margin: 4px 0 8px; color: var(--txt); }
+.stub-badge {
+  display: inline-block; margin-top: 10px; border: 1px solid var(--line); border-radius: 12px;
+  padding: 3px 12px; font-size: 11.5px; color: var(--sub); background: #f6f8fa;
+}
+
+/* ── R6: 이카운트 판매입력 실화면 매칭 (연/월/일 셀렉트 · 전잔/후잔) ── */
+/* 이카운트 판매입력 일자 필드의 [2026 v]/[07 v]/[11 v] 3분할 셀렉트 재현. label의 1fr 컬럼 안에 inline 배치. */
+.date-parts { display: flex; align-items: center; gap: 4px; }
+.date-parts .input { padding: 5px 6px; }
+.date-parts select.input:nth-of-type(1) { width: 74px; }   /* 연 */
+.date-parts select.input:nth-of-type(2),
+.date-parts select.input:nth-of-type(3) { width: 58px; }   /* 월·일 */
+.dp-sep { color: var(--sub); font-size: 12px; }
+/* 전잔/후잔 — 읽기전용 우측정렬(이카운트 헤더 우하단). 후잔은 전잔+전표합계로 실시간 갱신. */
+.vh-fields .input.num.ro { text-align: right; background: #f4f6fa; color: var(--txt); cursor: default; font-weight: 600; }
+.vh-fields .input:disabled { background: #f1f3f6; color: var(--sub); cursor: not-allowed; }
+
+/* ── R7: 이카운트 재고현황 검색 폼(ref-05) — [기본 +] 조건탭 + 검색폼 + 하단 액션바 ── */
+.cond-tabs { display: flex; gap: 2px; margin-bottom: -1px; }
+.cond-tab {
+  border: 1px solid var(--line); border-bottom: none; background: #f3f5f9;
+  border-radius: 5px 5px 0 0; padding: 5px 16px; font-size: 12.5px; color: var(--sub); cursor: pointer;
+}
+.cond-tab.on { background: #fff; color: var(--accent); font-weight: 700; border-color: var(--line); }
+.cond-tab.add { padding: 5px 10px; color: var(--sub); }
+.search-form { border: 1px solid var(--line); border-radius: 0 3px 3px 3px; background: #f8fafc; padding: 12px 14px; }
+.sf-row { display: grid; grid-template-columns: 76px minmax(260px, 360px) 76px 1fr; align-items: center; gap: 6px 8px; }
+.sf-row + .sf-row { margin-top: 8px; }
+.sf-label { font-size: 12.5px; color: #444; font-weight: 600; }
+.sf-field { display: flex; align-items: center; gap: 6px; }
+.sf-checks { gap: 18px; }
+.sf-checks label { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: #444; font-weight: 400; }
+.search-actions { display: flex; align-items: center; gap: 6px; padding: 10px 0; }
+.sa-note { margin-left: 8px; font-size: 12px; color: var(--sub); }
+/* 파일관리 등 미연동 링크 — 회색 안내 링크 */
+.link.muted { color: var(--sub); text-decoration: none; cursor: default; }
+
+/* ══════════════════════════ R8 실물매칭 (append-only, override 전용) ══════════════════════════ */
+:root {
+  --r8-primary:  #1b3da1;   /* 주 파랑 버튼(인쇄·검색·신규) 참고서 §1 */
+  --r8-link:     #19358c;   /* 코드/일자 링크 */
+  --r8-neg-bg:   #f2dede;   /* 마이너스 수량 셀 배경(보고서 그리드 전용) */
+  --r8-th-bg:    #f7f8f9;   /* 그리드 머리글·짝수행 줄무늬 */
+  --r8-border:   #dee2e6;   /* 카드/버튼 보더 0.667px */
+}
+body { font-size: 12px; }                         /* 참고서 §1 body 12px */
+
+/* 실물 주 버튼(파랑) — 전역 .btn.primary는 건드리지 않고 별도 클래스 */
+.btn.r8-primary { background: var(--r8-primary); border: 0.667px solid var(--r8-primary); color: #fff; font-weight: 600; padding: 7px 10px; border-radius: 5px; }
+.btn.r8-primary:hover { background: #16307f; color: #fff; }
+/* 스플릿 버튼(좌 본체 + ▲ 드롭다운) */
+.btn.r8-split { border-radius: 5px 0 0 5px; }
+.btn.r8-split-caret { background: var(--r8-primary); border: 0.667px solid var(--r8-primary); border-left: 1px solid #16307f; color: #fff; border-radius: 0 5px 5px 0; padding: 7px 6px; cursor: pointer; }
+/* 보조 버튼(흰 배경) */
+.btn.r8-ghost { background: #fff; color: #142444; border: 0.667px solid var(--r8-border); border-radius: 5px; padding: 7px 10px; font-weight: 600; }
+.btn.r8-ghost:disabled { color: #9aa4b1; cursor: not-allowed; }
+
+/* 실물 타이틀바(★ 제목 + 우측 검색/버튼군) */
+.r8-titlebar { display: flex; align-items: center; gap: 8px; padding: 6px 2px 10px; flex-wrap: wrap; }
+.r8-titlebar .r8-star { color: var(--gold); font-size: 16px; }
+.r8-titlebar h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.r8-titlebar-right { margin-left: auto; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.r8-enter-input { border: 1px solid var(--r8-border); border-radius: 4px; padding: 6px 9px; font-size: 12px; width: 190px; font-family: inherit; }
+
+/* 상태 pill 필터 */
+.r8-pills { display: inline-flex; gap: 4px; }
+.r8-pill { border: 0.667px solid var(--r8-border); background: #fff; color: #495057; border-radius: 13px; padding: 4px 12px; font-size: 12px; cursor: pointer; }
+.r8-pill.on { background: var(--r8-primary); border-color: var(--r8-primary); color: #fff; font-weight: 700; }
+.r8-pill:disabled { color: #b6bdc9; cursor: not-allowed; }
+
+/* 페이지네이션 표기줄 + 조회기간 표기 */
+.r8-listbar { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #495057; margin: 2px 0 6px; }
+.r8-pager { display: inline-flex; align-items: center; gap: 6px; }
+.r8-pager .on { color: var(--r8-primary); font-weight: 700; }
+.r8-period { color: #495057; }
+
+/* 보고서 결과 실물 프레임(중앙 제목 + 회사/기준일 줄 + 하단 버튼바) */
+.r8-report-title { text-align: center; font-size: 24px; font-weight: 700; margin: 6px 0 10px; }  /* 참고서 §3 */
+.r8-report-meta { display: flex; justify-content: space-between; font-size: 12px; color: #333; margin-bottom: 6px; }
+.r8-report-bottom { display: flex; align-items: center; gap: 6px; padding: 10px 0 2px; flex-wrap: wrap; }
+
+/* 그리드: 머리글·짝수행 줄무늬·코드 링크·마이너스 셀 (report-real 스코프로 전역 그리드 미간섭) */
+.r8-real .tabulator .tabulator-header .tabulator-col { background: var(--r8-th-bg); }
+.r8-real .tabulator .tabulator-header .tabulator-col .tabulator-col-title { color: #000; font-weight: 700; font-size: 12px; }
+.r8-real .tabulator-row.tabulator-row-even { background: var(--r8-th-bg); }
+.r8-real .tabulator-cell.r8-code { color: var(--r8-link); }
+.r8-real .tabulator-cell.r8-neg { background: var(--r8-neg-bg); }
+.r8-badge-green { color: var(--ok); font-weight: 700; }
+.r8-badge-print { background: #f6a623; color: #fff; border-radius: 9px; padding: 1px 7px; font-size: 11px; }
+
+/* MyPage 6위젯 3열 배치 (기존 .widgets는 미간섭, .mp6 스코프) */
+.widgets.mp6 {
+  grid-template-columns: 34fr 20fr 41fr;
+  grid-template-areas:
+    "stock  todo    sales"
+    "note   todo    vatbook"
+    "note   taxinv  taxinv";
+  align-items: start;
+}
+.widgets.mp6 .w-stock   { grid-area: stock; }
+.widgets.mp6 .w-todo    { grid-area: todo; }
+.widgets.mp6 .w-sales   { grid-area: sales; }
+.widgets.mp6 .w-note    { grid-area: note; }
+.widgets.mp6 .w-vatbook { grid-area: vatbook; }
+.widgets.mp6 .w-taxinv  { grid-area: taxinv; }
+.widgets.mp6 .widget-head b { font-size: 15px; font-weight: 700; color: #000; }   /* 위젯 제목 15/700 */
+/* 위젯 표: 짝수행 줄무늬·코드 링크·마이너스는 검정(참고서 §2: MyPage에선 음수도 검정) */
+.widgets.mp6 .widget-table tbody tr:nth-child(even) { background: var(--r8-th-bg); }
+.widgets.mp6 .widget-table .blue { color: var(--r8-link); }
+.widgets.mp6 .widget-table .neg { color: #000; font-weight: 400; }   /* .neg 빨강을 MyPage에서만 검정으로 되돌림 */
+
+/* ═ R8-a: 지휘관 검수 보정 — 실측 배경·보더·즐겨찾기줄 정합 (append-only) ═ */
+body { background: #f7f8f9; }
+.content { background: #f7f8f9; }          /* 콘텐츠 배경도 실측 #F7F8F9 */
+.widget { border-color: var(--r8-border); } /* 위젯 카드 보더 #DEE2E6 */
+.favbar { background: #e9ecef; }            /* 즐겨찾기 바 실측 배경 */
+.favlink { color: #495057; }                /* 즐겨찾기 링크 실측 색 */
+
+/* ══ R9-A 실물매칭 ══ */
+/* 로스팅 입력(RoastInput) — 그리드 툴바(stub 버튼줄, §2.3) */
+.r9-prod-toolbar { display: flex; gap: 5px; margin: 4px 0 10px; flex-wrap: wrap; }
+
+/* (세금)계산서진행단계(EtaxInvoiceScreen) — 상태 요약 보드 14박스 + 5단계 인디케이터(§4) */
+.r9-etax-board { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 12px; }
+.r9-etax-group { font-size: 11.5px; font-weight: 700; color: var(--sub); min-width: 62px; }
+.r9-etax-box {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  border: 0.667px solid var(--r8-border); background: #fff; border-radius: 6px;
+  padding: 4px 10px; min-width: 64px; font-size: 11px; cursor: pointer; color: #495057;
+}
+.r9-etax-box b { font-size: 14px; font-variant-numeric: tabular-nums; }
+.r9-etax-box.on { border-color: var(--r8-primary); background: var(--accent-soft); color: var(--r8-primary); }
+.r9-etax-box.on b { color: var(--r8-primary); }
+.r9-etax-box.err b { color: var(--danger); }
+.r9-etax-box:disabled { color: #b6bdc9; cursor: not-allowed; }
+.r9-etax-box:disabled b { color: #b6bdc9; }
+.r9-etax-steps { display: inline-flex; gap: 2px; align-items: center; }
+.r9-etax-dot { width: 7px; height: 7px; border-radius: 50%; background: #dfe3ea; display: inline-block; }
+.r9-etax-dot.fill { background: var(--r8-primary); }
+
+/* 입/출금계좌 조회(CashScreen) — 출금행 연분홍(§5) */
+.tabulator-row.r9-cash-out,
+.tabulator-row.tabulator-row-even.r9-cash-out { background: var(--r8-neg-bg); }
+
+/* ══ R9-B 실물매칭 ══ */
+/* 판매일괄회계반영·거래처별채권 — 구분 라디오 줄(§3/§7) */
+.r9-radio-row { display: inline-flex; align-items: center; gap: 14px; font-size: 12.5px; color: #444; }
+.r9-radio-row label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+
+/* 기준일자 프리셋 배지(파랑 pill, [직접입력]/[전월+금월] 등, §3/§7) */
+.r9-preset-badge {
+  display: inline-flex; align-items: center; border-radius: 12px; padding: 3px 10px;
+  font-size: 11.5px; font-weight: 700; background: #f0f2f5; color: var(--sub); flex-shrink: 0;
+}
+.r9-preset-badge.on { background: var(--r8-primary); color: #fff; }
+
+/* 거래처별채권 — 잔액 배지 줄(§7) */
+.r9-balance-badge {
+  display: inline-flex; align-items: center; border-radius: 12px; padding: 3px 10px;
+  font-size: 11.5px; font-weight: 700; background: var(--accent-soft); color: var(--r8-primary); flex-shrink: 0;
+}
+
+/* 거래처별채권 — 양식 섹션 박스(§7) */
+.r9-form-sec {
+  border: 1px solid var(--r8-border); border-radius: 6px; background: #fbfcfe;
+  padding: 8px 12px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;
+}
+.r9-form-sec .sf-row { grid-template-columns: 96px 1fr; }
+
+/* 하단 프리셋 버튼 바(검색(F8) + 기간 프리셋들, §3/§7) */
+.r9-preset-bar { display: flex; align-items: center; gap: 6px; padding: 10px 0 2px; flex-wrap: wrap; }
+
+/* 전표조회(GlVoucherScreen) — 매출전표Ⅰ 행 연분홍(§6) */
+.tabulator-row.r9-glv-sale,
+.tabulator-row.tabulator-row-even.r9-glv-sale { background: var(--r8-neg-bg); }
+
+/* ══ R10-A 실물매칭 (판매조회 완성 + 기능설정 실물화, append-only) ══ */
+/* 기능설정(SettingsScreen) — 카테고리 탭 스트립(§A-2). r8-pill 재사용(탭 pill 자체는 신규 CSS 없음) */
+.r10a-cat-tabs { display: flex; align-items: center; gap: 4px; margin-bottom: 14px; flex-wrap: wrap; }
+
+/* 설정 카드 — 흰 배경/보더/라운드, 제목 13px 700, 설명 12px sub(§A-2) */
+.r10a-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+.r10a-setting-card {
+  background: #fff; border: 0.667px solid var(--r8-border); border-radius: 8px;
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+}
+.r10a-setting-card h4 { margin: 0; font-size: 13px; font-weight: 700; }
+.r10a-setting-card .r10a-card-desc { margin: -4px 0 0; font-size: 12px; color: var(--sub); }
+.r10a-setting-card select.input,
+.r10a-setting-card input.input { max-width: 260px; }
+.r10a-card-wide { grid-column: span 2; }
+.r10a-card-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* 판매조회/구매조회(VoucherList) — 하단 버튼바 10종은 기존 .r8-report-bottom 재사용(신규 CSS 없음).
+   '조회'/'불러온전표' 링크도 기존 .link·.r8-code 재사용(신규 CSS 없음). */
+/* R10-B */
+/* 메뉴 라벨 실물화 + 커버리지 확장(설계-R10-커버리지.md §2) — GridStub(실물 메뉴 뼈대) 전용 보강.
+   타이틀바·리스트바·그리드 본체는 r8-titlebar/r8-listbar/r8-pager/r8-period/r8-real 등 R8 클래스를 그대로 재사용(신규 CSS 없음). */
+.r10b-stub .r8-titlebar { padding-bottom: 12px; }
+.r10b-stub-note { margin: 8px 2px 0; font-size: 12px; color: var(--sub); }
+
+/* 서브탭이 늘어난 대메뉴(회계Ⅰ·회계Ⅱ·재고Ⅱ·관리·세무·그룹웨어·데이터센터·Self-Customizing)의 오버플로 대비.
+   .subtabs 자체 규칙은 기존 그대로(수정 금지) — 스크롤바 모양만 신규 셀렉터로 보강. */
+.subtabs::-webkit-scrollbar { height: 4px; }
+.subtabs::-webkit-scrollbar-thumb { background: var(--r8-border); border-radius: 4px; }
+
+/* ══ R11-A 견적/주문 입력 실물화 (append-only) ══ */
+.r11a-toolbar { display:flex; gap:5px; flex-wrap:nowrap; overflow-x:auto; }  /* 툴바 가로 스크롤 */
+
+/* ══ R11-B 회계 입력 실물화 (append-only) ══ */
+.r11b-form { max-width: 760px; }                      /* §12.5 단순 폼 폭 제한(매출처로부터·매입처로) */
+.r11b-actions { display:flex; gap:8px; padding-top:8px; flex-wrap:wrap; }
+
+/* ══ R12-A 시각100 — 상단 헤더 아이콘줄 + MyPage 위젯 아이콘 (append-only) ══ */
+
+/* §13.5 상단 아이콘줄 — 로고바 우측, ~28px 히트영역 + 6px gap ≒ 34px 피치 */
+.hdr-icons { display: flex; align-items: center; gap: 6px; }
+.hdr-icon {
+  width: 28px; height: 28px; padding: 0; border: 0; background: none; cursor: default;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 17px; line-height: 1; border-radius: 6px; color: #4b5563; font-family: inherit;
+}
+.hdr-icon:hover { background: #f0f2f5; }
+.hdr-icon svg { width: 18px; height: 18px; display: block; }
+/* 최우측 프로필 원형(회색 테두리) */
+.hdr-profile {
+  width: 28px; height: 28px; margin-left: 4px; padding: 0; cursor: pointer;
+  border: 1.5px solid #c4cad3; border-radius: 50%; background: #eef0f3; color: #7a8291;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 15px;
+}
+.hdr-profile:hover { border-color: #9aa4b1; }
+
+/* §13.4 MyPage 위젯 헤더 아이콘 ↗ ⟳ ✎ ⋮ — 회색 유지 + hover 진해짐 */
+.widgets.mp6 .widget-icons { gap: 7px; }
+.widgets.mp6 .widget-icons span { cursor: default; transition: color .1s; }
+.widgets.mp6 .widget-icons span:hover { color: #495057; }
+
+/* ══ R12-B 시각100 — 보고서 공통 푸터 + 거래처별채권 결과 + 판매입력 저장탭 (append-only) ══ */
+
+/* §13.1 보고서 공통 푸터 — 좌 [P:1] + 우 조회시각 */
+.r12-report-footer { display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; color: #495057; padding: 6px 2px 2px; }
+.r12-pagemark { color: #495057; }
+.r12-querystamp { color: #6b7280; font-variant-numeric: tabular-nums; }
+
+/* §13.1 결과 그리드 머리글 정렬화살표 ▼ 상시 표기(모든 r8-real 그리드 공통) */
+.r8-real .tabulator .tabulator-col .tabulator-col-sorter { display: none; }
+.r8-real .tabulator .tabulator-col.tabulator-sortable .tabulator-col-title { padding-right: 12px; }
+.r8-real .tabulator .tabulator-col.tabulator-sortable .tabulator-col-title::after {
+  content: '▼'; font-size: 9px; color: #b6bdc9; margin-left: 3px; }
+
+/* §13.2 판매입력 조건 저장탭 — 첫 탭 파랑 pill(사용자 저장탭) + (+) */
+.r12-savetabs { display: flex; align-items: center; gap: 4px; margin: 0 0 8px; }
+.r12-savetab { border: 0.667px solid var(--r8-border); background: #fff; color: #495057;
+  border-radius: 13px; padding: 4px 12px; font-size: 12px; cursor: default; font-family: inherit; }
+.r12-savetab.on { background: var(--r8-primary); border-color: var(--r8-primary); color: #fff; font-weight: 700; }
+.r12-savetab-add { border: 0.667px solid var(--r8-border); background: #fff; color: var(--sub);
+  border-radius: 13px; padding: 4px 11px; font-size: 12px; cursor: not-allowed; font-family: inherit; }
+
+/* ══════════════════════════ R13 첫화면100 (append-only) ══════════════════════════ */
+
+/* A. 로고 워드마크 */
+.logo .brandmark { height: 26px; width: auto; display: block; }
+
+/* B. 헤더 아이콘 크기 보정 + 프로필 실루엣 클립 */
+.hdr-icon svg    { width: 20px; height: 20px; display: block; }
+.hdr-profile     { overflow: hidden; }
+.hdr-profile svg { width: 24px; height: 24px; display: block; }
+
+/* C. ★ → 노란 SVG 별 (텍스트 글리프 숨김 + 마스크) */
+:root { --star-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z'/></svg>"); }
+.star, .r8-star { font-size: 0 !important; line-height: 0; }
+.star::before, .r8-star::before {
+  content: ""; display: inline-block; width: 14px; height: 14px; vertical-align: -2px;
+  background-color: #ccd3dd;
+  -webkit-mask: var(--star-mask) center / contain no-repeat;
+          mask: var(--star-mask) center / contain no-repeat;
+}
+.star.on::before  { background-color: var(--gold); }
+.star.big::before { width: 16px; height: 16px; }
+.r8-star::before  { background-color: var(--gold); width: 15px; height: 15px; }
+
+/* D. MyPage §13.6 배치 override + 위젯/헤더 아이콘 */
+.widgets.mp6 {
+  grid-template-columns: 36fr 45fr 19fr;
+  grid-template-areas:
+    "stock    sales   todo"
+    "note     sales   todo"
+    "vatbook  taxinv  todo";
+}
+.widget-icons svg         { width: 13px; height: 13px; display: block; }
+.mp-head-icons            { margin-left: auto; display: flex; align-items: center; gap: 9px; color: #b6bdc9; }
+.mp-head-icons span       { cursor: default; transition: color .1s; }
+.mp-head-icons span:hover { color: #495057; }
+.mp-head-icons svg        { width: 15px; height: 15px; display: block; }
