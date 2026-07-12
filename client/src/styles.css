@@ -904,3 +904,10 @@ body { background: #f7f8f9; }
    .subtabs 자체 규칙은 기존 그대로(수정 금지) — 스크롤바 모양만 신규 셀렉터로 보강. */
 .subtabs::-webkit-scrollbar { height: 4px; }
 .subtabs::-webkit-scrollbar-thumb { background: var(--r8-border); border-radius: 4px; }
+
+/* ══ R11-A 견적/주문 입력 실물화 (append-only) ══ */
+.r11a-toolbar { display:flex; gap:5px; flex-wrap:nowrap; overflow-x:auto; }  /* 툴바 가로 스크롤 */
+
+/* ══ R11-B 회계 입력 실물화 (append-only) ══ */
+.r11b-form { max-width: 760px; }                      /* §12.5 단순 폼 폭 제한(매출처로부터·매입처로) */
+.r11b-actions { display:flex; gap:8px; padding-top:8px; flex-wrap:wrap; }

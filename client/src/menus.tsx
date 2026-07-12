@@ -6,13 +6,13 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { Placeholder } from './screens/Placeholder';
 import { SaleInput, PurchaseInput } from './screens/VoucherScreen';
 import { SaleList, PurchaseList } from './screens/VoucherList';
-import { ReceiptScreen, ReceivableScreen } from './screens/ReceiptScreen';
+import { FromSalePartnerInput, ReceiptScreen, ReceivableScreen } from './screens/ReceiptScreen';
 import { RoastInput } from './screens/RoastInput';
 import { StockStatus, StockLedger } from './screens/StockScreens';
 import { StatementPrint } from './screens/StatementPrint';
 import { QuoteList, OrderList, PurchaseOrderList } from './screens/DocChainList';
 import { StockMove, SelfUse, Defect, StockAdjust } from './screens/MoveScreens';
-import { PaymentScreen, PayableScreen } from './screens/PaymentScreen';
+import { ToPurchasePartnerInput, PaymentScreen, PayableScreen } from './screens/PaymentScreen';
 import { AccountMaster, JournalScreen, PartnerLedger, MonthlyPL, VatBook } from './screens/AccountingScreens';
 import { BomScreen, ProductionStatus } from './screens/ProductionScreens';
 import { StockByWarehouse } from './screens/StockByWarehouse';
@@ -20,7 +20,8 @@ import { CalendarScreen } from './screens/CalendarScreen';
 import { LotScreen } from './screens/LotScreen';
 import { MrpScreen } from './screens/MrpScreen';
 import { ProdInScreen } from './screens/ProdInScreen';
-import { GlEntryScreen } from './screens/GlEntryScreen';
+import { GlEntryScreen, ExpenseRequestInput } from './screens/GlEntryScreen';
+import { SalesVoucher1Input, PurchaseVoucher1Input } from './screens/AcctVoucherEntry';
 import { CashScreen } from './screens/CashScreen';
 import { MessageScreen } from './screens/MessageScreen';
 import { BeanPriceScreen } from './screens/BeanPriceScreen';
@@ -113,11 +114,24 @@ export const MENUS: MenuDef[] = [
   m('sale-unposted-status', '재고Ⅰ', '회계미반영현황(판매)', 9, gs('회계미반영현황(판매)', ['일자', '거래처', '전표번호', '금액', '비고']), '영업관리'),
   m('shipment-order', '재고Ⅰ', '출하지시서', 9, gs('출하지시서', ['일자', '거래처', '품목', '수량', '창고']), '영업관리'),
   m('shipment', '재고Ⅰ', '출하', 9, gs('출하', ['일자', '거래처', '품목', '수량', '상태']), '영업관리'),
+  // R11-B §4.4A: 견적서현황·미주문현황·주문서현황을 출력물→영업관리로 재배치(실물 트리 §12.1/§12.2 정합, id 동결) + 신규 2종
+  m('order-ship-process', '재고Ⅰ', '주문서출고처리', 9, gs('주문서출고처리', ['일자', '거래처', '품목', '수량', '출고여부']), '영업관리'),
+  m('sale-missing', '재고Ⅰ', '미판매현황', 9, gs('미판매현황', ['일자', '거래처', '품목', '주문수량', '미판매수량']), '영업관리'),
 
-  // ── 재고Ⅰ — 구매관리 ──
+  // ── 재고Ⅰ — 구매관리 (R11-B §4.4D: 실물 트리 §12.3 정합 — 기존 매핑 유지 + 신규 gs 잔여) ──
+  m('po-request', '재고Ⅰ', '발주요청', 9, gs('발주요청', ['일자', '거래처', '품목', '수량', '상태']), '구매관리'),
+  m('po-plan', '재고Ⅰ', '발주계획', 9, gs('발주계획', ['일자', '품목', '계획수량', '거래처', '상태']), '구매관리'),
+  m('price-request', '재고Ⅰ', '단가요청', 9, gs('단가요청', ['일자', '거래처', '품목', '요청단가', '상태']), '구매관리'),
   m('po', '재고Ⅰ', '발주서입력/조회', 1, PurchaseOrderList, '구매관리'),
-  m('purchase', '재고Ⅰ', '구매입력', 1, PurchaseInput, '구매관리'),
   m('purchase-status', '재고Ⅰ', '구매조회', 1, PurchaseList, '구매관리'),
+  m('purchase', '재고Ⅰ', '구매입력', 1, PurchaseInput, '구매관리'),
+  m('purchase-status-report', '재고Ⅰ', '구매현황', 9, gs('구매현황', ['일자', '거래처', '품목', '수량', '금액']), '구매관리'),
+  m('purchase-price-bulk-change', '재고Ⅰ', '구매단가일괄변경', 9, gs('구매단가일괄변경', ['품목코드', '품목명', '기존단가', '변경단가', '적용일']), '구매관리'),
+  m('purchase-payment-status', '재고Ⅰ', '지급현황', 9, R('payment-status'), '구매관리'),
+  m('purchase-discount-status', '재고Ⅰ', '구매할인현황', 9, gs('구매할인현황', ['일자', '거래처', '품목', '할인율', '할인액']), '구매관리'),
+  m('purchase-unposted-status', '재고Ⅰ', '회계미반영현황(구매)', 9, gs('회계미반영현황(구매)', ['일자', '거래처', '전표번호', '금액', '비고']), '구매관리'),
+  m('ap-by-partner', '재고Ⅰ', '거래처별채무', 9, gs('거래처별채무', ['거래처', '매입합계', '지급합계', '채무잔액']), '구매관리'),
+  m('purchase-bulk-acct', '재고Ⅰ', '구매일괄회계반영', 9, gs('구매일괄회계반영', ['일자', '거래처', '전표번호', '금액', '반영여부']), '구매관리'),
   m('payment', '재고Ⅰ', '지불입력', 1, PaymentScreen, '구매관리'),
   m('payable', '재고Ⅰ', '미지급금현황', 1, PayableScreen, '구매관리'),
   m('bean-price', '재고Ⅰ', '생두 단가비교', 4, BeanPriceScreen, '구매관리'),
@@ -151,9 +165,9 @@ export const MENUS: MenuDef[] = [
   m('other-moves', '재고Ⅰ', '기타이동현황', 6, R('other-moves'), '출력물'),
   m('profit-status', '재고Ⅰ', '이익현황', 5, R('profit-status'), '출력물'),
   m('sales-summary', '재고Ⅰ', '판매구매 집계표', 6, R('sales-summary'), '출력물'),
-  m('order-missing', '재고Ⅰ', '미주문현황', 6, R('order-missing'), '출력물'),
-  m('quote-status', '재고Ⅰ', '견적서현황', 6, R('quote-status'), '출력물'),
-  m('order-status', '재고Ⅰ', '주문서현황', 6, R('order-status'), '출력물'),
+  m('order-missing', '재고Ⅰ', '미주문현황', 6, R('order-missing'), '영업관리'),
+  m('quote-status', '재고Ⅰ', '견적서현황', 6, R('quote-status'), '영업관리'),
+  m('order-status', '재고Ⅰ', '주문서현황', 6, R('order-status'), '영업관리'),
   m('po-status', '재고Ⅰ', '발주서현황', 6, R('po-status'), '출력물'),
   m('receipt-status', '재고Ⅰ', '수금현황', 5, R('receipt-status'), '출력물'),
   m('payment-status', '재고Ⅰ', '지급현황', 5, R('payment-status'), '출력물'),
@@ -215,11 +229,10 @@ export const MENUS: MenuDef[] = [
   // ── FastEntry ──
   m('fast-entry', '회계Ⅰ', 'FastEntry입력', 9, gs('FastEntry입력', ['일자', '계정과목', '거래처', '금액', '적요']), 'FastEntry'),
 
-  // ── 매출매입거래 ──
-  m('sale-voucher-1', '회계Ⅰ', '매출전표Ⅰ', 9, gs('매출전표Ⅰ', ['일자', '거래처', '품목', '수량', '금액']), '매출매입거래'),
-  m('purchase-voucher-1', '회계Ⅰ', '매입전표Ⅰ', 9, gs('매입전표Ⅰ', ['일자', '거래처', '품목', '수량', '금액']), '매출매입거래'),
-  m('from-sale-partner', '회계Ⅰ', '매출처로부터', 9, gs('매출처로부터', ['일자', '거래처', '전표종류', '금액']), '매출매입거래'),
-  m('from-purchase-partner', '회계Ⅰ', '매입처로부터', 9, gs('매입처로부터', ['일자', '거래처', '전표종류', '금액']), '매출매입거래'),
+  // ── 매출매입거래 ── (R11-B §4.4B: 매출전표Ⅰ/매입전표Ⅰ 실폼 승격. 매출처로부터/매입처로부터는
+  // 현금거래로 재배치했다 — 아래 §4.4C 참조, id 동결)
+  m('sale-voucher-1', '회계Ⅰ', '매출전표Ⅰ', 3, SalesVoucher1Input, '매출매입거래'),
+  m('purchase-voucher-1', '회계Ⅰ', '매입전표Ⅰ', 3, PurchaseVoucher1Input, '매출매입거래'),
 
   // ── 전자(세금)계산서 ── (e-tax-invoice: B-1 라벨 실물화 '(세금)계산서진행단계')
   m('e-tax-invoice', '회계Ⅰ', '(세금)계산서진행단계', 7, EtaxInvoiceScreen, '전자(세금)계산서'),
@@ -231,9 +244,23 @@ export const MENUS: MenuDef[] = [
   m('bank-link', '회계Ⅰ', '입/출금계좌 조회', 7, stub('입/출금계좌 조회', '은행 계좌·카드 매입내역 자동 수집은 연동 예정입니다. 수기 입출금은 [회계Ⅱ > 자금계획 > 자금현황]에서 관리하세요.'), '계좌·카드'),
   m('card-usage', '회계Ⅰ', '카드사용내역', 9, gs('카드사용내역', ['일자', '가맹점', '카드번호', '금액', '비고']), '계좌·카드'),
 
-  // ── 현금거래 ──
+  // ── 현금거래 (R11-B §4.4C: 입금 5 + 출금 8, id 동결·재배치·라벨변경·실폼 승격) ──
   m('deposit-slip', '회계Ⅰ', '입금표', 9, gs('입금표', ['일자', '거래처', '금액', '계정과목', '적요']), '현금거래'),
-  m('expense-request', '회계Ⅰ', '지출결의서', 9, gs('지출결의서', ['일자', '부서', '항목', '금액', '적요']), '현금거래'),
+  // 현금예금입금(5)
+  m('from-sale-partner', '회계Ⅰ', '매출처로부터', 1, FromSalePartnerInput, '현금거래'),
+  m('card-sale-collect', '회계Ⅰ', '카드매출대금회수', 9, gs('카드매출대금회수', ['일자', '거래처', '카드사', '금액']), '현금거래'),
+  m('temp-in', '회계Ⅰ', '일시적으로(입금)', 9, gs('일시적으로(입금)', ['일자', '계좌', '금액', '적요']), '현금거래'),
+  m('bank-loan-in', '회계Ⅰ', '은행차입으로', 9, gs('은행차입으로', ['일자', '은행', '금액', '적요']), '현금거래'),
+  m('etc-in', '회계Ⅰ', '기타입금', 9, gs('기타입금', ['일자', '계좌', '금액', '적요']), '현금거래'),
+  // 현금예금출금(8)
+  m('expense-request', '회계Ⅰ', '지출결의서', 3, ExpenseRequestInput, '현금거래'),
+  m('from-purchase-partner', '회계Ⅰ', '매입처로', 1, ToPurchasePartnerInput, '현금거래'),
+  m('receipt-out', '회계Ⅰ', '영수증으로', 9, gs('영수증으로', ['일자', '계정', '금액', '적요']), '현금거래'),
+  m('corp-card-pay', '회계Ⅰ', '법인카드대금결제', 9, gs('법인카드대금결제', ['일자', '카드사', '결제계좌', '금액']), '현금거래'),
+  m('inter-account-move', '회계Ⅰ', '계좌간이동', 9, gs('계좌간이동', ['일자', '출금계좌', '입금계좌', '금액']), '현금거래'),
+  m('temp-out', '회계Ⅰ', '일시적으로(출금)', 9, gs('일시적으로(출금)', ['일자', '계좌', '금액', '적요']), '현금거래'),
+  m('bank-out', '회계Ⅰ', '은행으로', 9, gs('은행으로', ['일자', '은행', '금액', '적요']), '현금거래'),
+  m('etc-out', '회계Ⅰ', '기타출금', 9, gs('기타출금', ['일자', '계좌', '금액', '적요']), '현금거래'),
 
   // ── 비현금거래 ──
   m('gl-entry', '회계Ⅰ', '일반전표(경비)', 3, GlEntryScreen, '비현금거래'),

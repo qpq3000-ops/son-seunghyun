@@ -506,6 +506,8 @@ export interface GlLine {
   dr: number; cr: number; partner_id: number | null; partner_name?: string | null; remarks: string;
 }
 export interface GlEntry { id: number; io_date: string; doc_no: string; summary: string; amount: number; lines: GlLine[]; }
+// POST /api/gl-entries 저장 응답(설계-R11-입력화면.md §4.5) — ExpenseRequestInput/AcctVoucherEntry가 사용.
+export interface GlEntrySaveResult { id: number; doc_no: string; }
 // ── 자금현황 (GET /api/cash) ──
 export interface CashSummaryRow { method: string; in_amt: number; out_amt: number; net: number; }
 export interface CashListRow {

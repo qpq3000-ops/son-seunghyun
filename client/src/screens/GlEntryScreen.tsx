@@ -6,7 +6,7 @@ import { Confirm } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { api } from '../api';
 import { fmtWon, todayISO, monthStartISO } from '../format';
-import type { GlEntry, GlLine } from '../types';
+import type { GlEntry, GlLine, GlEntrySaveResult } from '../types';
 
 // 일반전표(경비) — 설계-잔여메뉴.md 4.4 ⭐ 가장 중요한 화면.
 // 입력부(수동 분개, 원천 전표 없는 독립 분개) + 조회부(기간 목록·삭제) 한 화면.
@@ -261,6 +261,189 @@ export function GlEntryScreen() {
       )}
       {delId !== null && (
         <Confirm text="이 일반전표를 삭제할까요?" onNo={() => setDelId(null)} onYes={doDelete} />
+      )}
+    </div>
+  );
+}
+
+// ───────────────────────── 지출결의서(회계Ⅰ>현금거래, §4.2) ─────────────────────────
+// 다행 그리드 폼 — 행별로 (차)계정=금액[거래처] + (차,수수료>0)831지급수수료 + (대)출금계좌=금액+수수료를
+// 조립해 POST /api/gl-entries 한 번으로 저장한다(설계-R11-입력화면.md §4.2/§5.2). GlEntryScreen과 같은 파일에
+// 두어 voucher-lines/gl-balance 등 동일 CSS 패턴을 재사용한다(신규 CSS 없음).
+
+interface ExpLine {
+  acctCode: string; acctName: string;     // 출금계좌
+  expCode: string; expName: string;       // 계정(비용)
+  partnerId: number | null; partnerName: string;
+  amount: number;
+  fee: number;
+  remarks: string;
+}
+const emptyExpLine = (): ExpLine => ({
+  acctCode: '', acctName: '', expCode: '', expName: '',
+  partnerId: null, partnerName: '', amount: 0, fee: 0, remarks: '',
+});
+
+// 지출결의서 그리드 툴바(실물 §12.6) — 전부 동작 없는 stub(연동 예정).
+const EXPENSE_STUB_TOOLBAR = ['찾기(F3)', '보류', '자금계획', '계좌입출금내역', '카드매입내역', '계정별잔액'];
+
+type ExpHelpTarget = { idx: number; kind: 'bank' | 'account' | 'partner' } | null;
+
+export function ExpenseRequestInput() {
+  const toast = useToast();
+  const [ioDate, setIoDate] = useState(todayISO());
+  const [docNo, setDocNo] = useState('');
+  const [summary, setSummary] = useState('');
+  const [lines, setLines] = useState<ExpLine[]>([emptyExpLine(), emptyExpLine(), emptyExpLine()]);
+  const [help, setHelp] = useState<ExpHelpTarget>(null);
+  const [saving, setSaving] = useState(false);
+
+  const setLine = (idx: number, patch: Partial<ExpLine>) =>
+    setLines(prev => prev.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
+  const addLine = () => setLines(prev => [...prev, emptyExpLine()]);
+  const removeLine = (idx: number) => setLines(prev => prev.filter((_, i) => i !== idx));
+  const clearPartner = (idx: number) => setLine(idx, { partnerId: null, partnerName: '' });
+
+  const validLines = useMemo(() => lines.filter(l => l.acctCode && l.expCode && l.amount > 0), [lines]);
+  const sumAmount = useMemo(() => validLines.reduce((s, l) => s + l.amount, 0), [validLines]);
+  const sumFee = useMemo(() => validLines.reduce((s, l) => s + (l.fee > 0 ? l.fee : 0), 0), [validLines]);
+
+  const resetForm = () => {
+    setDocNo('');
+    setSummary('');
+    setLines([emptyExpLine(), emptyExpLine(), emptyExpLine()]);
+  };
+
+  const save = async () => {
+    if (!ioDate) { toast.show('일자를 입력하세요.', 'error'); return; }
+    if (!validLines.length) { toast.show('출금계좌·계정·금액을 입력한 행이 1개 이상 필요합니다.', 'error'); return; }
+    setSaving(true);
+    try {
+      const glLines: { account_code: string; dr: number; cr: number; partner_id: number | null; remarks: string }[] = [];
+      validLines.forEach(l => {
+        const fee = l.fee > 0 ? l.fee : 0;
+        glLines.push({ account_code: l.expCode, dr: l.amount, cr: 0, partner_id: l.partnerId, remarks: l.remarks });
+        if (fee > 0) glLines.push({ account_code: '831', dr: fee, cr: 0, partner_id: null, remarks: l.remarks });
+        glLines.push({ account_code: l.acctCode, dr: 0, cr: l.amount + fee, partner_id: null, remarks: l.remarks });
+      });
+      const res = await api.post<GlEntrySaveResult>('/api/gl-entries', { io_date: ioDate, summary, lines: glLines });
+      setDocNo(res.doc_no);
+      toast.show(`전표 ${res.doc_no} 저장`);
+    } catch (e) {
+      toast.show((e as Error).message, 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="screen" style={{ overflowY: 'auto' }}>
+      <div className="voucher-head">
+        <div className="vh-title">지출결의서</div>
+        <div className="vh-fields">
+          <label>일자
+            <input className="input" type="date" value={ioDate} onChange={e => setIoDate(e.target.value)} />
+          </label>
+          <label>회계전표No.
+            <input className="input" readOnly disabled value={docNo} placeholder="저장 후 표시됩니다" />
+          </label>
+          <label className="grow">첨언내용
+            <input className="input" value={summary} onChange={e => setSummary(e.target.value)} />
+          </label>
+          <label title="연동 예정입니다">첨부
+            <button className="btn small" disabled title="연동 예정입니다">+</button>
+          </label>
+        </div>
+      </div>
+
+      <div className="line-toolbar">
+        {EXPENSE_STUB_TOOLBAR.map(label => (
+          <button key={label} className="btn small" disabled title="연동 예정입니다">{label}</button>
+        ))}
+      </div>
+
+      <table className="voucher-lines">
+        <thead>
+          <tr>
+            <th style={{ width: 36 }}>No</th>
+            <th style={{ width: 130 }}>출금계좌</th>
+            <th style={{ width: 130 }}>계정</th>
+            <th style={{ width: 130 }}>거래처</th>
+            <th style={{ width: 110 }}>금액</th>
+            <th style={{ width: 90 }}>수수료</th>
+            <th>적요</th>
+            <th style={{ width: 40 }}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {lines.map((l, i) => (
+            <tr key={i}>
+              <td className="num">{i + 1}</td>
+              <td>
+                <input className="cell lookup" readOnly value={l.acctName}
+                  placeholder="선택" onClick={() => setHelp({ idx: i, kind: 'bank' })} />
+              </td>
+              <td>
+                <input className="cell lookup" readOnly value={l.expName}
+                  placeholder="선택" onClick={() => setHelp({ idx: i, kind: 'account' })} />
+              </td>
+              <td style={{ display: 'flex', alignItems: 'center' }}>
+                <input className="cell lookup" readOnly value={l.partnerName}
+                  placeholder="선택(선택)" onClick={() => setHelp({ idx: i, kind: 'partner' })} />
+                {l.partnerName && (
+                  <button className="icon-btn" title="거래처 해제" onClick={() => clearPartner(i)}>✕</button>
+                )}
+              </td>
+              <td>
+                <input className="cell num" type="number" step={100} value={l.amount || ''}
+                  onChange={e => setLine(i, { amount: parseInt(e.target.value, 10) || 0 })} />
+              </td>
+              <td>
+                <input className="cell num" type="number" step={100} value={l.fee || ''}
+                  onChange={e => setLine(i, { fee: parseInt(e.target.value, 10) || 0 })} />
+              </td>
+              <td>
+                <input className="cell" value={l.remarks} onChange={e => setLine(i, { remarks: e.target.value })} />
+              </td>
+              <td>
+                <button className="icon-btn" title="라인 삭제" onClick={() => removeLine(i)}>✕</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colSpan={4}>
+              <button className="btn small" onClick={addLine}>+ 라인 추가</button>
+            </td>
+            <td className="num"><b>{fmtWon(sumAmount)}</b></td>
+            <td className="num"><b>{fmtWon(sumFee)}</b></td>
+            <td colSpan={2}></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div className="voucher-actions">
+        <button className="btn primary" disabled={saving} onClick={save}>
+          {saving ? '저장 중...' : '저장(F8)'}
+        </button>
+        <button className="btn" disabled title="연동 예정입니다">저장/전표(F7)</button>
+        <button className="btn" onClick={resetForm}>다시작성</button>
+        <button className="btn" onClick={() => toast.show('목록 화면은 준비 중입니다.')}>리스트</button>
+        <button className="btn" disabled title="연동 예정입니다">웹자료올리기</button>
+      </div>
+
+      {help?.kind === 'bank' && (
+        <CodeHelp title="출금계좌" endpoint="/api/accounts" onClose={() => setHelp(null)}
+          onSelect={r => setLine(help.idx, { acctCode: r.code, acctName: r.name })} />
+      )}
+      {help?.kind === 'account' && (
+        <CodeHelp title="계정과목" endpoint="/api/accounts" onClose={() => setHelp(null)}
+          onSelect={r => setLine(help.idx, { expCode: r.code, expName: r.name })} />
+      )}
+      {help?.kind === 'partner' && (
+        <CodeHelp title="거래처" endpoint="/api/partners" onClose={() => setHelp(null)}
+          onSelect={r => setLine(help.idx, { partnerId: r.id, partnerName: r.name })} />
       )}
     </div>
   );

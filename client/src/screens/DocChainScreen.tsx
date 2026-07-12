@@ -16,6 +16,12 @@ type Kind = 'quote' | 'order' | 'purchase_order';
 
 const TITLE: Record<Kind, string> = { quote: '견적서', order: '주문서', purchase_order: '발주서' };
 
+// 견적서/주문서 입력 그리드 툴바(실물 §12.1) — 전부 동작 없는 stub(연동 예정). R11-A.
+const R11A_STUB_TOOLBAR = [
+  '찾기(F3)', '정렬', '거래내역보기(견적)▲', 'My품목▲', '할인', '재고불러오기',
+  '생성한전표', '바코드', '검증', '이익계산', '전표불러오기',
+];
+
 function emptyHeader(): VoucherHeader {
   return {
     date: todayISO(),
@@ -48,6 +54,11 @@ function DocChainScreen({ kind, mode = 'create', docId, onSaved, onDeleted, onCa
   const [sourceDocId, setSourceDocId] = useState<number | null>(null);
   const [pullOpen, setPullOpen] = useState(false);
   const [printData, setPrintData] = useState<{ company: PrintCompany; doc: Doc } | null>(null);
+  // R11-A: 견적/주문 헤더의 실물 참고필드 — quote/order 스키마에 없어 컴포넌트 state로만 보관, 서버 미전송(설계 3.2/3.3).
+  const [refNote, setRefNote] = useState('');         // 참조
+  const [paymentTerm, setPaymentTerm] = useState(''); // 결제조건
+  const [validUntil, setValidUntil] = useState('');   // 유효기간(견적 전용)
+  const [searchContent, setSearchContent] = useState(''); // 검색창내용(주문 전용)
 
   // 서버와 동일한 부가세 반올림 규칙을 미리보기에도 적용(설계 0장)
   useEffect(() => {
@@ -145,12 +156,29 @@ function DocChainScreen({ kind, mode = 'create', docId, onSaved, onDeleted, onCa
         // 라인만 초기화, 헤더는 유지 → 연속입력. 끌어온 원본 연결도 리셋(설계 4.1)
         setLines([emptyLine()]);
         setSourceDocId(null);
+        // R11-A: 참고용 헤더 필드(서버 미전송)도 저장 시 리셋(설계 3.2)
+        setRefNote('');
+        setPaymentTerm('');
+        setValidUntil('');
+        setSearchContent('');
       }
     } catch (e) {
       toast.show((e as Error).message, 'error');
     } finally {
       setSaving(false);
     }
+  };
+
+  // 다시작성(§12.1/§12.2 하단바) — 헤더·라인·참고필드 전부 초기화(실동작). 끌어온 원본 연결도 해제.
+  const resetForm = () => {
+    setHeaderState(emptyHeader());
+    setLines([emptyLine()]);
+    setTimeDate('');
+    setSourceDocId(null);
+    setRefNote('');
+    setPaymentTerm('');
+    setValidUntil('');
+    setSearchContent('');
   };
 
   const doDelete = async () => {
@@ -224,21 +252,85 @@ function DocChainScreen({ kind, mode = 'create', docId, onSaved, onDeleted, onCa
         priceResolver={priceResolver}
         warehouseLabel={kind === 'purchase_order' ? '입고창고' : '창고'}
         saveLabel={mode === 'edit' ? '저장(F8)' : '저장(F8)'}
-        headerActions={kind === 'order' ? (
-          <button className="btn small" onClick={() => setPullOpen(true)}>견적 불러오기</button>
-        ) : undefined}
-        headerExtra={kind !== 'quote' ? (
-          <label>납기일자
-            <input className="input" type="date" value={timeDate} onChange={e => setTimeDate(e.target.value)} />
-          </label>
-        ) : undefined}
-        footerActions={mode === 'edit' ? (
-          <>
-            <button className="btn" onClick={onCancel}>목록으로</button>
-            {kind === 'quote' && <button className="btn" onClick={doPrint}>인쇄</button>}
-            <button className="btn danger" onClick={() => setConfirmDel(true)}>삭제</button>
-          </>
-        ) : undefined}
+        headerActions={
+          kind === 'quote' ? (
+            <div className="r11a-toolbar" style={{ width: '100%' }}>
+              {R11A_STUB_TOOLBAR.map(label => (
+                <button key={label} className="btn small" disabled title="연동 예정입니다">{label}</button>
+              ))}
+            </div>
+          ) : kind === 'order' ? (
+            <>
+              <button className="btn r8-primary" disabled title="생산입고 연계는 연동 예정입니다">생산입고 ▼</button>
+              <div className="r11a-toolbar" style={{ flex: 1, minWidth: 0 }}>
+                <button className="btn small" onClick={() => setPullOpen(true)}>견적</button>
+                {R11A_STUB_TOOLBAR.map(label => (
+                  <button key={label} className="btn small" disabled title="연동 예정입니다">{label}</button>
+                ))}
+              </div>
+            </>
+          ) : undefined
+        }
+        headerExtra={
+          kind === 'quote' ? (
+            <>
+              <label title="참고용(저장 미반영)">통화
+                <select className="input" disabled title="참고용(저장 미반영)"><option>내자</option></select>
+              </label>
+              <label title="참고용(저장 미반영)">참조
+                <input className="input" value={refNote} onChange={e => setRefNote(e.target.value)} />
+              </label>
+              <label title="참고용(저장 미반영)">결제조건
+                <input className="input" value={paymentTerm} onChange={e => setPaymentTerm(e.target.value)} />
+              </label>
+              <label title="참고용(저장 미반영)">유효기간
+                <input className="input" type="date" value={validUntil} onChange={e => setValidUntil(e.target.value)} />
+              </label>
+              <label title="참고용(저장 미반영)">첨부
+                <button className="btn small" disabled title="연동 예정입니다">+</button>
+              </label>
+            </>
+          ) : kind === 'order' ? (
+            <>
+              <label>납기일자
+                <input className="input" type="date" value={timeDate} onChange={e => setTimeDate(e.target.value)} />
+              </label>
+              <label title="참고용(저장 미반영)">검색창내용
+                <input className="input" value={searchContent} onChange={e => setSearchContent(e.target.value)} />
+              </label>
+              <label title="참고용(저장 미반영)">참조
+                <input className="input" value={refNote} onChange={e => setRefNote(e.target.value)} />
+              </label>
+              <label title="참고용(저장 미반영)">결제조건
+                <input className="input" value={paymentTerm} onChange={e => setPaymentTerm(e.target.value)} />
+              </label>
+              <label title="참고용(저장 미반영)">첨부
+                <button className="btn small" disabled title="연동 예정입니다">+</button>
+              </label>
+            </>
+          ) : (
+            <label>납기일자
+              <input className="input" type="date" value={timeDate} onChange={e => setTimeDate(e.target.value)} />
+            </label>
+          )
+        }
+        footerActions={
+          mode === 'edit' ? (
+            <>
+              <button className="btn" onClick={onCancel}>목록으로</button>
+              {kind === 'quote' && <button className="btn" onClick={doPrint}>인쇄</button>}
+              <button className="btn danger" onClick={() => setConfirmDel(true)}>삭제</button>
+            </>
+          ) : (kind === 'quote' || kind === 'order') ? (
+            <>
+              <button className="btn" disabled title="연동 예정입니다">✈</button>
+              <button className="btn" disabled title="연동 예정입니다">저장/전표(F7)</button>
+              <button className="btn" onClick={resetForm}>다시작성</button>
+              <button className="btn" onClick={onCancel}>리스트</button>
+              <button className="btn" disabled title="연동 예정입니다">웹자료올리기</button>
+            </>
+          ) : undefined
+        }
       />
       {confirmDel && (
         <Confirm text="이 전표를 삭제할까요?" onNo={() => setConfirmDel(false)} onYes={doDelete} />
