@@ -715,3 +715,23 @@ code { background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
 /* 전잔/후잔 — 읽기전용 우측정렬(이카운트 헤더 우하단). 후잔은 전잔+전표합계로 실시간 갱신. */
 .vh-fields .input.num.ro { text-align: right; background: #f4f6fa; color: var(--txt); cursor: default; font-weight: 600; }
 .vh-fields .input:disabled { background: #f1f3f6; color: var(--sub); cursor: not-allowed; }
+
+/* ── R7: 이카운트 재고현황 검색 폼(ref-05) — [기본 +] 조건탭 + 검색폼 + 하단 액션바 ── */
+.cond-tabs { display: flex; gap: 2px; margin-bottom: -1px; }
+.cond-tab {
+  border: 1px solid var(--line); border-bottom: none; background: #f3f5f9;
+  border-radius: 5px 5px 0 0; padding: 5px 16px; font-size: 12.5px; color: var(--sub); cursor: pointer;
+}
+.cond-tab.on { background: #fff; color: var(--accent); font-weight: 700; border-color: var(--line); }
+.cond-tab.add { padding: 5px 10px; color: var(--sub); }
+.search-form { border: 1px solid var(--line); border-radius: 0 3px 3px 3px; background: #f8fafc; padding: 12px 14px; }
+.sf-row { display: grid; grid-template-columns: 76px minmax(260px, 360px) 76px 1fr; align-items: center; gap: 6px 8px; }
+.sf-row + .sf-row { margin-top: 8px; }
+.sf-label { font-size: 12.5px; color: #444; font-weight: 600; }
+.sf-field { display: flex; align-items: center; gap: 6px; }
+.sf-checks { gap: 18px; }
+.sf-checks label { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: #444; font-weight: 400; }
+.search-actions { display: flex; align-items: center; gap: 6px; padding: 10px 0; }
+.sa-note { margin-left: 8px; font-size: 12px; color: var(--sub); }
+/* 파일관리 등 미연동 링크 — 회색 안내 링크 */
+.link.muted { color: var(--sub); text-decoration: none; cursor: default; }

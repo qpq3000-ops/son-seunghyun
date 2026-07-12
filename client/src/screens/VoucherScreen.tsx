@@ -194,6 +194,27 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
     }
   };
 
+  // 이카운트 판매입력 버튼: 정렬(품목코드순) · 검증(저장 전 유효성) · 거래별부가세계산(합계 요약)
+  const sortLines = () => {
+    const sorted = [...lines].sort((a, b) => {
+      if (!a.item_id) return 1; if (!b.item_id) return -1;   // 빈 라인은 뒤로
+      return a.item_code.localeCompare(b.item_code);
+    });
+    setLines(sorted);
+    toast.show('품목코드 순으로 정렬했습니다.');
+  };
+  const verify = () => {
+    const msg = validate();
+    if (msg) { toast.show(`검증: ${msg}`, 'error'); return; }
+    const n = lines.filter(l => l.item_id && l.qty > 0).length;
+    toast.show(`검증 완료 — 품목 ${n}건, 저장 가능한 전표입니다.`);
+  };
+  const vatSummary = () => {
+    const sup = lines.reduce((a, l) => a + l.supply, 0);
+    const vat = lines.reduce((a, l) => a + l.vat, 0);
+    toast.show(`거래별 부가세 — 공급가액 ${sup.toLocaleString('ko-KR')} · 부가세 ${vat.toLocaleString('ko-KR')} · 합계 ${(sup + vat).toLocaleString('ko-KR')}원`);
+  };
+
   // 주문서/발주서 끌어오기(설계 4.4) — target은 저장하려는 전표 종류와 동일한 값('sale'|'purchase')
   const applyPulled = async (id: number) => {
     try {
@@ -310,10 +331,13 @@ export function VoucherScreen({ kind, mode = 'create', docId, onSaved, onDeleted
           kind === 'sale' ? (
             <>
               <button className="btn small" onClick={() => setFindOpen(true)}>찾기(F3)</button>
+              <button className="btn small" onClick={sortLines}>정렬</button>
               <button className="btn small" onClick={copyRecent}>거래내역보기</button>
               <button className="btn small" onClick={() => setStockPickOpen(true)}>재고불러오기</button>
+              <button className="btn small" onClick={verify}>검증</button>
               <button className="btn small" onClick={() => setProfitOpen(true)}>이익계산</button>
               <button className="btn small" onClick={() => setPullOpen(true)}>전표불러오기</button>
+              <button className="btn small" onClick={vatSummary}>거래별부가세계산</button>
             </>
           ) : (
             <button className="btn small" onClick={() => setPullOpen(true)}>발주서 불러오기</button>

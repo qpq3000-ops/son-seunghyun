@@ -10,12 +10,18 @@ import type { StockRow, LedgerReport, LedgerRow } from '../types';
 // 재고현황(StockStatus) + 재고수불부(StockLedger) — stock_ledger 원장 집계 조회 화면 2종.
 
 // ───────────────────────── 재고현황 ─────────────────────────
+// 이카운트 재고현황(출력물) 실화면 재현: [기본 +] 검색조건 탭 + 기준일자(금일/전일) + 창고·품목 룩업
+// + 기타 체크박스(사용중단포함/안전재고미달만) + 하단 [검색(F8)·금일·전일]. 결과는 폼 아래 그리드로 표시.
 export function StockStatus() {
   const toast = useToast();
   const [asOf, setAsOf] = useState(todayISO());
   const [warehouseId, setWarehouseId] = useState<number | null>(null);
   const [warehouseName, setWarehouseName] = useState('');
-  const [help, setHelp] = useState(false);
+  const [itemId, setItemId] = useState<number | null>(null);
+  const [itemName, setItemName] = useState('');
+  const [belowOnly, setBelowOnly] = useState(false);   // 안전재고미달만 표시(클라 필터)
+  const [includeInactive, setIncludeInactive] = useState(true); // 사용중단품목포함(서버가 전 품목 반환 → 항상 포함)
+  const [help, setHelp] = useState<'warehouse' | 'item' | null>(null);
   const [rows, setRows] = useState<StockRow[]>([]);
   const gridRef = useRef<Tabulator | null>(null);
 
@@ -30,6 +36,23 @@ export function StockStatus() {
   }, [asOf, warehouseId, toast]);
 
   useEffect(() => { load(); }, [load]);
+
+  // 이카운트 단축키: F8 검색
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'F8') { e.preventDefault(); load(); } };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [load]);
+
+  // 품목·안전재고미달 필터는 클라에서 적용(서버 재조회 불필요)
+  const view = rows.filter(r =>
+    (!itemId || r.item_id === itemId) && (!belowOnly || r.below_safety));
+
+  const setToday = () => setAsOf(todayISO());
+  const setYesterday = () => {
+    const d = new Date(asOf || todayISO()); d.setDate(d.getDate() - 1);
+    setAsOf(d.toISOString().slice(0, 10));
+  };
 
   const columns: ColumnDefinition[] = [
     { title: '품목코드', field: 'item_code', width: 110 },
@@ -49,30 +72,65 @@ export function StockStatus() {
 
   return (
     <div className="screen">
-      <div className="screen-bar">
-        <div className="search-group">
-          <span>기준일자</span>
-          <input className="input" type="date" style={{ width: 150 }} value={asOf} onChange={e => setAsOf(e.target.value)} />
-          <input className="input lookup" style={{ width: 160 }} readOnly value={warehouseName}
-            placeholder="창고(전체)" onClick={() => setHelp(true)} />
-          {warehouseName && (
-            <button className="icon-btn" title="창고 선택 해제" onClick={() => { setWarehouseId(null); setWarehouseName(''); }}>✕</button>
-          )}
-          <button className="btn" onClick={load}>조회</button>
+      {/* 검색조건 저장 탭 (이카운트 [기본] + 추가) — 현재는 기본 1개 */}
+      <div className="cond-tabs">
+        <button className="cond-tab on">기본</button>
+        <button className="cond-tab add" title="검색조건 추가(Phase 4)">+</button>
+      </div>
+
+      {/* 이카운트식 검색 폼 */}
+      <div className="search-form">
+        <div className="sf-row">
+          <label className="sf-label">기준일자</label>
+          <div className="sf-field">
+            <button className="btn small" onClick={setToday}>금일</button>
+            <input className="input" type="date" style={{ width: 150 }} value={asOf} onChange={e => setAsOf(e.target.value)} />
+          </div>
+          <label className="sf-label">창고</label>
+          <div className="sf-field">
+            <input className="input lookup" style={{ width: 200 }} readOnly value={warehouseName}
+              placeholder="창고(전체)" onClick={() => setHelp('warehouse')} />
+            {warehouseName && (
+              <button className="icon-btn" title="창고 해제" onClick={() => { setWarehouseId(null); setWarehouseName(''); }}>✕</button>
+            )}
+          </div>
         </div>
-        <div className="btn-group">
-          <button className="btn" onClick={() => gridRef.current?.download('xlsx', '재고현황.xlsx', { sheetName: '재고현황' })}>
-            엑셀
-          </button>
+        <div className="sf-row">
+          <label className="sf-label">품목</label>
+          <div className="sf-field">
+            <input className="input lookup" style={{ width: 200 }} readOnly value={itemName}
+              placeholder="품목(전체)" onClick={() => setHelp('item')} />
+            {itemName && (
+              <button className="icon-btn" title="품목 해제" onClick={() => { setItemId(null); setItemName(''); }}>✕</button>
+            )}
+          </div>
+          <label className="sf-label">기타</label>
+          <div className="sf-field sf-checks">
+            <label><input type="checkbox" checked={includeInactive} onChange={e => setIncludeInactive(e.target.checked)} /> 사용중단품목포함</label>
+            <label><input type="checkbox" checked={belowOnly} onChange={e => setBelowOnly(e.target.checked)} /> 안전재고미달만 표시</label>
+          </div>
         </div>
       </div>
-      <p className="hint">붉은색 수량은 안전재고 미달 품목입니다.</p>
+
+      {/* 하단 액션 바 (이카운트: 검색(F8)·금일·전일) */}
+      <div className="search-actions">
+        <button className="btn primary" onClick={load}>검색(F8)</button>
+        <button className="btn" onClick={setToday}>금일</button>
+        <button className="btn" onClick={setYesterday}>전일</button>
+        <button className="btn" onClick={() => gridRef.current?.download('xlsx', '재고현황.xlsx', { sheetName: '재고현황' })}>엑셀</button>
+        <span className="sa-note">붉은색 수량은 안전재고 미달 품목입니다.</span>
+      </div>
+
       <div className="screen-grid">
-        <DataGrid<StockRow> columns={columns} data={rows} rowNumbers gridRef={t => { gridRef.current = t; }} />
+        <DataGrid<StockRow> columns={columns} data={view} rowNumbers gridRef={t => { gridRef.current = t; }} />
       </div>
-      {help && (
-        <CodeHelp title="창고" endpoint="/api/warehouses" onClose={() => setHelp(false)}
+      {help === 'warehouse' && (
+        <CodeHelp title="창고" endpoint="/api/warehouses" onClose={() => setHelp(null)}
           onSelect={r => { setWarehouseId(r.id); setWarehouseName(r.name); }} />
+      )}
+      {help === 'item' && (
+        <CodeHelp title="품목" endpoint="/api/items" onClose={() => setHelp(null)}
+          onSelect={r => { setItemId(r.id); setItemName(r.name); }} />
       )}
     </div>
   );

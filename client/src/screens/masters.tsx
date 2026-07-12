@@ -24,6 +24,9 @@ const itemColumns: ColumnDefinition[] = [
   { title: '안전재고', field: 'safety_qty', width: 84, hozAlign: 'right' },
   { title: '로트', field: 'use_lot', width: 54, hozAlign: 'center', formatter: yn },
   { title: '사용', field: 'active', width: 54, hozAlign: 'center', formatter: yn },
+  // 이카운트 품목등록 리스트의 '파일관리' 열(ref-03) — 파일 첨부는 연동 예정이라 안내 링크만.
+  { title: '파일관리', width: 78, hozAlign: 'center', headerSort: false,
+    formatter: () => '<span class="link muted" title="파일 첨부는 연동 예정입니다">파일관리</span>' },
 ];
 
 const itemFields: FormField[] = [
